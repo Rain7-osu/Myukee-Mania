@@ -1,4 +1,6 @@
 import { convertNumberToNodeCol, NoteType } from './NoteType'
+import { Note } from './Note'
+import { PlayMap } from './PlayMap'
 
 const LINE_WRAP_CHAR = '\r\n'
 const GROUP_NAME_MATCH = /\[(\w+)]/
@@ -27,7 +29,7 @@ export class MapResolver {
 
   /**
    * @param text {string}
-   * @return {Map}
+   * @return {PlayMap}
    */
   static loadFromOsuManiaMap (text) {
     const resolver = new MapResolver(text)
@@ -35,7 +37,7 @@ export class MapResolver {
     resolver.splitByGroup()
     const notes = resolver.resolveNotes()
     const { offset, sectionLen } = resolver.resolveTiming()
-    return new Map(notes, offset, sectionLen)
+    return new PlayMap(notes, offset, sectionLen)
   }
 
   splitLine () {

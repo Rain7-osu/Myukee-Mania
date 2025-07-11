@@ -1,6 +1,10 @@
 import { Game } from './Game'
 import { NOTE_WIDTH } from './Config'
 
+function bindClick(btnId, handler) {
+  document.getElementById(btnId).addEventListener('click', handler)
+}
+
 function main() {
   const container = document.getElementById('stage-container')
   const canvas = document.createElement('canvas')
@@ -36,6 +40,12 @@ function main() {
   function decrease() {
     game.decreaseSpeed()
   }
+
+  bindClick('start', start)
+  bindClick('retry', retry)
+  bindClick('stop', stop)
+  bindClick('increase', increase)
+  bindClick('decrease', decrease)
 }
 
 main()

@@ -106,7 +106,14 @@ function serveFile (res, filePath, contentType) {
         </script></body>`)
     }
 
-    res.writeHead(200, { 'Content-Type': contentType })
+    let headers = { 'Content-Type': contentType }
+
+    if (contentType === 'audio/mp3') {
+      const stat = fs.statSync(filePath)
+      headers['Content-Length'] = stat.size
+    }
+
+    res.writeHead(200, headers)
     res.end(data)
   })
 }

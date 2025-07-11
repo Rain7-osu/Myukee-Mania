@@ -1,5 +1,5 @@
 export class AudioManager {
-  #el = document.createElement('audio')
+  static #el = document.createElement('audio')
 
   /**
    * the length of the audio
@@ -15,13 +15,13 @@ export class AudioManager {
       return;
     }
     const urlObj = URL.createObjectURL(file)
-    this.#el.addEventListener('load', () => {
-      this.#duration = this.#el.duration * 1000
+    AudioManager.#el.addEventListener('load', () => {
+      this.#duration = AudioManager.#el.duration * 1000
       URL.revokeObjectURL(urlObj)
     })
-    document.body.appendChild(this.#el)
-    this.#el.controls = true
-    this.#el.src = urlObj
+    document.body.appendChild(AudioManager.#el)
+    AudioManager.#el.controls = true
+    AudioManager.#el.src = urlObj
   }
 
   /**
@@ -31,31 +31,31 @@ export class AudioManager {
    */
   load(filename) {
     return new Promise((resolve) => {
-      this.#el.src = `./resources/${filename}`
-      this.#el.controls = true
-      document.getElementById('audio-control').append(this.#el)
+      AudioManager.#el.src = `./resources/${filename}`
+      AudioManager.#el.controls = true
+      document.getElementById('audio-control').append(AudioManager.#el)
 
       const onLoad = () => {
-        this.#duration = this.#el.duration * 1000
-        this.#el.removeEventListener('canplaythrough', onLoad)
+        this.#duration = AudioManager.#el.duration * 1000
+        AudioManager.#el.removeEventListener('canplaythrough', onLoad)
         resolve()
       }
 
-      this.#el.addEventListener('canplaythrough', onLoad)
+      AudioManager.#el.addEventListener('canplaythrough', onLoad)
     })
   }
 
   async play() {
-    await this.#el.play()
+    await AudioManager.#el.play()
   }
 
   abort() {
-    this.#el.pause()
-    this.#el.currentTime = 0
+    AudioManager.#el.pause()
+    AudioManager.#el.currentTime = 0
   }
 
   pause() {
-    this.#el.pause()
+    AudioManager.#el.pause()
   }
 
   get duration() {

@@ -1,4 +1,4 @@
-export class Map {
+export class PlayMap {
   /**
    * @constructor
    * @param notes {Note[]}

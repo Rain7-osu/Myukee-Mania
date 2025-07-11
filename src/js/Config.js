@@ -11,3 +11,9 @@ export const CANVAS_HEIGHT = window.screen.availHeight
 
 export const MAX_SPEED = 30
 export const MIN_SPEED = 5
+
+// per frame 25px
+export const HIT_EFFECT_RISE_SPEED = 25
+// per frame 10px
+export const HIT_EFFECT_FALL_SPEED = 10
+export const HIT_EFFECT_HEIGHT = Math.min(CANVAS_HEIGHT / 3, 360)

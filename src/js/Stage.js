@@ -1,6 +1,7 @@
 import { DEFAULT_DELAY_TIME, MAX_SPEED, MIN_SPEED } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
+import { HitEffectManager } from './HitEffectManager'
 
 export class Stage {
   /**
@@ -14,7 +15,7 @@ export class Stage {
   #requestAnimationFrameHandle
 
   /**
-   * @type {Map}
+   * @type {PlayMap}
    */
   #playingMap
 
@@ -74,17 +75,23 @@ export class Stage {
   #keyboardEventManager
 
   /**
+   * @type {HitEffectManager}
+   */
+  #hitEffects
+
+  /**
    * @constructor
    * @param root {string} canvas node name
    */
-  constructor (root ) {
+  constructor (root) {
     const canvas = document.getElementById(root)
     this.#renderEngine = new RenderEngine(canvas)
     this.#keyboardEventManager = new KeyboardEventManager()
+    this.#hitEffects = new HitEffectManager()
   }
 
   /**
-   * @param map {Map}
+   * @param map {PlayMap}
    * @param audio {AudioManager}
    * @return void
    */
@@ -92,11 +99,10 @@ export class Stage {
     this.reset()
     this.#playingMap = map
     this.#playingAudio = audio
-    this.#keyboardEventManager.registerStageEvent()
     this.initSectionLines()
   }
 
-  initSectionLines() {
+  initSectionLines () {
     // init section line
     const firstLine = this.#playingMap.offset
     const sectionLen = this.#playingMap.sectionLen
@@ -110,7 +116,7 @@ export class Stage {
   /**
    * @return void
    */
-  reset() {
+  reset () {
     this.#startTime = -1
     this.#pauseTime = -1
     this.#resumeTime = -1
@@ -123,7 +129,7 @@ export class Stage {
    * @param flag {boolean} true: run in resume
    * @return void
    */
-  run(flag) {
+  run (flag) {
     if (flag) {
       this.#playingAudio.play()
     } else {
@@ -131,9 +137,18 @@ export class Stage {
         this.#playingAudio.play()
       }, DEFAULT_DELAY_TIME)
     }
-    this.#requestAnimationFrameHandle = window.requestAnimationFrame(() => {
-      this.nextFrame()
-      this.renderFrame()
+    this.nextFrame()
+  }
+
+  registerStageEvent () {
+    this.#keyboardEventManager.registerStageEvent({
+      keypressEventList: [],
+      keyupEventList: [(e) => {
+        this.#hitEffects.releaseKey(e.key.toLowerCase())
+      }],
+      keydownEventList: [(e) => {
+        this.#hitEffects.pressKey(e.key.toLowerCase())
+      }],
     })
   }
 
@@ -144,29 +159,57 @@ export class Stage {
     this.#startTime = Date.now() + DEFAULT_DELAY_TIME
     this.#renderEngine.setTime(this.#startTime)
     this.run(false)
+    this.registerStageEvent()
   }
 
   /**
    * @return void
    */
-  pause() {
+  pause () {
     this.#pauseTime = Date.now()
     if (this.#requestAnimationFrameHandle) {
       window.cancelAnimationFrame(this.#requestAnimationFrameHandle)
     }
     this.#playingAudio.pause()
+    this.#keyboardEventManager.removeStageEvent()
   }
 
   /**
    * @return void
    */
-  resume() {
+  resume () {
     setTimeout(() => {
       this.#resumeTime = Date.now()
       this.#startTime += this.#resumeTime - this.#pauseTime
       this.#renderEngine.setTime(this.#startTime)
       this.run(true)
     }, DEFAULT_DELAY_TIME)
+    this.registerStageEvent()
+  }
+
+  retry () {
+    this.#playingAudio.abort()
+    this.reset()
+    this.start()
+  }
+
+  renderFrame () {
+    this.#renderEngine.renderBackground()
+    this.renderSectionLine()
+    this.renderNotes()
+    this.renderFps()
+    this.renderHitEffects()
+  }
+
+  nextFrame () {
+    this.#renderEngine.setNow(Date.now())
+    this.renderFrame()
+    const animation = () => this.nextFrame()
+    this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
+  }
+
+  renderHitEffects() {
+    this.#renderEngine.renderShape(this.#hitEffects)
   }
 
   renderNotes () {
@@ -185,7 +228,7 @@ export class Stage {
     })
   }
 
-  renderFps() {
+  renderFps () {
     const now = Date.now()
     this.#frameTimeList.push(now)
 
@@ -200,60 +243,38 @@ export class Stage {
 
     this.#renderEngine.renderFps(fpsValue)
   }
-
-  renderFrame () {
-    this.#renderEngine.renderBackground()
-    this.renderSectionLine()
-    this.renderNotes()
-    this.renderFps()
-  }
-
-  nextFrame () {
-    this.#renderEngine.setNow(Date.now())
-    this.renderFrame()
-    this.#requestAnimationFrameHandle = window.requestAnimationFrame(() => {
-      this.nextFrame()
-    })
-  }
-
-  increaseSpeed() {
+  increaseSpeed () {
     if (this.#speed >= MAX_SPEED) {
       return
     }
     this.#speed++
   }
 
-  decreaseSpeed() {
+  decreaseSpeed () {
     if (this.#speed <= MIN_SPEED) {
       return
     }
     this.#speed--
   }
 
-  retry () {
-    this.#playingAudio.abort()
-    this.reset()
-    this.start()
-  }
-
-  get playingMap() {
+  get playingMap () {
     return this.#playingMap
   }
 
-  get audio() {
+  get audio () {
     return this.#playingAudio
   }
 
   /**
    * @param timing {number}
    */
-  renderSpecialTiming(timing) {
+  renderSpecialTiming (timing) {
     this.#renderEngine.setTime(timing)
     this.renderFrame()
   }
 
-  dispose() {
-    this.#keyboardEventManager.disposeStageEvent()
+  dispose () {
+    this.#keyboardEventManager.removeStageEvent()
   }
 }
 
