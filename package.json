@@ -1,0 +1,20 @@
+{
+  "name": "myukee-mania",
+  "version": "0.0.0",
+  "description": "a web mania game",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node ./devServer/server.js"
+  },
+  "keywords": [
+    "mania",
+    "music"
+  ],
+  "author": "Myukee",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/ws": "^8.18.1",
+    "chokidar": "^4.0.3",
+    "ws": "^8.18.3"
+  }
+}

@@ -1,0 +1,38 @@
+html, body {
+  padding: 0;
+  margin: 0;
+  background-color: dimgray;
+}
+
+#stage {
+  display: block;
+  margin: 0 auto;
+  background-color: #000;
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.game {
+  display: flex;
+  flex-direction: row;
+}
+
+#map-text-view {
+  width: 400px;
+}
+
+.stage-container {
+
+}
+
+.general-control {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+#audio-control {
+  margin-top: 40px;
+}

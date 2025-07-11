@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link href="./css/index.css" rel="stylesheet">
+</head>
+<body>
+<div class="game">
+    <div id="stage-container" class="stage-container"></div>
+<!--    <div class="current-map">-->
+<!--        <label for="map-text-view">当前的谱面</label><textarea id="map-text-view" rows="64"></textarea>-->
+<!--    </div>-->
+    <div class="general-control">
+        <div class="actions">
+            <button onclick="start()">开始</button>
+            <button onclick="retry()">重试</button>
+            <button onclick="resume()">继续</button>
+            <button onclick="stop()">停止</button>
+            <button onclick="increase()">加速</button>
+            <button onclick="decrease()">减速</button>
+            <button id="next">向后播放</button>
+            <button id="prev">向前播放</button>
+        </div>
+        <div id="audio-control"></div>
+    </div>
+</div>
+<script src="./js/index.js" type="module"></script>
+</body>
+</html>
