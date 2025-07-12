@@ -1,7 +1,9 @@
-import { DEFAULT_DELAY_TIME, MAX_SPEED, MIN_SPEED } from './Config'
+import { DEFAULT_DELAY_TIME, DEFAULT_SPEED, MAX_SPEED, MIN_SPEED } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
 import { HitEffectManager } from './HitEffectManager'
+import { FPS } from './FPS'
+import { SectionLine } from './SectionLine'
 
 export class Stage {
   /**
@@ -23,12 +25,6 @@ export class Stage {
    * @type {AudioManager}
    */
   #playingAudio
-
-  /**
-   * drop flow speed
-   * @type {number}
-   */
-  #speed = 20
 
   /**
    * every section line offset
@@ -53,19 +49,6 @@ export class Stage {
    * @type {number}
    */
   #resumeTime = -1
-
-  /**
-   * use to calc fps
-   * @type {number}
-   */
-  #lastRenderFpsTime = -1
-
-  /**
-   * @type {number}
-   */
-  #lastFpsValue = -1
-
-  #lastCalcFpsFrame = -1
 
   #frameTimeList = []
 
@@ -104,12 +87,20 @@ export class Stage {
 
   initSectionLines () {
     // init section line
-    const firstLine = this.#playingMap.offset
-    const sectionLen = this.#playingMap.sectionLen
+    const timingList = this.#playingMap.timingList
     const duration = this.#playingAudio.duration
 
-    for (let i = firstLine; i < duration; i += sectionLen) {
-      this.#sectionLines.push(Math.round(i))
+    let currentSection = -1
+    for (let i = 0; i < timingList.length; i++) {
+      const currentTiming = timingList[i]
+      const startOffset = currentTiming.offset
+      const sectionLen = currentTiming.beatLen * 4
+      const endOffset = i + 1 >= timingList.length ? duration : timingList[i + 1].offset
+
+      for (let j = 0; j + startOffset < endOffset; j += sectionLen) {
+        currentSection = startOffset + j
+        this.#sectionLines.push(currentSection)
+      }
     }
   }
 
@@ -120,9 +111,7 @@ export class Stage {
     this.#startTime = -1
     this.#pauseTime = -1
     this.#resumeTime = -1
-    this.#lastRenderFpsTime = -1
-    this.#lastFpsValue = -1
-    this.#lastCalcFpsFrame = -1
+    this.#frameTimeList = []
   }
 
   /**
@@ -143,12 +132,16 @@ export class Stage {
   registerStageEvent () {
     this.#keyboardEventManager.registerStageEvent({
       keypressEventList: [],
-      keyupEventList: [(e) => {
-        this.#hitEffects.releaseKey(e.key.toLowerCase())
-      }],
-      keydownEventList: [(e) => {
-        this.#hitEffects.pressKey(e.key.toLowerCase())
-      }],
+      keyupEventList: [
+        (e) => {
+          this.#hitEffects.releaseKey(e.key.toLowerCase())
+        },
+      ],
+      keydownEventList: [
+        (e) => {
+          this.#hitEffects.pressKey(e.key.toLowerCase())
+        },
+      ],
     })
   }
 
@@ -157,7 +150,7 @@ export class Stage {
    */
   start () {
     this.#startTime = Date.now() + DEFAULT_DELAY_TIME
-    this.#renderEngine.setTime(this.#startTime)
+    this.#renderEngine.setStartTime(this.#startTime)
     this.run(false)
     this.registerStageEvent()
   }
@@ -181,9 +174,10 @@ export class Stage {
     setTimeout(() => {
       this.#resumeTime = Date.now()
       this.#startTime += this.#resumeTime - this.#pauseTime
-      this.#renderEngine.setTime(this.#startTime)
+      this.#renderEngine.setStartTime(this.#startTime)
       this.run(true)
     }, DEFAULT_DELAY_TIME)
+
     this.registerStageEvent()
   }
 
@@ -208,23 +202,19 @@ export class Stage {
     this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
   }
 
-  renderHitEffects() {
+  renderHitEffects () {
     this.#renderEngine.renderShape(this.#hitEffects)
   }
 
   renderNotes () {
     this.#playingMap.notes.forEach((note) => {
-      this.#renderEngine.renderNote(note, this.#speed)
+      this.#renderEngine.renderOffsetShape(note)
     })
   }
 
-  // TODO
-  //  do not use generate sectionLines list method to render, should use
-  //  calculate in every render frame
   renderSectionLine () {
-    const speed = this.#speed
     this.#sectionLines.forEach((offset) => {
-      this.#renderEngine.renderSectionLine(offset, speed)
+      this.#renderEngine.renderOffsetShape(new SectionLine(offset))
     })
   }
 
@@ -237,24 +227,25 @@ export class Stage {
 
     const fpsValue = (1000.0 * this.#frameTimeList.length / (last - first)).toFixed(0)
 
-    if (this.#frameTimeList.length > 100) {
+    if (this.#frameTimeList.length > 200) {
       this.#frameTimeList.shift()
     }
 
-    this.#renderEngine.renderFps(fpsValue)
+    this.#renderEngine.renderShape(new FPS(fpsValue))
   }
+
   increaseSpeed () {
-    if (this.#speed >= MAX_SPEED) {
+    if (this.#renderEngine.speed >= MAX_SPEED) {
       return
     }
-    this.#speed++
+    this.#renderEngine.speed++
   }
 
   decreaseSpeed () {
-    if (this.#speed <= MIN_SPEED) {
+    if (this.#renderEngine.speed <= MIN_SPEED) {
       return
     }
-    this.#speed--
+    this.#renderEngine.speed--
   }
 
   get playingMap () {
@@ -269,7 +260,7 @@ export class Stage {
    * @param timing {number}
    */
   renderSpecialTiming (timing) {
-    this.#renderEngine.setTime(timing)
+    this.#renderEngine.setStartTime(timing)
     this.renderFrame()
   }
 

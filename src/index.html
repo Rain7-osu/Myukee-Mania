@@ -6,21 +6,20 @@
     <link href="./css/index.css" rel="stylesheet">
 </head>
 <body>
-<div class="game">
+<div class="game" id="root">
     <div id="stage-container" class="stage-container"></div>
-<!--    <div class="current-map">-->
-<!--        <label for="map-text-view">当前的谱面</label><textarea id="map-text-view" rows="64"></textarea>-->
-<!--    </div>-->
     <div class="general-control">
         <div class="actions">
+            <button id="fullscreen">进入全屏</button>
             <button id="start">开始</button>
             <button id="retry">重试</button>
-            <button id="continue">继续</button>
+            <button id="resume">继续</button>
             <button id="stop">停止</button>
             <button id="increase">加速</button>
             <button id="decrease">减速</button>
             <button id="next">向后播放</button>
             <button id="prev">向前播放</button>
+            <button id="exit-fullscreen">退出全屏</button>
         </div>
         <div id="audio-control"></div>
     </div>

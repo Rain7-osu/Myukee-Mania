@@ -1,14 +1,16 @@
+/**
+ * @typedef {Array<{ offset: number; beatLen: number }>} TimingList
+ */
+
 export class PlayMap {
   /**
    * @constructor
    * @param notes {Note[]}
-   * @param offset {number}
-   * @param sectionLen {number}
+   * @param timingList {TimingList}
    */
-  constructor (notes, offset, sectionLen) {
+  constructor (notes, timingList) {
     this.#notes = notes
-    this.#offset = offset
-    this.#sectionLen = sectionLen
+    this.#timingList = timingList
   }
 
   /**
@@ -17,11 +19,9 @@ export class PlayMap {
   #notes
 
   /**
-   * @type {number}
+   * @type {TimingList}
    */
-  #offset
-
-  #sectionLen
+  #timingList
 
   /**
    * @return {Note[]}
@@ -30,11 +30,7 @@ export class PlayMap {
     return this.#notes
   }
 
-  get offset() {
-    return this.#offset
-  }
-
-  get sectionLen() {
-    return this.#sectionLen
+  get timingList() {
+    return this.#timingList
   }
 }

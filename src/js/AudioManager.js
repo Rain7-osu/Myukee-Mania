@@ -1,5 +1,6 @@
 export class AudioManager {
   static #el = document.createElement('audio')
+  static #container = document.getElementById('audio-control')
 
   /**
    * the length of the audio
@@ -14,12 +15,15 @@ export class AudioManager {
     if (!file) {
       return;
     }
+    AudioManager.#el.id = 'audio'
     const urlObj = URL.createObjectURL(file)
     AudioManager.#el.addEventListener('load', () => {
       this.#duration = AudioManager.#el.duration * 1000
       URL.revokeObjectURL(urlObj)
     })
-    document.body.appendChild(AudioManager.#el)
+    if (!AudioManager.#container.contains(AudioManager.#el)) {
+      document.body.appendChild(AudioManager.#el)
+    }
     AudioManager.#el.controls = true
     AudioManager.#el.src = urlObj
   }
@@ -33,7 +37,9 @@ export class AudioManager {
     return new Promise((resolve) => {
       AudioManager.#el.src = `./resources/${filename}`
       AudioManager.#el.controls = true
-      document.getElementById('audio-control').append(AudioManager.#el)
+      if (!AudioManager.#container.contains(AudioManager.#el)) {
+        document.body.appendChild(AudioManager.#el)
+      }
 
       const onLoad = () => {
         this.#duration = AudioManager.#el.duration * 1000

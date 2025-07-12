@@ -1,31 +1,49 @@
 import { Game } from './Game'
-import { NOTE_WIDTH } from './Config'
+import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight } from './Config'
 
-function bindClick(btnId, handler) {
-  document.getElementById(btnId).addEventListener('click', handler)
+/**
+ * @param id {string}
+ */
+function $(id) {
+  return document.getElementById(id)
 }
 
-function main() {
-  const container = document.getElementById('stage-container')
+function bindClick (btnId, handler) {
+  $(btnId).addEventListener('click', handler)
+}
+
+function main () {
+  const container = $('stage-container')
+  const game = Game.create()
   const canvas = document.createElement('canvas')
   canvas.id = 'stage'
-  canvas.height = window.screen.availHeight
-  canvas.width = NOTE_WIDTH * 4
   container.append(canvas)
+  canvas.width = CANVAS_WIDTH
+  setCanvasHeight(document.documentElement.clientHeight)
+  canvas.height = CANVAS_HEIGHT
 
-  const game = new Game()
 
-  async function start () {
-    await game.selectMap('02.2')
-    game.start()
-    // document.getElementById('map-text-view').value = game.mapText
+  function fullscreen () {
+    setCanvasHeight(window.screen.height)
+    canvas.height = CANVAS_HEIGHT
+    canvas.width = CANVAS_WIDTH
+
+    $('root').requestFullscreen({
+      navigationUI: 'hide'
+    })
   }
 
-  function retry() {
+  async function start () {
+    game.init()
+    await game.selectMap('04')
+    game.start()
+  }
+
+  function retry () {
     game.retry()
   }
 
-  function resume() {
+  function resume () {
     game.resume()
   }
 
@@ -33,19 +51,26 @@ function main() {
     game.pause()
   }
 
-  function increase() {
+  function increase () {
     game.increaseSpeed()
   }
 
-  function decrease() {
+  function decrease () {
     game.decreaseSpeed()
+  }
+
+  function exitFullscreen() {
+    document.exitFullscreen()
   }
 
   bindClick('start', start)
   bindClick('retry', retry)
   bindClick('stop', stop)
+  bindClick('resume', resume)
   bindClick('increase', increase)
   bindClick('decrease', decrease)
+  bindClick('fullscreen', fullscreen)
+  bindClick('exit-fullscreen', exitFullscreen)
 }
 
 main()

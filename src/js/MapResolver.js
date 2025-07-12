@@ -36,8 +36,8 @@ export class MapResolver {
     resolver.splitLine()
     resolver.splitByGroup()
     const notes = resolver.resolveNotes()
-    const { offset, sectionLen } = resolver.resolveTiming()
-    return new PlayMap(notes, offset, sectionLen)
+    const timingList = resolver.resolveTiming()
+    return new PlayMap(notes, timingList)
   }
 
   splitLine () {
@@ -92,18 +92,30 @@ export class MapResolver {
     return notes
   }
 
+  /**
+   * @return TimingList
+   */
   resolveTiming() {
     const timingPoints = this.#groups.TimingPoints
     if (!timingPoints) {
-      return 0
+      return []
     }
 
-    const [offset, sectionLen] = timingPoints[0].split(',')
-    return {
-      offset: +offset,
-      // 4 beat == 1 section
-      sectionLen: +sectionLen * 4
+    const timingList = []
+
+    for (let i = 0; i < timingPoints.length; i++) {
+      const [offset, beatLen] = timingPoints[i].split(',')
+
+      if (beatLen > 0) {
+        timingList.push({
+          offset: Number(offset),
+          beatLen: Number(beatLen)
+        })
+      }
     }
+
+
+    return timingList
   }
 
   /**

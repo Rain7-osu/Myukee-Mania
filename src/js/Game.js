@@ -4,16 +4,25 @@ import { MapResolver } from './MapResolver'
 import { AudioManager } from './AudioManager'
 
 export class Game {
-  #stage = new Stage('stage')
+  /** @type Game */
+  static #singleInstance
 
-  mapText
+  static create() {
+    if (!Game.#singleInstance) {
+      Game.#singleInstance = new Game()
+    }
+    return Game.#singleInstance
+  }
+
+  #stage
+
+  init() {
+    this.#stage = new Stage('stage')
+  }
 
   async selectMap(mapName) {
     const mapFile = await FileManager.use(`${mapName}.osu`)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
-    // TODO TEST DELETE
-    this.mapText = mapFile
-
     const audio = new AudioManager()
     await audio.load(`${mapName}.mp3`)
     this.#stage.init(currentMap, audio)

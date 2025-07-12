@@ -1,3 +1,8 @@
+/**
+  @callback KeyboardEventHandler
+  @param {KeyboardEvent} e
+ */
+
 export class KeyboardEventManager {
   /**
    * @type {KeyboardEventHandler[]}

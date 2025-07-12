@@ -1,6 +1,6 @@
 import {
   CANVAS_HEIGHT,
-  CANVAS_WIDTH,
+  CANVAS_WIDTH, DEFAULT_SPEED,
   NOTE_GAP,
   NOTE_HEIGHT,
   NOTE_WIDTH,
@@ -31,6 +31,9 @@ export class RenderEngine {
    */
   #now
 
+  /** @type {number} */
+  #speed = DEFAULT_SPEED
+
   /**
    * @public
    * @constructor
@@ -49,20 +52,31 @@ export class RenderEngine {
   }
 
   /**
+   * @param value {number}
+   */
+  set speed(value) {
+    this.#speed = value
+  }
+
+  get speed() {
+    return this.#speed
+  }
+
+  /**
    * renderStartTime
    * @param value {number}
    */
-  setTime(value) {
+  setStartTime(value) {
     this.#startTime = value
   }
 
   /**
    * @param offset {number}
-   * @param speed {number}
    */
-  convertOffsetToY(offset, speed) {
+  convertOffsetToY(offset) {
     const timeDelta = this.#now - this.#startTime
-    return (timeDelta - offset) / 10 * speed
+    // per frame fall (10 * speed) px
+    return (timeDelta - offset) / 10 * this.#speed + CANVAS_HEIGHT
   }
 
   /**
@@ -74,60 +88,16 @@ export class RenderEngine {
   }
 
   /**
-   * @param note {Note}
-   * @param speed {number}
+   * @public
+   * @param shape {OffsetShape}
    */
-  renderNote(note, speed) {
-    const context = this.#context
-    context.fillStyle = note.color
-    const calcY = (offset) => this.convertOffsetToY(offset, speed) + CANVAS_HEIGHT
-
-    const noteOffset = note.offset
-    if (note.type === NoteType.Rice) {
-      const y = calcY(noteOffset)
-      if (y > 0) {
-        // y - NOTE_HEIGHT: judgement on the bottom of note
-        context.fillRect(note.col * NOTE_WIDTH + NOTE_GAP / 2, y - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
-      }
-    } else if (note.type === NoteType.LN) {
-      const y = calcY(noteOffset)
-      const headY = calcY(note.end)
-      const height = y - headY
-      if (y > 0) {
-        context.fillRect(note.col * NOTE_WIDTH, headY, NOTE_WIDTH - 2, height)
-      }
-    }
+  renderOffsetShape(shape) {
+    const offsetY = this.convertOffsetToY(shape.offset)
+    const endY = shape.end ? this.convertOffsetToY(shape.end) : undefined
+    shape.render(this.#context, offsetY, endY)
   }
 
   renderBackground() {
     this.#context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-  }
-
-  /**
-   * render section line
-   * @param offset {number}
-   * @param speed {number}
-   */
-  renderSectionLine(offset, speed) {
-    const y = this.convertOffsetToY(offset, speed) + CANVAS_HEIGHT
-
-    if (y < 0) {
-      return
-    }
-
-    const context = this.#context
-    context.fillStyle = SECTION_LINE_COLOR
-    context.fillRect(0, y, CANVAS_WIDTH, SECTION_LINE_HEIGHT)
-  }
-
-  /**
-   * @param value {number}
-   */
-  renderFps(value) {
-    const context = this.#context
-    context.fillStyle = '#f00'
-    const x = 10
-    const y = 10
-    context.fillText(`FPS:${value}`, x, y, 60)
   }
 }

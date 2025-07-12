@@ -1,22 +1,11 @@
-import { BLUE_NOTE_COLOR, NOTE_HEIGHT, WHITE_NOTE_COLOR } from './Config'
-import { NoteCol } from './NoteType'
-import { Shape } from './Shape'
+import { BLUE_NOTE_COLOR, NOTE_GAP, NOTE_HEIGHT, NOTE_WIDTH, WHITE_NOTE_COLOR } from './Config'
+import { NoteCol, NoteType } from './NoteType'
+import { OffsetShape } from './Shape'
 
 /**
- * @typedef {number} Offset
  * @description 0 - 480
  */
-export class Note extends Shape {
-  /**
-   * @type {Offset}
-   */
-  #offset
-
-  /**
-   * @type {Offset}
-   */
-  #end
-
+export class Note extends OffsetShape {
   /**
    * @type {string}
    */
@@ -38,11 +27,6 @@ export class Note extends Shape {
   #y = Number.MIN_VALUE
 
   /**
-   * @type {number}
-   */
-  #height = NOTE_HEIGHT
-
-  /**
    *
    */
 
@@ -50,15 +34,13 @@ export class Note extends Shape {
    * @public
    * @param col {NoteCol}
    * @param type {NoteType}
-   * @param offset {Offset}
-   * @param end {Offset}
+   * @param offset {number}
+   * @param [end] {number}
    */
   constructor (col, type, offset, end) {
-    super()
+    super(offset, end)
     this.#col = col
-    this.#offset = offset
     this.#type = type
-    this.#end = end
     if (col === NoteCol.FIRST || col === NoteCol.FORTH) {
       this.#color = BLUE_NOTE_COLOR
     } else {
@@ -87,44 +69,22 @@ export class Note extends Shape {
     return this.#col
   }
 
-  /**
-   * @param val {NoteCol}
-   */
-  set col (val) {
-    this.#col = val
-  }
-
-  /**
-   * @return {Offset}
-   */
-  get offset () {
-    return this.#offset
-  }
-
-  /**
-   * @param val {Offset}
-   */
-  set offset (val) {
-    this.#offset = val
-  }
-
-  get end () {
-    return this.#end
-  }
-
-  set end (val) {
-    this.#end = val
-  }
-
   get type () {
     return this.#type
   }
 
-  set type (val) {
-    this.#type = val
-  }
-
-  render (context) {
-
+  render (context, offsetY, endY) {
+    context.fillStyle = this.#color
+    if (this.#type === NoteType.Rice) {
+      if (offsetY > 0) {
+        // y - NOTE_HEIGHT: judgement on the bottom of note
+        context.fillRect(this.#col * NOTE_WIDTH + NOTE_GAP / 2, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
+      }
+    } else if (this.#type === NoteType.LN) {
+      const height = offsetY - endY
+      if (offsetY > 0) {
+        context.fillRect(this.#col * NOTE_WIDTH, endY, NOTE_WIDTH - 2, height)
+      }
+    }
   }
 }
