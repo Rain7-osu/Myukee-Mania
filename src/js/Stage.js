@@ -9,6 +9,8 @@ import { JudgementManager } from './JudgementManager'
 import { JudgementEffect } from './JudgementEffect'
 import { Judgement, JudgementType } from './Judgement'
 import { KeyCode } from './KeyCode'
+import { ScoreEffect } from './ScoreEffect'
+import { ScoreManager } from './ScoreManager'
 
 export class Stage {
   /**
@@ -67,6 +69,9 @@ export class Stage {
    */
   #judgementManager
 
+  /** @type {ScoreManager} */
+  #scoreManager
+
   /**
    * @type {HitEffectManager}
    */
@@ -87,6 +92,7 @@ export class Stage {
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#hitEffects = new HitEffectManager()
     this.#judgementManager = new JudgementManager()
+    this.#scoreManager = new ScoreManager()
   }
 
   /**
@@ -99,11 +105,11 @@ export class Stage {
     this.#playingMap = map
     this.#playingAudio = audio
     this.initSectionLines()
-    this.#judgementManager.setNotes(this.#playingMap.notes)
+    this.#judgementManager.init(this.#playingMap.notes)
+    this.#scoreManager.init(this.playingMap.notes)
   }
 
   initSectionLines () {
-    // init section line
     const timingList = this.#playingMap.timingList
     const duration = this.#playingAudio.duration
 
@@ -233,16 +239,22 @@ export class Stage {
     this.renderHitEffects()
     this.renderJudgementEffects()
     this.renderComboEffect()
+    this.renderScoreEffect()
   }
 
   nextFrame () {
     const now = performance.now()
     this.#renderEngine.setNow(now)
     this.#judgementManager.update(now - this.#startTime)
+    this.#scoreManager.calcScore()
 
     this.renderFrame()
     const animation = () => this.nextFrame()
     this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
+  }
+
+  renderScoreEffect() {
+    this.#renderEngine.renderShape(new ScoreEffect(this.#scoreManager.score))
   }
 
   renderJudgementEffects () {
@@ -323,26 +335,7 @@ export class Stage {
   }
 
   testRender () {
-    let timing = 3000
-    const startTime = performance.now()
-    const judgementEffects = [
-      new JudgementEffect(new Judgement(JudgementType.PERFECT, 100)),
-    ]
-
-    const render = () => {
-      this.#renderEngine.renderBackground()
-      judgementEffects.forEach((item) => {
-        if (item.active) {
-          this.#renderEngine.renderShape(item)
-        }
-      })
-      judgementEffects.forEach((item, index) => {
-        item.update(performance.now() - startTime)
-      })
-
-      window.requestAnimationFrame(render)
-    }
-    render()
+    this.#renderEngine.renderShape(new ScoreEffect(990133))
   }
 }
 

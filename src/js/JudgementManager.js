@@ -93,7 +93,7 @@ export class JudgementManager {
   /**
    * @param notes {Note[]}
    */
-  setNotes(notes) {
+  init(notes) {
     this.#notes = notes
   }
 

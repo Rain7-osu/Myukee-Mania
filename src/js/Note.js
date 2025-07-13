@@ -20,23 +20,27 @@ export class Note extends OffsetShape {
    * @type {NoteType}
    */
   #type
+  get type () { return this.#type }
 
-  /**
-   * @type {number}
-   */
-  #y = Number.MIN_VALUE
 
   /** @type {boolean} */
   #isHit = false
+  get isHit () { return this.#isHit }
 
-  /**
-   * @type {Judgement}
-   */
+  /**  @type {Judgement} */
   #judgement
+  set judgement (value) { this.#judgement = value }
+  get judgement () { return this.#judgement }
 
-  /**
-   *
-   */
+  /** @type {number} */
+  #score = 0
+  get score () { return this.#score }
+  set score (value) { this.#score = value }
+
+  /** @type {number} */
+  #bonus = 100
+  get bonus () { return this.#bonus }
+  set bonus (value) { this.#bonus = value }
 
   /**
    * @public
@@ -56,46 +60,7 @@ export class Note extends OffsetShape {
     }
   }
 
-  get isHit() {
-    return this.#isHit
-  }
-
-  hit() {
-    this.#isHit = true
-  }
-
-  set judgement(value) {
-    this.#judgement = value
-  }
-
-  get judgement() {
-    return this.#judgement
-  }
-
-  /**
-   * @returns {string}
-   */
-  get color () {
-    return this.#color
-  }
-
-  /**
-   * @param val {string}
-   */
-  set color (val) {
-    this.#color = val
-  }
-
-  /**
-   * @returns {NoteCol}
-   */
-  get col () {
-    return this.#col
-  }
-
-  get type () {
-    return this.#type
-  }
+  hit () { this.#isHit = true }
 
   render (context, offsetY, endY) {
     context.fillStyle = this.#color
