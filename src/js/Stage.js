@@ -116,7 +116,7 @@ export class Stage {
     this.#playingMap = map
     this.#playingAudio = audio
     this.initSectionLines()
-    this.#judgementManager.init(this.#playingMap.notes)
+    this.#judgementManager.init(this.#playingMap.notes, this.#playingMap.overallDifficulty)
     this.#scoreManager.init(this.#playingMap.notes)
     this.#accuracyManager.init(this.#playingMap.notes)
   }
@@ -176,6 +176,10 @@ export class Stage {
         [key]: () => {
           if (this.#keyStatus[key]) {
             this.#hitEffects.releaseKey(key)
+            const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
+            if (col >= 0) {
+              this.#judgementManager.checkRelease(performance.now() - this.#startTime, col)
+            }
             this.#keyStatus[key] = false
           }
         },

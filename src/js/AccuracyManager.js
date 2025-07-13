@@ -11,7 +11,7 @@ export class AccuracyManager {
 
   calcAcc () {
     if (this.#notes.length === 0) {
-      return 0
+      return 1.0
     }
 
     let acc = 0.0
@@ -23,6 +23,10 @@ export class AccuracyManager {
         acc += note.judgement.accuracy
         hitCount++
       }
+    }
+
+    if (hitCount === 0) {
+      return 1.0
     }
 
     return acc / hitCount

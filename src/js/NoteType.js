@@ -14,22 +14,22 @@ export const NoteCol = {
  * @enum {string}
  */
 export const NoteType = {
-  LN: 'LN',
-  Rice: 'Rice',
+  HOLD: 'HOLD',
+  TAP: 'TAP',
 }
 
 /**
  * @param num {string | number}
- * @return {NoteCol}
+ * @return {number}
  */
 export function convertNumberToNodeCol(num) {
   const map = {
-    64: NoteCol.FIRST,
-    192: NoteCol.SECOND,
-    320: NoteCol.THIRD,
-    448: NoteCol.FORTH,
+    64: 0,
+    192: 1,
+    320: 2,
+    448: 3,
   }
 
   const value = +num
-  return map[value] || NoteCol.FIRST
+  return map[value] || 0
 }

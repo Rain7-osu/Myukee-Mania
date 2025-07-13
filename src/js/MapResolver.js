@@ -37,7 +37,14 @@ export class MapResolver {
     resolver.splitByGroup()
     const notes = resolver.resolveNotes()
     const timingList = resolver.resolveTiming()
-    return new PlayMap(notes, timingList)
+    const { overallDifficulty, hpDrainRate } = resolver.resolveDifficulty()
+
+    return new PlayMap({
+      notes,
+      timingList,
+      overallDifficulty,
+      hpDrainRate,
+    })
   }
 
   splitLine () {
@@ -64,6 +71,24 @@ export class MapResolver {
         }
       }
     }
+  }
+
+  resolveDifficulty () {
+    const difficultyGroup = this.#groups.Difficulty
+
+    /** @type {Record<string, number>} */
+    const result = {}
+
+    difficultyGroup.forEach((line) => {
+      const [name, value] = line.split(':')
+      if (name === 'OverallDifficulty') {
+        result.overallDifficulty = Number(value)
+      } else if (name === 'HPDrainRate') {
+        result.hpDrainRate = Number(value)
+      }
+    })
+
+    return result
   }
 
   /**
@@ -95,7 +120,7 @@ export class MapResolver {
   /**
    * @return TimingList
    */
-  resolveTiming() {
+  resolveTiming () {
     const timingPoints = this.#groups.TimingPoints
     if (!timingPoints) {
       return []
@@ -109,11 +134,10 @@ export class MapResolver {
       if (beatLen > 0) {
         timingList.push({
           offset: Number(offset),
-          beatLen: Number(beatLen)
+          beatLen: Number(beatLen),
         })
       }
     }
-
 
     return timingList
   }
@@ -122,15 +146,15 @@ export class MapResolver {
    * @param hitObjectStr
    * @return {{ col: NoteCol, offset: number, end: number, type: NoteType }}
    */
-  resolveHitObject(hitObjectStr) {
+  resolveHitObject (hitObjectStr) {
     const hitObject = hitObjectStr.split(',')
     const [col, ___, offset, _, __, endStr] = hitObject
     const [end] = endStr.split(':')
     const endValue = +end
 
-    let type = NoteType.Rice
+    let type = NoteType.TAP
     if (endValue > 1) {
-      type = NoteType.LN
+      type = NoteType.HOLD
     }
 
     return {

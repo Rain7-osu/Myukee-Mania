@@ -111,12 +111,12 @@ export class JudgementEffect extends Shape {
    * @param {JudgementEffect | null} nextEffect
    */
   update(currentTiming, nextEffect) {
-    const elapsedTime = currentTiming - this.#judgement.hitTiming
+    const elapsedTime = currentTiming - this.#judgement.judgeTiming
 
     // 如果有下一个 effect，则判断下一个 effect 是不是马上要展示了
     // 如果是的话，则直接渲染下一个 effect，当前 effect 设为不活跃
     if (nextEffect) {
-      const nextEffectTiming = nextEffect.#judgement.hitTiming
+      const nextEffectTiming = nextEffect.#judgement.judgeTiming
       const diffTime = currentTiming - nextEffectTiming
       if (elapsedTime >= diffTime) {
         this.#active = false
@@ -139,6 +139,4 @@ export class JudgementEffect extends Shape {
       this.#active = false
     }
   }
-
-
 }

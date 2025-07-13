@@ -7,11 +7,26 @@ export class PlayMap {
    * @constructor
    * @param notes {Note[]}
    * @param timingList {TimingList}
+   * @param overallDifficulty {number}
+   * @param hpDrainRate {number}
    */
-  constructor (notes, timingList) {
+  constructor ({
+    notes,
+    timingList,
+    overallDifficulty,
+    hpDrainRate,
+  }) {
     this.#notes = notes
     this.#timingList = timingList
+    this.#overallDifficulty = overallDifficulty
+    this.#hpDrainRate = hpDrainRate
   }
+
+  /** @type {number} */
+  #overallDifficulty
+
+  /** @type {number} */
+  #hpDrainRate
 
   /**
    * @type {Note[]}
@@ -26,11 +41,19 @@ export class PlayMap {
   /**
    * @return {Note[]}
    */
-  get notes() {
+  get notes () {
     return this.#notes
   }
 
-  get timingList() {
+  get timingList () {
     return this.#timingList
+  }
+
+  get overallDifficulty () {
+    return this.#overallDifficulty
+  }
+
+  get hpDrainRate () {
+    return this.#hpDrainRate
   }
 }

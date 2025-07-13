@@ -14,16 +14,21 @@ export class Judgement {
   /** @type {JudgementType} */
   #type
 
-  /** @type {number} */
+  /** @type {number | undefined} */
   #hitTiming
+
+  /** @type {number | undefined} */
+  #releaseTiming
 
   /**
    * @param {JudgementType} type
-   * @param {number} hitTiming
+   * @param {number=} hitTiming
+   * @param {number=} releaseTiming
    */
-  constructor (type, hitTiming) {
+  constructor (type, hitTiming, releaseTiming) {
     this.#type = type
     this.#hitTiming = hitTiming
+    this.#releaseTiming = releaseTiming
   }
 
   get type () {
@@ -32,6 +37,10 @@ export class Judgement {
 
   get hitTiming () {
     return this.#hitTiming
+  }
+
+  get releaseTiming () {
+    return this.#releaseTiming
   }
 
   get hitValue () {
@@ -94,5 +103,9 @@ export class Judgement {
       default:
         return 0
     }
+  }
+
+  get judgeTiming() {
+    return this.#releaseTiming || this.#hitTiming
   }
 }
