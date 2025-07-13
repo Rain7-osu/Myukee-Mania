@@ -9,6 +9,7 @@ const loadImage = FileManager.loadImage
 const JudgementConfig = {
   [JudgementType.PERFECT]: {
     image: loadImage('./skin/mania-hit300g-0.png'),
+    image2: loadImage('./skin/mania-hit300g-1.png'),
     priority: 0,
     width: 188,
     height: 91
@@ -63,6 +64,9 @@ export class JudgementEffect extends Shape {
   /** @type {number} */
   #alpha
 
+  /** @type {'enlarging' | 'shirking'} */
+  #phase
+
   /** @type {number} */
   #maxScale = DEFAULT_MAX_SCALE
 
@@ -94,9 +98,11 @@ export class JudgementEffect extends Shape {
     const x = (4 * NOTE_WIDTH - width) / 2
     const y = CANVAS_HEIGHT / 3 - height / 2
 
+    const image = this.#phase === 'enlarging' ? config.image : config.image2 || config.image
+
     context.save()
     context.globalAlpha = this.#alpha
-    context.drawImage(config.image, x, y, width, height)
+    context.drawImage(image, x, y, width, height)
     context.restore()
   }
 
@@ -123,7 +129,9 @@ export class JudgementEffect extends Shape {
       const currentPercent = (elapsedTime / GROW_TIME) ** 2
       this.#scale = 1 + currentPercent * (this.#maxScale - 1)
       this.#alpha = INIT_ALPHA
+      this.#phase = 'enlarging'
     } else if (elapsedTime < BACK_TIME) {
+      this.#phase = 'shirking'
       this.#scale = this.#maxScale - ((elapsedTime - GROW_TIME) / (BACK_TIME - GROW_TIME)) ** 2 * (this.#maxScale - 1)
     } else if (elapsedTime < FADE_TIME) {
       this.#alpha = 1 - (elapsedTime - BACK_TIME) / (FADE_TIME - BACK_TIME)

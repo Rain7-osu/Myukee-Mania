@@ -13,6 +13,8 @@ import { ScoreEffect } from './ScoreEffect'
 import { ScoreManager } from './ScoreManager'
 import { JudgementRecordEffect } from './JudgementRecordEffect'
 import { ProgressPercentEffect } from './ProgressEffect'
+import { AccuracyEffect } from './AccuracyEffect'
+import { AccuracyManager } from './AccuracyManager'
 
 export class Stage {
   /**
@@ -87,6 +89,9 @@ export class Stage {
    */
   #keyStatus = {}
 
+  /** @type {AccuracyManager} */
+  #accuracyManager
+
   /**
    * @constructor
    * @param root {string} canvas node name
@@ -98,6 +103,7 @@ export class Stage {
     this.#hitEffects = new HitEffectManager()
     this.#judgementManager = new JudgementManager()
     this.#scoreManager = new ScoreManager()
+    this.#accuracyManager = new AccuracyManager()
   }
 
   /**
@@ -111,7 +117,8 @@ export class Stage {
     this.#playingAudio = audio
     this.initSectionLines()
     this.#judgementManager.init(this.#playingMap.notes)
-    this.#scoreManager.init(this.playingMap.notes)
+    this.#scoreManager.init(this.#playingMap.notes)
+    this.#accuracyManager.init(this.#playingMap.notes)
   }
 
   initSectionLines () {
@@ -185,7 +192,7 @@ export class Stage {
             this.#judgementManager.checkHit(performance.now() - this.#startTime, col)
             this.#keyStatus[key] = true
           }
-        }
+        },
       }
     }, {})
 
@@ -268,6 +275,7 @@ export class Stage {
     this.renderScoreEffect()
     this.renderJudgementResultEffect()
     this.renderProgressEffect()
+    this.renderAccuracyEffect()
   }
 
   nextFrame () {
@@ -281,7 +289,12 @@ export class Stage {
     this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
   }
 
-  renderProgressEffect() {
+  renderAccuracyEffect () {
+    const acc = this.#accuracyManager.calcAcc()
+    this.#renderEngine.renderShape(new AccuracyEffect(acc))
+  }
+
+  renderProgressEffect () {
     const percent = (performance.now() - this.#startTime) / this.#playingAudio.duration
     this.#renderEngine.renderShape(new ProgressPercentEffect(percent))
   }
@@ -290,7 +303,7 @@ export class Stage {
     this.#renderEngine.renderShape(new JudgementRecordEffect(this.#judgementManager.judgementRecord))
   }
 
-  renderScoreEffect() {
+  renderScoreEffect () {
     this.#renderEngine.renderShape(new ScoreEffect(this.#scoreManager.score))
   }
 

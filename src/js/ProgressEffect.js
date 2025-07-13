@@ -18,7 +18,7 @@ export class ProgressPercentEffect extends Shape {
 
   render (context) {
     const percent = this.#percent > 0 ? this.#percent : 0
-    const centerX = CANVAS_WIDTH - 200
+    const centerX = CANVAS_WIDTH - 300
     const centerY = 120
 
     // 绘制进度弧

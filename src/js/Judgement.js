@@ -26,19 +26,19 @@ export class Judgement {
     this.#hitTiming = hitTiming
   }
 
-  get type() {
+  get type () {
     return this.#type
   }
 
-  get hitTiming() {
+  get hitTiming () {
     return this.#hitTiming
   }
 
-  get hitValue() {
+  get hitValue () {
     return this.#type
   }
 
-  get hitBonusValue() {
+  get hitBonusValue () {
     switch (this.#type) {
       case JudgementType.PERFECT:
         return 32
@@ -57,11 +57,11 @@ export class Judgement {
     }
   }
 
-  get hitBonus() {
+  get hitBonus () {
     return Math.floor(this.hitBonusValue / 16)
   }
 
-  get hitPunishment() {
+  get hitPunishment () {
     switch (this.#type) {
       case JudgementType.PERFECT:
         return 0
@@ -75,6 +75,22 @@ export class Judgement {
         return 44
       case JudgementType.MISS:
         return Infinity
+      default:
+        return 0
+    }
+  }
+
+  get accuracy () {
+    switch (this.#type) {
+      case JudgementType.PERFECT:
+      case JudgementType.GREAT:
+        return 1.0
+      case JudgementType.GOOD:
+        return 0.6667
+      case JudgementType.OK:
+        return 0.3333
+      case JudgementType.MEH:
+        return 0.1667
       default:
         return 0
     }
