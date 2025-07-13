@@ -28,8 +28,8 @@ export class Note extends OffsetShape {
   #isHit = false
   get isHit () { return this.#isHit }
 
-  /**  @type {Judgement} */
-  #judgement
+  /**  @type {Judgement | null} */
+  #judgement = null
   set judgement (value) { this.#judgement = value }
 
   get judgement () { return this.#judgement }
@@ -47,7 +47,7 @@ export class Note extends OffsetShape {
   set bonus (value) { this.#bonus = value }
 
   /** @type {boolean} */
-  #isHeld
+  #isHeld = false
   get isHeld () { return this.#isHeld }
 
   set isHeld (value) { this.#isHeld = value }
@@ -55,20 +55,20 @@ export class Note extends OffsetShape {
   /** @type {boolean} */
   #combo
 
-  /** @type {number} */
-  #hitTiming
+  /** @type {number | null} */
+  #hitTiming = null
   get hitTiming () { return this.#hitTiming }
 
   set hitTiming (value) { this.#hitTiming = value }
 
-  /** @type {number} */
-  #releaseTiming
+  /** @type {number | null} */
+  #releaseTiming = null
   get releaseTiming () { return this.#releaseTiming }
 
   set releaseTiming (value) { this.#releaseTiming = value }
 
   /** @type {boolean} */
-  #grayed
+  #grayed = false
   set grayed (value) { this.#grayed = value }
   get grayed () { return this.#grayed }
 
@@ -94,6 +94,17 @@ export class Note extends OffsetShape {
    * 当前 note 已被打击处理过，无需再处理
    */
   hit () { this.#isHit = true }
+
+  reset() {
+    this.#grayed = false
+    this.#hitTiming = null
+    this.#releaseTiming = null
+    this.#isHeld = false
+    this.#bonus = 100
+    this.#score = 0
+    this.#judgement = null
+    this.#isHit = false
+  }
 
   render (context, offsetY, endY) {
     context.fillStyle = this.#color

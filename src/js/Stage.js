@@ -112,13 +112,13 @@ export class Stage {
    * @return void
    */
   init (map, audio) {
-    this.reset()
     this.#playingMap = map
     this.#playingAudio = audio
     this.initSectionLines()
     this.#judgementManager.init(this.#playingMap.notes, this.#playingMap.overallDifficulty)
     this.#scoreManager.init(this.#playingMap.notes)
     this.#accuracyManager.init(this.#playingMap.notes)
+    this.reset()
   }
 
   initSectionLines () {
@@ -149,6 +149,7 @@ export class Stage {
     this.#resumeTime = -1
     this.#frameTimeList = []
     this.#judgementManager.reset()
+    this.#playingMap.notes.forEach((item) => item.reset())
   }
 
   /**
