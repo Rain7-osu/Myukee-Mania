@@ -2,7 +2,7 @@ import { Shape } from './Shape'
 import { CANVAS_WIDTH } from './Config'
 
 const RESULT_WIDTH = 100
-const RESULT_TOP = 100
+const RESULT_TOP = 200
 
 export class JudgementRecordEffect extends Shape {
   /** @type {JudgementRecord} */

@@ -12,6 +12,7 @@ import { KeyCode } from './KeyCode'
 import { ScoreEffect } from './ScoreEffect'
 import { ScoreManager } from './ScoreManager'
 import { JudgementRecordEffect } from './JudgementRecordEffect'
+import { ProgressPercentEffect } from './ProgressEffect'
 
 export class Stage {
   /**
@@ -266,6 +267,7 @@ export class Stage {
     this.renderComboEffect()
     this.renderScoreEffect()
     this.renderJudgementResultEffect()
+    this.renderProgressEffect()
   }
 
   nextFrame () {
@@ -277,6 +279,11 @@ export class Stage {
     this.renderFrame()
     const animation = () => this.nextFrame()
     this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
+  }
+
+  renderProgressEffect() {
+    const percent = (performance.now() - this.#startTime) / this.#playingAudio.duration
+    this.#renderEngine.renderShape(new ProgressPercentEffect(percent))
   }
 
   renderJudgementResultEffect () {
