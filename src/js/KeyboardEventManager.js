@@ -21,25 +21,40 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeydownEventHandler = (e) => {
-    this.#keydownEventList.forEach((handler) => handler(e))
+    const key = e.key.toLowerCase()
+    if (this.#keydownEventList[key]) {
+      this.#keydownEventList[key](e)
+    } else {
+      // console.warn(`No keydown handler registered for key: ${key}`)
+    }
   }
   /**
    * @param e {KeyboardEvent}
    */
   #invokeKeyupEventHandler = (e) => {
-    this.#keyupEventList.forEach((handler) => handler(e))
+    const key = e.key.toLowerCase()
+    if (this.#keyupEventList[key]) {
+      this.#keyupEventList[key](e)
+    } else {
+      // console.warn(`No keyup handler registered for key: ${key}`)
+    }
   }
   /**
    * @param e {KeyboardEvent}
    */
   #invokeKeypressEventHandler = (e) => {
-    this.#keypressEventList.forEach((handler) => handler(e))
+    const key = e.key.toLowerCase()
+    if (this.#keypressEventList[key]) {
+      this.#keypressEventList[key](e)
+    } else {
+      // console.warn(`No keypress handler registered for key: ${key}`)
+    }
   }
 
   /**
-   * @param keydownEventList {KeyboardEventHandler[]}
-   * @param keyupEventList {KeyboardEventHandler[]}
-   * @param keypressEventList {KeyboardEventHandler[]}
+   * @param keydownEventList {Record<string, KeyboardEvent>}
+   * @param keyupEventList {Record<string, KeyboardEvent>}
+   * @param keypressEventList {Record<string, KeyboardEvent>}
    */
   registerStageEvent({
     keydownEventList,

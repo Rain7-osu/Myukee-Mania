@@ -1,5 +1,5 @@
 import { Game } from './Game'
-import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight } from './Config'
+import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight, setCanvasWidth } from './Config'
 
 /**
  * @param id {string}
@@ -18,6 +18,7 @@ function main () {
   const canvas = document.createElement('canvas')
   canvas.id = 'stage'
   container.append(canvas)
+  setCanvasWidth(document.documentElement.clientWidth)
   canvas.width = CANVAS_WIDTH
   setCanvasHeight(document.documentElement.clientHeight)
   canvas.height = CANVAS_HEIGHT
@@ -35,7 +36,8 @@ function main () {
 
   async function start () {
     game.init()
-    await game.selectMap('04')
+    const selectedMap = $('map-select').value
+    await game.selectMap(selectedMap)
     game.start()
   }
 
@@ -63,6 +65,11 @@ function main () {
     document.exitFullscreen()
   }
 
+  function test() {
+    game.init()
+    game.testRender()
+  }
+
   bindClick('start', start)
   bindClick('retry', retry)
   bindClick('stop', stop)
@@ -71,6 +78,7 @@ function main () {
   bindClick('decrease', decrease)
   bindClick('fullscreen', fullscreen)
   bindClick('exit-fullscreen', exitFullscreen)
+  bindClick('test', test)
 }
 
 main()

@@ -21,7 +21,7 @@ export class Game {
   }
 
   async selectMap(mapName) {
-    const mapFile = await FileManager.use(`${mapName}.osu`)
+    const mapFile = await FileManager.load(`${mapName}.osu`)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     const audio = new AudioManager()
     await audio.load(`${mapName}.mp3`)
@@ -62,5 +62,9 @@ export class Game {
 
   get bgm() {
     return this.#stage.audio
+  }
+
+  testRender() {
+    this.#stage.testRender()
   }
 }

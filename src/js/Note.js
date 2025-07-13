@@ -26,6 +26,14 @@ export class Note extends OffsetShape {
    */
   #y = Number.MIN_VALUE
 
+  /** @type {boolean} */
+  #isHit = false
+
+  /**
+   * @type {Judgement}
+   */
+  #judgement
+
   /**
    *
    */
@@ -46,6 +54,22 @@ export class Note extends OffsetShape {
     } else {
       this.#color = WHITE_NOTE_COLOR
     }
+  }
+
+  get isHit() {
+    return this.#isHit
+  }
+
+  hit() {
+    this.#isHit = true
+  }
+
+  set judgement(value) {
+    this.#judgement = value
+  }
+
+  get judgement() {
+    return this.#judgement
   }
 
   /**

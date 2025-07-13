@@ -18,10 +18,20 @@ export class FileManager {
    * @param name file name
    * @return Promise<string>
    */
-  static async use(name) {
+  static async load(name) {
     const res = await fetch(`./resources/${name}`)
     const data = await res.text()
     return data
+  }
+
+  /**
+   * @param src {string}
+   * @return {HTMLImageElement}
+   */
+  static loadImage(src) {
+    const img = new Image()
+    img.src = src
+    return img
   }
 
   /**

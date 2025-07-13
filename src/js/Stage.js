@@ -1,9 +1,14 @@
-import { DEFAULT_DELAY_TIME, DEFAULT_SPEED, MAX_SPEED, MIN_SPEED } from './Config'
+import { DEFAULT_DELAY_TIME, MAX_SPEED, MIN_SPEED } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
 import { HitEffectManager } from './HitEffectManager'
 import { FPS } from './FPS'
 import { SectionLine } from './SectionLine'
+import { ComboEffect } from './ComboEffect'
+import { JudgementManager } from './JudgementManager'
+import { JudgementEffect } from './JudgementEffect'
+import { Judgement, JudgementType } from './Judgement'
+import { KeyCode } from './KeyCode'
 
 export class Stage {
   /**
@@ -58,9 +63,19 @@ export class Stage {
   #keyboardEventManager
 
   /**
+   * @type {JudgementManager}
+   */
+  #judgementManager
+
+  /**
    * @type {HitEffectManager}
    */
   #hitEffects
+
+  /**
+   * @type {{ [key: KeyCode]: boolean }}
+   */
+  #keyStatus = {}
 
   /**
    * @constructor
@@ -71,6 +86,7 @@ export class Stage {
     this.#renderEngine = new RenderEngine(canvas)
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#hitEffects = new HitEffectManager()
+    this.#judgementManager = new JudgementManager()
   }
 
   /**
@@ -83,6 +99,7 @@ export class Stage {
     this.#playingMap = map
     this.#playingAudio = audio
     this.initSectionLines()
+    this.#judgementManager.setNotes(this.#playingMap.notes)
   }
 
   initSectionLines () {
@@ -112,6 +129,7 @@ export class Stage {
     this.#pauseTime = -1
     this.#resumeTime = -1
     this.#frameTimeList = []
+    this.#judgementManager.reset()
   }
 
   /**
@@ -130,18 +148,38 @@ export class Stage {
   }
 
   registerStageEvent () {
+    const hitObjectKeys = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K]
+
+    // { d: func, f: func, j: func, k: func}
+    const hitObjectsUpEvents = hitObjectKeys.reduce((acc, key) => {
+      return {
+        ...acc,
+        [key]: () => {
+          this.#hitEffects.releaseKey(key)
+          this.#keyStatus[key] = false
+        },
+      }
+    }, {})
+
+    const hitObjectsDownEvents = hitObjectKeys.reduce((acc, key) => {
+      return {
+        ...acc,
+        [key]: () => {
+          this.#hitEffects.pressKey(key)
+          this.#judgementManager.checkHit(performance.now() - this.#startTime)
+          this.#keyStatus[key] = true
+        }
+      }
+    }, {})
+
     this.#keyboardEventManager.registerStageEvent({
       keypressEventList: [],
-      keyupEventList: [
-        (e) => {
-          this.#hitEffects.releaseKey(e.key.toLowerCase())
-        },
-      ],
-      keydownEventList: [
-        (e) => {
-          this.#hitEffects.pressKey(e.key.toLowerCase())
-        },
-      ],
+      keyupEventList: {
+        ...hitObjectsUpEvents,
+      },
+      keydownEventList: {
+        ...hitObjectsDownEvents,
+      },
     })
   }
 
@@ -149,7 +187,7 @@ export class Stage {
    * @return void
    */
   start () {
-    this.#startTime = Date.now() + DEFAULT_DELAY_TIME
+    this.#startTime = performance.now() + DEFAULT_DELAY_TIME
     this.#renderEngine.setStartTime(this.#startTime)
     this.run(false)
     this.registerStageEvent()
@@ -159,7 +197,7 @@ export class Stage {
    * @return void
    */
   pause () {
-    this.#pauseTime = Date.now()
+    this.#pauseTime = performance.now()
     if (this.#requestAnimationFrameHandle) {
       window.cancelAnimationFrame(this.#requestAnimationFrameHandle)
     }
@@ -172,7 +210,7 @@ export class Stage {
    */
   resume () {
     setTimeout(() => {
-      this.#resumeTime = Date.now()
+      this.#resumeTime = performance.now()
       this.#startTime += this.#resumeTime - this.#pauseTime
       this.#renderEngine.setStartTime(this.#startTime)
       this.run(true)
@@ -193,13 +231,29 @@ export class Stage {
     this.renderNotes()
     this.renderFps()
     this.renderHitEffects()
+    this.renderJudgementEffects()
+    this.renderComboEffect()
   }
 
   nextFrame () {
-    this.#renderEngine.setNow(Date.now())
+    const now = performance.now()
+    this.#renderEngine.setNow(now)
+    this.#judgementManager.update(now - this.#startTime)
+
     this.renderFrame()
     const animation = () => this.nextFrame()
     this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
+  }
+
+  renderJudgementEffects () {
+    this.#judgementManager.activeEffects.forEach((e) => {
+      this.#renderEngine.renderShape(e)
+    })
+  }
+
+  renderComboEffect () {
+    const combo = new ComboEffect(this.#judgementManager.combo)
+    this.#renderEngine.renderShape(combo)
   }
 
   renderHitEffects () {
@@ -219,7 +273,7 @@ export class Stage {
   }
 
   renderFps () {
-    const now = Date.now()
+    const now = performance.now()
     this.#frameTimeList.push(now)
 
     const first = this.#frameTimeList[0]
@@ -266,6 +320,29 @@ export class Stage {
 
   dispose () {
     this.#keyboardEventManager.removeStageEvent()
+  }
+
+  testRender () {
+    let timing = 3000
+    const startTime = performance.now()
+    const judgementEffects = [
+      new JudgementEffect(new Judgement(JudgementType.PERFECT, 100)),
+    ]
+
+    const render = () => {
+      this.#renderEngine.renderBackground()
+      judgementEffects.forEach((item) => {
+        if (item.active) {
+          this.#renderEngine.renderShape(item)
+        }
+      })
+      judgementEffects.forEach((item, index) => {
+        item.update(performance.now() - startTime)
+      })
+
+      window.requestAnimationFrame(render)
+    }
+    render()
   }
 }
 

@@ -1,14 +1,18 @@
-export const CANVAS_WIDTH = window.screen.width
+let CANVAS_WIDTH = window.screen.width
 // TODO in renderEngine
 let CANVAS_HEIGHT = window.screen.height
 
-export { CANVAS_HEIGHT }
+export { CANVAS_HEIGHT, CANVAS_WIDTH }
 
 /**
  * @param {number} val
  */
 export const setCanvasHeight = (val) => {
   CANVAS_HEIGHT = val
+}
+
+export const setCanvasWidth = (val) => {
+  CANVAS_WIDTH = val
 }
 
 

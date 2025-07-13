@@ -1,5 +1,5 @@
 import { Shape } from './Shape'
-import { CANVAS_HEIGHT } from './Config'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
 
 export class FPS extends Shape {
   /** @type {number} */
@@ -14,10 +14,13 @@ export class FPS extends Shape {
   }
 
   render (context) {
-    context.font = 'bold 48px Arial'
+    const text = `FPS:${this.#value}`
+    context.font = 'bold 24px Arial'
     context.fillStyle = '#f00'
-    const x = CANVAS_HEIGHT - 200
-    const y = 200
-    context.fillText(`FPS:${this.#value}`, x, y, 200)
+    const textMetrics = context.measureText(text)
+
+    const x = CANVAS_WIDTH - textMetrics.width - 10
+    const y = CANVAS_HEIGHT - 24
+    context.fillText(text, x, y, textMetrics.width, 24)
   }
 }

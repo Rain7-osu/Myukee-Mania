@@ -4,7 +4,7 @@ const path = require('path')
 const chokidar = require('chokidar')
 const { Server: WebSocketServer } = require('ws')
 
-const PORT = 3000
+const PORT = 9277
 const SRC_DIR = path.join(__dirname, '../src')
 const INDEX_HTML = path.join(SRC_DIR, 'index.html')
 

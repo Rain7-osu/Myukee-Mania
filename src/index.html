@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="icon" href="./favicon.ico" />
     <link href="./css/index.css" rel="stylesheet">
 </head>
 <body>
@@ -20,8 +21,21 @@
             <button id="next">向后播放</button>
             <button id="prev">向前播放</button>
             <button id="exit-fullscreen">退出全屏</button>
+            <button id="test">TEST</button>
         </div>
         <div id="audio-control"></div>
+        <div id="map-select-container">
+            <label for="map-select">选择地图:</label>
+            <select id="map-select">
+                <option value="01.2">AIAE HD</option>
+                <option value="01">AIAE SHD</option>
+                <option value="02">Memories [Memories]</option>
+                <option value="02.2">Memories [MX]</option>
+                <option value="03">Dodger</option>
+                <option value="04">LegenD</option>
+                <option value="05">Necro Fantasy</option>
+            </select>
+        </div>
     </div>
 </div>
 <script src="./js/index.js" type="module"></script>

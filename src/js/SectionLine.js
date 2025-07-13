@@ -12,6 +12,6 @@ export class SectionLine extends OffsetShape {
     }
 
     context.fillStyle = SECTION_LINE_COLOR
-    context.fillRect(0, offsetY - SECTION_LINE_HEIGHT / 2, NOTE_WIDTH * 4, SECTION_LINE_HEIGHT)
+    context.fillRect(0, offsetY, NOTE_WIDTH * 4, SECTION_LINE_HEIGHT)
   }
 }
