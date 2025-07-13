@@ -3,4 +3,8 @@ export const KeyCode = {
   F: 'f',
   J: 'j',
   K: 'k',
+  ESCAPE: 'escape',
+  TILED: '`',
+  F4: 'f4',
+  F3: 'f3',
 }

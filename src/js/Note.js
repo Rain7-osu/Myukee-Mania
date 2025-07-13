@@ -15,6 +15,7 @@ export class Note extends OffsetShape {
    * @type {NoteCol}
    */
   #col
+  get col () { return this.#col }
 
   /**
    * @type {NoteType}

@@ -2,7 +2,6 @@ import { Judgement, JudgementType } from './Judgement'
 import { Shape } from './Shape'
 import { JudgementEffect } from './JudgementEffect'
 
-
 const JudgementAreaList = [
   JudgementType.PERFECT,
   JudgementType.GREAT,
@@ -37,10 +36,7 @@ export class JudgementManager {
    * @type {import('./JudgementEffect').JudgementEffect[]}
    */
   #activeEffects = []
-
-  get activeEffects() {
-    return this.#activeEffects
-  }
+  get activeEffects () { return this.#activeEffects }
 
   /**
    * @type {Note[]}
@@ -49,17 +45,26 @@ export class JudgementManager {
 
   /** @type {number}  */
   #combo = 0
+  get combo () { return this.#combo }
 
-  get combo() {
-    return this.#combo
+  /** @type {JudgementRecord} */
+  #judgementRecord = {
+    [JudgementType.PERFECT]: 0,
+    [JudgementType.GREAT]: 0,
+    [JudgementType.GOOD]: 0,
+    [JudgementType.OK]: 0,
+    [JudgementType.MEH]: 0,
+    [JudgementType.MISS]: 0,
   }
+
+  get judgementRecord () { return this.#judgementRecord }
 
   /**
    * @param targetTiming {number}
    * @param hitTiming {number}
    * @return {null | Judgement}
    */
-  createByHit(targetTiming, hitTiming) {
+  createByHit (targetTiming, hitTiming) {
     let type = null
     const deviation = Math.abs(targetTiming - hitTiming)
 
@@ -93,21 +98,21 @@ export class JudgementManager {
   /**
    * @param notes {Note[]}
    */
-  init(notes) {
+  init (notes) {
     this.#notes = notes
   }
 
   /**
    * @param od {number}
    */
-  setOd(od) {
+  setOd (od) {
     this.#od = od
   }
 
   /**
    * @param {number} currentTiming
    */
-  update(currentTiming) {
+  update (currentTiming) {
     const maxMehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
     const notes = this.#notes
 
@@ -125,7 +130,8 @@ export class JudgementManager {
       if (!note.isHit && currentTiming - note.offset > maxMehTime) {
         note.hit()
         this.#combo = 0
-        note.judgement = new Judgement(JudgementType.MISS, currentTiming);
+        note.judgement = new Judgement(JudgementType.MISS, currentTiming)
+        this.#judgementRecord[JudgementType.MISS] += 1
         const effect = new JudgementEffect(note.judgement)
         this.#activeEffects.push(effect)
       }
@@ -134,13 +140,14 @@ export class JudgementManager {
 
   /**
    * @param {number} hitTiming
+   * @param {number} hitCol
    */
-  checkHit(hitTiming) {
+  checkHit (hitTiming, hitCol) {
     const notes = this.#notes
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
 
-      if (note.isHit) {
+      if (note.isHit || hitCol !== note.col) {
         continue
       }
 
@@ -151,15 +158,16 @@ export class JudgementManager {
 
       note.hit()
       note.judgement = judgement
+      this.#judgementRecord[judgement.type] += 1
 
       const effect = new JudgementEffect(judgement)
       this.#activeEffects.push(effect)
-      // 一次只处理一个音符
+      // 一次点击只处理一个音符
       break
     }
   }
 
-  reset() {
+  reset () {
     this.#activeEffects = []
   }
 }

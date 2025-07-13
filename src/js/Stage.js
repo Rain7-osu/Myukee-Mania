@@ -11,6 +11,7 @@ import { Judgement, JudgementType } from './Judgement'
 import { KeyCode } from './KeyCode'
 import { ScoreEffect } from './ScoreEffect'
 import { ScoreManager } from './ScoreManager'
+import { JudgementRecordEffect } from './JudgementRecordEffect'
 
 export class Stage {
   /**
@@ -38,6 +39,9 @@ export class Stage {
    * @type {number[]}
    */
   #sectionLines = []
+
+  /** @type {boolean} */
+  #isPaused
 
   /**
    * start rendered time
@@ -131,6 +135,7 @@ export class Stage {
    * @return void
    */
   reset () {
+    this.#isPaused = false
     this.#startTime = -1
     this.#pauseTime = -1
     this.#resumeTime = -1
@@ -161,8 +166,10 @@ export class Stage {
       return {
         ...acc,
         [key]: () => {
-          this.#hitEffects.releaseKey(key)
-          this.#keyStatus[key] = false
+          if (this.#keyStatus[key]) {
+            this.#hitEffects.releaseKey(key)
+            this.#keyStatus[key] = false
+          }
         },
       }
     }, {})
@@ -172,11 +179,26 @@ export class Stage {
         ...acc,
         [key]: () => {
           this.#hitEffects.pressKey(key)
-          this.#judgementManager.checkHit(performance.now() - this.#startTime)
-          this.#keyStatus[key] = true
+          const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
+          if (col >= 0) {
+            this.#judgementManager.checkHit(performance.now() - this.#startTime, col)
+            this.#keyStatus[key] = true
+          }
         }
       }
     }, {})
+
+    const optionKeyEvents = {
+      [KeyCode.ESCAPE]: () => {
+        if (this.#isPaused) {
+          this.resume()
+        } else {
+          this.pause()
+        }
+      },
+      [KeyCode.F4]: () => this.increaseSpeed(),
+      [KeyCode.F3]: () => this.decreaseSpeed(),
+    }
 
     this.#keyboardEventManager.registerStageEvent({
       keypressEventList: [],
@@ -185,6 +207,7 @@ export class Stage {
       },
       keydownEventList: {
         ...hitObjectsDownEvents,
+        ...optionKeyEvents,
       },
     })
   }
@@ -203,18 +226,20 @@ export class Stage {
    * @return void
    */
   pause () {
+    this.#isPaused = true
     this.#pauseTime = performance.now()
     if (this.#requestAnimationFrameHandle) {
       window.cancelAnimationFrame(this.#requestAnimationFrameHandle)
     }
     this.#playingAudio.pause()
-    this.#keyboardEventManager.removeStageEvent()
+    // this.#keyboardEventManager.removeStageEvent()
   }
 
   /**
    * @return void
    */
   resume () {
+    this.#isPaused = false
     setTimeout(() => {
       this.#resumeTime = performance.now()
       this.#startTime += this.#resumeTime - this.#pauseTime
@@ -240,6 +265,7 @@ export class Stage {
     this.renderJudgementEffects()
     this.renderComboEffect()
     this.renderScoreEffect()
+    this.renderJudgementResultEffect()
   }
 
   nextFrame () {
@@ -251,6 +277,10 @@ export class Stage {
     this.renderFrame()
     const animation = () => this.nextFrame()
     this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
+  }
+
+  renderJudgementResultEffect () {
+    this.#renderEngine.renderShape(new JudgementRecordEffect(this.#judgementManager.judgementRecord))
   }
 
   renderScoreEffect() {
