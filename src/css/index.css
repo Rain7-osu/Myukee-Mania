@@ -4,6 +4,11 @@ html, body {
   background-color: dimgray;
 }
 
+#enter {
+  position: fixed;
+  border: none;
+}
+
 #stage {
   display: block;
   margin: 0 auto;
@@ -26,7 +31,8 @@ html, body {
 
 }
 
-.general-control {
+#general-control {
+  display: none;
   position: absolute;
   top: 50%;
   right: 0;

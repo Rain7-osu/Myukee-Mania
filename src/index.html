@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <title>Title</title>
     <link rel="icon" href="./favicon.ico" />
+    <link href="./css/entry-button.css" rel="stylesheet">
     <link href="./css/index.css" rel="stylesheet">
 </head>
 <body>
 <div class="game" id="root">
+    <button id="enter" class="pink-button">
+        <span class="button-text">进入游戏</span>
+        <span class="button-hover"></span>
+    </button>
     <div id="stage-container" class="stage-container"></div>
-    <div class="general-control">
+    <div id="general-control">
         <div class="actions">
             <button id="fullscreen">进入全屏</button>
             <button id="start">开始</button>
@@ -27,7 +32,6 @@
         <div id="map-select-container">
             <label for="map-select">选择地图:</label>
             <select id="map-select">
-                <option value="00">TEST</option>
                 <option value="01.2">AIAE HD</option>
                 <option value="01">AIAE SHD</option>
                 <option value="02">Memories [Memories]</option>

@@ -21,10 +21,6 @@ export class AudioManager {
       this.#duration = AudioManager.#el.duration * 1000
       URL.revokeObjectURL(urlObj)
     })
-    if (!AudioManager.#container.contains(AudioManager.#el)) {
-      AudioManager.#container.appendChild(AudioManager.#el)
-    }
-    AudioManager.#el.controls = true
     AudioManager.#el.src = urlObj
   }
 
@@ -37,9 +33,6 @@ export class AudioManager {
     return new Promise((resolve) => {
       AudioManager.#el.src = `./resources/${filename}`
       AudioManager.#el.controls = true
-      if (!AudioManager.#container.contains(AudioManager.#el)) {
-        AudioManager.#container.appendChild(AudioManager.#el)
-      }
 
       const onLoad = () => {
         this.#duration = AudioManager.#el.duration * 1000

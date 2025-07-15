@@ -114,7 +114,7 @@ export class MapResolver {
       const note = new Note(col, type, offset, end)
       notes.push(note)
     }
-    return notes
+    return notes.sort((a, b) => a.offset - b.offset)
   }
 
   /**

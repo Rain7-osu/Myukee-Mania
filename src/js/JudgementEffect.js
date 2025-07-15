@@ -89,7 +89,6 @@ export class JudgementEffect extends Shape {
     this.#scale = INIT_SCALE
     this.#alpha = INIT_ALPHA
   }
-
   render (context) {
     const config = JudgementConfig[this.#judgement.type]
 
@@ -107,7 +106,7 @@ export class JudgementEffect extends Shape {
   }
 
   /**
-   * @param {number} currentTiming
+   * @param currentTiming
    * @param {JudgementEffect | null} nextEffect
    */
   update(currentTiming, nextEffect) {

@@ -11,25 +11,15 @@ import { NoteType } from './NoteType'
 
 export class RenderEngine {
   /**
-   * @type {HTMLCanvasElement}
-   */
-  #canvas
-
-  /**
    * @type {CanvasRenderingContext2D}
    */
   #context
 
   /**
-   * @type {number}
-   */
-  #startTime
-
-  /**
    * render frame of now basic on startTime
    * @type {number}
    */
-  #now
+  timing
 
   /** @type {number} */
   #speed = DEFAULT_SPEED
@@ -40,15 +30,14 @@ export class RenderEngine {
    * @param canvas {HTMLCanvasElement}
    */
   constructor (canvas) {
-    this.#canvas = canvas
     this.#context = canvas.getContext('2d')
   }
 
   /**
    * @param value {number}
    */
-  setNow(value) {
-    this.#now = value
+  setTiming(value) {
+    this.timing = value
   }
 
   /**
@@ -63,20 +52,12 @@ export class RenderEngine {
   }
 
   /**
-   * renderStartTime
-   * @param value {number}
-   */
-  setStartTime(value) {
-    this.#startTime = value
-  }
-
-  /**
    * @param offset {number}
    */
   convertOffsetToY(offset) {
-    const timeDelta = this.#now - this.#startTime
+    const timing = this.timing
     // per frame fall (10 * speed) px
-    return (timeDelta - offset) / 10 * this.#speed + CANVAS_HEIGHT
+    return (timing - offset) / 10 * this.#speed + CANVAS_HEIGHT
   }
 
   /**

@@ -13,6 +13,8 @@ function bindClick (btnId, handler) {
 }
 
 function main () {
+  $('general-control').style.display = 'block'
+
   const container = $('stage-container')
   const game = Game.create()
   const canvas = document.createElement('canvas')
@@ -81,4 +83,4 @@ function main () {
   bindClick('test', test)
 }
 
-main()
+bindClick('enter', main)

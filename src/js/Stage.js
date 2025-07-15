@@ -15,6 +15,7 @@ import { JudgementRecordEffect } from './JudgementRecordEffect'
 import { ProgressPercentEffect } from './ProgressEffect'
 import { AccuracyEffect } from './AccuracyEffect'
 import { AccuracyManager } from './AccuracyManager'
+import { SpeedChangeEffect } from './SpeedChangeEffect'
 
 export class Stage {
   /**
@@ -43,7 +44,10 @@ export class Stage {
    */
   #sectionLines = []
 
-  /** @type {boolean} */
+  /**
+   * 是否在一局游戏中处于暂停状态
+   * @type {boolean}
+   */
   #isPaused
 
   /**
@@ -53,17 +57,21 @@ export class Stage {
   #startTime = -1
 
   /**
-   * pause game time
+   * 上次按暂停的时间
    * @type {number}
    */
-  #pauseTime = -1
+  #lastPausedTime = 0
 
   /**
-   * resume game time
+   * 本局游戏总共的暂停时间
    * @type {number}
    */
-  #resumeTime = -1
+  #totalPauseTime = 0
 
+  /**
+   * 帧数记录
+   * @type {number[]}
+   */
   #frameTimeList = []
 
   /**
@@ -93,6 +101,15 @@ export class Stage {
   #accuracyManager
 
   /**
+   * 是否在一局游戏中
+   * @type {boolean}
+   */
+  #isPlaying = false
+
+  /** @type {SpeedChangeEffect} */
+  #speedChangeEffect = null
+
+  /**
    * @constructor
    * @param root {string} canvas node name
    */
@@ -104,6 +121,15 @@ export class Stage {
     this.#judgementManager = new JudgementManager()
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
+  }
+
+  /**
+   * 计算游戏局时，对于一首曲目基于音频时长的游戏局时间
+   * 减去暂停时间
+   */
+  getGameTiming () {
+    const now = performance.now()
+    return now - this.#startTime - this.#totalPauseTime
   }
 
   /**
@@ -144,9 +170,9 @@ export class Stage {
    */
   reset () {
     this.#isPaused = false
-    this.#startTime = -1
-    this.#pauseTime = -1
-    this.#resumeTime = -1
+    this.#startTime = 0
+    this.#totalPauseTime = 0
+    this.#lastPausedTime = 0
     this.#frameTimeList = []
     this.#judgementManager.reset()
     this.#playingMap.notes.forEach((item) => item.reset())
@@ -156,7 +182,7 @@ export class Stage {
    * @param flag {boolean} true: run in resume
    * @return void
    */
-  run (flag) {
+  playAudio (flag) {
     if (flag) {
       this.#playingAudio.play()
     } else {
@@ -164,11 +190,11 @@ export class Stage {
         this.#playingAudio.play()
       }, DEFAULT_DELAY_TIME)
     }
-    this.nextFrame()
   }
 
   registerStageEvent () {
     const hitObjectKeys = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K]
+    const getTiming = () => this.getGameTiming()
 
     // { d: func, f: func, j: func, k: func}
     const hitObjectsUpEvents = hitObjectKeys.reduce((acc, key) => {
@@ -179,7 +205,7 @@ export class Stage {
             this.#hitEffects.releaseKey(key)
             const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
             if (col >= 0) {
-              this.#judgementManager.checkRelease(performance.now() - this.#startTime, col)
+              this.#judgementManager.checkRelease(getTiming(), col)
             }
             this.#keyStatus[key] = false
           }
@@ -194,7 +220,7 @@ export class Stage {
           this.#hitEffects.pressKey(key)
           const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
           if (col >= 0) {
-            this.#judgementManager.checkHit(performance.now() - this.#startTime, col)
+            this.#judgementManager.checkHit(getTiming(), col)
             this.#keyStatus[key] = true
           }
         },
@@ -229,9 +255,9 @@ export class Stage {
    * @return void
    */
   start () {
+    this.#isPlaying = true
     this.#startTime = performance.now() + DEFAULT_DELAY_TIME
-    this.#renderEngine.setStartTime(this.#startTime)
-    this.run(false)
+    this.playAudio(false)
     this.registerStageEvent()
   }
 
@@ -240,27 +266,21 @@ export class Stage {
    */
   pause () {
     this.#isPaused = true
-    this.#pauseTime = performance.now()
-    if (this.#requestAnimationFrameHandle) {
-      window.cancelAnimationFrame(this.#requestAnimationFrameHandle)
-    }
+    this.#lastPausedTime = performance.now()
     this.#playingAudio.pause()
-    // this.#keyboardEventManager.removeStageEvent()
   }
 
   /**
    * @return void
    */
   resume () {
-    this.#isPaused = false
     setTimeout(() => {
-      this.#resumeTime = performance.now()
-      this.#startTime += this.#resumeTime - this.#pauseTime
-      this.#renderEngine.setStartTime(this.#startTime)
-      this.run(true)
+      this.#isPaused = false
+      const now = performance.now()
+      const currentPausedTime = now - this.#lastPausedTime
+      this.#totalPauseTime += currentPausedTime
+      this.playAudio(true)
     }, DEFAULT_DELAY_TIME)
-
-    this.registerStageEvent()
   }
 
   retry () {
@@ -271,27 +291,55 @@ export class Stage {
 
   renderFrame () {
     this.#renderEngine.renderBackground()
-    this.renderSectionLine()
-    this.renderNotes()
-    this.renderFps()
-    this.renderHitEffects()
-    this.renderJudgementEffects()
-    this.renderComboEffect()
-    this.renderScoreEffect()
-    this.renderJudgementResultEffect()
-    this.renderProgressEffect()
-    this.renderAccuracyEffect()
+
+    if (this.#isPlaying) {
+      this.renderFps()
+      this.renderScoreEffect()
+      this.renderJudgementResultEffect()
+      this.renderProgressEffect()
+      this.renderAccuracyEffect()
+      this.renderSectionLine()
+      this.renderNotes()
+      this.renderHitEffects()
+      this.renderJudgementEffects()
+      this.renderComboEffect()
+      this.renderSpeedChangeEffects()
+    }
   }
 
-  nextFrame () {
-    const now = performance.now()
-    this.#renderEngine.setNow(now)
-    this.#judgementManager.update(now - this.#startTime)
-    this.#scoreManager.calcScore()
+  loopFrame () {
+    if (this.#isPlaying) {
+      const timing = this.getGameTiming()
+
+      if (!this.#isPaused) {
+        this.#renderEngine.setTiming(timing)
+        this.#judgementManager.update(timing)
+        this.#scoreManager.calcScore()
+
+        if (timing > this.#playingAudio.duration + 3000) {
+          this.#isPlaying = false
+          this.#isPaused = false
+          alert('游戏结束！')
+        }
+      }
+    }
+
+    if (this.#speedChangeEffect) {
+      this.#speedChangeEffect.update()
+
+      if (!this.#speedChangeEffect.active) {
+        this.#speedChangeEffect = null
+      }
+    }
 
     this.renderFrame()
-    const animation = () => this.nextFrame()
-    this.#requestAnimationFrameHandle = window.requestAnimationFrame(animation)
+    this.#requestAnimationFrameHandle = window.requestAnimationFrame(this.loopFrame.bind(this))
+  }
+
+  renderSpeedChangeEffects () {
+    if (this.#speedChangeEffect && this.#speedChangeEffect.active) {
+      this.#renderEngine.renderShape(this.#speedChangeEffect)
+    }
   }
 
   renderAccuracyEffect () {
@@ -300,7 +348,9 @@ export class Stage {
   }
 
   renderProgressEffect () {
-    const percent = (performance.now() - this.#startTime) / this.#playingAudio.duration
+    const timing = this.getGameTiming()
+    const duration = this.#playingAudio.duration
+    const percent = timing > duration ? 1.0 : (timing / duration)
     this.#renderEngine.renderShape(new ProgressPercentEffect(percent))
   }
 
@@ -360,6 +410,7 @@ export class Stage {
       return
     }
     this.#renderEngine.speed++
+    this.#speedChangeEffect = new SpeedChangeEffect(this.#renderEngine.speed, performance.now())
   }
 
   decreaseSpeed () {
@@ -367,6 +418,7 @@ export class Stage {
       return
     }
     this.#renderEngine.speed--
+    this.#speedChangeEffect = new SpeedChangeEffect(this.#renderEngine.speed, performance.now())
   }
 
   get playingMap () {
@@ -381,7 +433,6 @@ export class Stage {
    * @param timing {number}
    */
   renderSpecialTiming (timing) {
-    this.#renderEngine.setStartTime(timing)
     this.renderFrame()
   }
 

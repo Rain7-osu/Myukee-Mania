@@ -18,6 +18,7 @@ export class Game {
 
   init() {
     this.#stage = new Stage('stage')
+    this.#stage.loopFrame()
   }
 
   async selectMap(mapName) {

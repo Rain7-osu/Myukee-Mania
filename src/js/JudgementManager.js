@@ -259,6 +259,7 @@ export class JudgementManager {
           note.isHeld = true
           note.hitTiming = hitTiming
 
+          // 过了 OK 区间还没按，直接灰条，断连
           if (hitDivision > maxOkTime) {
             note.grayed = true
             this.#combo = 0
