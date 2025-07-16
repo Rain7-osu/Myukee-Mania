@@ -6,8 +6,6 @@ import { FPS } from './FPS'
 import { SectionLine } from './SectionLine'
 import { ComboEffect } from './ComboEffect'
 import { JudgementManager } from './JudgementManager'
-import { JudgementEffect } from './JudgementEffect'
-import { Judgement, JudgementType } from './Judgement'
 import { KeyCode } from './KeyCode'
 import { ScoreEffect } from './ScoreEffect'
 import { ScoreManager } from './ScoreManager'
@@ -16,6 +14,7 @@ import { ProgressPercentEffect } from './ProgressEffect'
 import { AccuracyEffect } from './AccuracyEffect'
 import { AccuracyManager } from './AccuracyManager'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
+import { StageBoard } from './StageBoard'
 
 export class Stage {
   /**
@@ -100,6 +99,9 @@ export class Stage {
   /** @type {AccuracyManager} */
   #accuracyManager
 
+  /** @type {StageBoard} */
+  stageBoard
+
   /**
    * 是否在一局游戏中
    * @type {boolean}
@@ -121,6 +123,7 @@ export class Stage {
     this.#judgementManager = new JudgementManager()
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
+    this.stageBoard = new StageBoard()
   }
 
   /**
@@ -301,6 +304,7 @@ export class Stage {
       this.renderSectionLine()
       this.renderNotes()
       this.renderHitEffects()
+      this.#renderEngine.renderShape(this.stageBoard)
       this.renderJudgementEffects()
       this.renderComboEffect()
       this.renderSpeedChangeEffects()

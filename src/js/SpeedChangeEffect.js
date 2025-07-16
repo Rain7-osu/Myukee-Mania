@@ -14,7 +14,7 @@ export class SpeedChangeEffect extends Shape {
   #height
   /** @type {boolean} */
   #active
-  get active() { return this.#active }
+  get active () { return this.#active }
 
   /**
    * @param speed {number}
@@ -48,7 +48,7 @@ export class SpeedChangeEffect extends Shape {
       this.#height = bit * HEIGHT
     } else if (time <= 2800.0) {
       // keep
-    }  else if (time <= 3000.0) {
+    } else if (time <= 3000.0) {
       const bit = 1 - (time - 2800) / 200.0
       this.#alpha = bit
       this.#height = HEIGHT * bit
@@ -62,15 +62,18 @@ export class SpeedChangeEffect extends Shape {
   render (context) {
     const x = 0
     const y = (CANVAS_HEIGHT - this.#height) / 2.0
-    context.fillStyle = '#ffffff25'
+    context.fillStyle = 'rgba(16,16,16,0.8)'
     context.fillRect(x, y, CANVAS_WIDTH, this.#height)
 
     const text = `已将下落速度调整为 ${this.#currentSpeed}`
     context.font = 'normal 36px Ariel'
+    context.textAlign = 'left'
+    context.textBaseline = 'middle'
     context.fillStyle = '#ffffff'
+
     const textMetrics = context.measureText(text)
     const textX = (CANVAS_WIDTH - textMetrics.width) / 2.0
-    const textY = (CANVAS_HEIGHT + 18) / 2.0
+    const textY = CANVAS_HEIGHT / 2.0
     context.fillText(text, textX, textY)
     context.restore()
   }
