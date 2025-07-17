@@ -1,4 +1,4 @@
-import { Stage } from './Stage'
+import { Controller } from './Controller'
 import { FileManager } from './FileManager'
 import { MapResolver } from './MapResolver'
 import { AudioManager } from './AudioManager'
@@ -17,12 +17,12 @@ export class Game {
   #stage
 
   init() {
-    this.#stage = new Stage('stage')
+    this.#stage = new Controller('stage')
     this.#stage.loopFrame()
   }
 
   async selectMap(mapName) {
-    const mapFile = await FileManager.load(`${mapName}.osu`)
+    const mapFile = await FileManager.loadMapFile(`${mapName}.osu`)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     const audio = new AudioManager()
     await audio.load(`${mapName}.mp3`)

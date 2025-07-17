@@ -14,14 +14,13 @@ export class FileManager {
   #fileReader = new FileReader()
 
   /**
-   * use file in resources folder
+   * use file in maps folder
    * @param name file name
    * @return Promise<string>
    */
-  static async load(name) {
-    const res = await fetch(`./resources/${name}`)
-    const data = await res.text()
-    return data
+  static async loadMapFile(name) {
+    const res = await fetch(`./maps/${name}`)
+    return await res.text()
   }
 
   /**

@@ -77,6 +77,7 @@ export class JudgementManager {
   }
 
   /**
+   * 严格根据判定表生成判定，如果不在判定表中，则返回 null，不生成判定
    * @param offset {number}
    * @param hitTiming {number}
    * @return {null | Judgement}
@@ -101,7 +102,8 @@ export class JudgementManager {
       }
     }
 
-    return type === null ? null : new Judgement(type, hitTiming)
+    // 判定时间就是打击时间
+    return type && new Judgement(type, hitTiming, hitTiming)
   }
 
   /**
@@ -123,43 +125,44 @@ export class JudgementManager {
    * @return {null | Judgement}
    */
   createJudgementByRelease (offset, hitTiming, end, releaseTiming) {
-    const missTime = JudgementAreaCalculators[JudgementType.MISS](this.#od)
-    // 点的很早，没必要处理
-    if (offset - hitTiming > missTime) {
+    const mehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
+
+    // 在 meh 早于 meh 区间内松开，不做判定
+    if (end - releaseTiming > mehTime) {
       return null
+    }
+
+    if (releaseTiming - end > mehTime) {
+      // 如果松开时间晚于 meh 区间，进了 miss 区间，则直接把 meh 时间作为松开时间参与下方的判定
+      releaseTiming = end + mehTime
     }
 
     const hitDeviation = Math.abs(offset - hitTiming)
     const releaseDeviation = Math.abs(end - releaseTiming)
 
-    const perfectMaxDeviation = JudgementAreaCalculators[JudgementType.PERFECT](this.#od)
-    const greatMaxDeviation = JudgementAreaCalculators[JudgementType.GREAT](this.#od)
-    const goodMaxDeviation = JudgementAreaCalculators[JudgementType.GOOD](this.#od)
-    const okMaxDeviation = JudgementAreaCalculators[JudgementType.OK](this.#od)
-    const mehMaxDeviation = JudgementAreaCalculators[JudgementType.MEH](this.#od)
+    const perfectTime = JudgementAreaCalculators[JudgementType.PERFECT](this.#od)
+    const greatTime = JudgementAreaCalculators[JudgementType.GREAT](this.#od)
+    const goodTime = JudgementAreaCalculators[JudgementType.GOOD](this.#od)
+    const okTime = JudgementAreaCalculators[JudgementType.OK](this.#od)
 
-    // 先判断 miss
-    if (offset - hitTiming > mehMaxDeviation && releaseDeviation - end > okMaxDeviation) {
-      return new Judgement(JudgementType.MISS, hitTiming, releaseTiming)
+    if (hitDeviation <= perfectTime * 1.2 && (hitDeviation + releaseDeviation) <= perfectTime * 2.4) {
+      return new Judgement(JudgementType.PERFECT, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= perfectMaxDeviation * 1.2 && (hitDeviation + releaseDeviation) <= perfectMaxDeviation * 2.4) {
-      return new Judgement(JudgementType.PERFECT, hitTiming, releaseTiming)
+    if (hitDeviation <= greatTime * 1.1 && (hitDeviation + releaseDeviation) <= greatTime * 2.2) {
+      return new Judgement(JudgementType.GREAT, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= greatMaxDeviation * 1.1 && (hitDeviation + releaseDeviation) <= greatMaxDeviation * 2.2) {
-      return new Judgement(JudgementType.GREAT, hitTiming, releaseTiming)
+    if (hitDeviation <= goodTime && (hitDeviation + releaseDeviation) <= goodTime * 2) {
+      return new Judgement(JudgementType.GOOD, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= goodMaxDeviation && (hitDeviation + releaseDeviation) <= goodMaxDeviation * 2) {
-      return new Judgement(JudgementType.GOOD, hitTiming, releaseTiming)
+    if (hitDeviation <= okTime && (hitDeviation + releaseDeviation) <= okTime * 2) {
+      return new Judgement(JudgementType.OK, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= okMaxDeviation && (hitDeviation + releaseDeviation) <= okMaxDeviation * 2) {
-      return new Judgement(JudgementType.OK, hitTiming, releaseTiming)
-    }
-
-    return new Judgement(JudgementType.MEH, hitTiming, releaseTiming)
+    // 判定时间是松手时间
+    return new Judgement(JudgementType.MEH, releaseTiming, hitTiming, releaseTiming)
   }
 
   /**
@@ -181,26 +184,56 @@ export class JudgementManager {
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
       // 到 miss 区间了还没按，直接判定 miss
-      if (note.type === NoteType.TAP && !note.isHit && currentTiming - note.offset > maxMehTime) {
+      const type = note.type
+      const isHit = note.isHit
+
+      if (isHit) {
+        continue
+      }
+
+      if (type === NoteType.TAP && currentTiming - note.offset > maxMehTime) {
         note.hit()
         this.#combo = 0
+        // 没有判定时间
         note.judgement = new Judgement(JudgementType.MISS, currentTiming)
-        note.grayed = true
         this.#judgementRecord[JudgementType.MISS]++
         const effect = new JudgementEffect(note.judgement)
         this.#activeEffects.push(effect)
-      } else if (note.type === NoteType.HOLD && !note.isHit) {
-        // 长条到了尾判 miss 区间还没按，直接判定 miss
-        if (currentTiming - note.end > maxMehTime) {
+      } else if (type === NoteType.HOLD) {
+        // note 一直按着，如果过了最晚的 meh 区间，进入 miss 区间还不松手，则直接拿最晚的 meh 区间来生成判定
+        if (note.isHeld && currentTiming - note.end > maxMehTime) {
           note.hit()
-          note.judgement = new Judgement(JudgementType.MISS, currentTiming, undefined)
+          note.isHeld = false
+          note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, currentTiming)
+          if (!note.judgement) {
+            // 默认直接判定为 meh，但是理论上不应该走到这里，进去的判定一定是在判定表中的
+            console.warn('JudgementManager: createJudgementByRelease returned null, defaulting to meh', {
+              note,
+              currentTiming,
+            })
+            note.judgement = new Judgement(JudgementType.MEH, currentTiming, note.hitTiming, currentTiming)
+          }
+          if (note.judgement.type === JudgementType.MISS || note.judgement.type === JudgementType.MEH) {
+            // 直接灰条
+            note.grayed = true
+            this.#combo = 0
+          }
+          this.#judgementRecord[note.judgement.type]++
+          const effect = new JudgementEffect(note.judgement)
+          this.#activeEffects.push(effect)
+        }
+        // 长条到了尾判 miss 区间还没按，也没按着，直接判定 miss
+        else if (currentTiming - note.end > maxMehTime && !note.isHeld) {
+          note.hit()
+          note.judgement = new Judgement(JudgementType.MISS, currentTiming)
           note.grayed = true
           this.#combo = 0
           this.#judgementRecord[JudgementType.MISS]++
           const effect = new JudgementEffect(note.judgement)
           this.#activeEffects.push(effect)
-        } else if (currentTiming - note.offset > maxOkTime && !note.isHeld) {
-          // 长条到了头判 meh 区间还没按，直接断连
+        }
+        // 长条如果过了头判 OK 区间还没按，也没按着，则直接灰条断连
+        else if (currentTiming - note.offset > maxOkTime && !note.isHeld) {
           note.grayed = true
           if (this.#combo > 0) {
             this.#combo = 0
@@ -224,48 +257,51 @@ export class JudgementManager {
         continue
       }
 
-      if (note.type === NoteType.TAP) {
-        const judgement = this.createJudgementByHit(note.offset, hitTiming)
-        if (!judgement) {
-          continue
-        }
+      // 点击时间早于最早的 meh 区间，则不处理
+      if (note.offset - hitTiming > JudgementAreaCalculators[JudgementType.MEH](this.#od)) {
+        continue
+      }
 
-        if (hitTiming < note.offset && judgement.type === JudgementType.MISS) {
-          // 点到了过早的 miss 区间，则不判定
-          continue
+      const isHeld = note.isHeld
+      const noteType = note.type
+      if (noteType === NoteType.TAP) {
+        note.judgement = this.createJudgementByHit(note.offset, hitTiming)
+        if (!note.judgement) {
+          console.warn('JudgementManager: createJudgementByHit returned null, skipping hit', {
+            note,
+            hitTiming,
+          })
+          // 理论上这里不可能是 null，因为前面已经判断过了，所以默认走 MISS
+          note.judgement = new Judgement(JudgementType.MISS, hitTiming, hitTiming)
         }
 
         note.hit()
-        note.judgement = judgement
         note.hitTiming = hitTiming
-        const type = judgement.type
+        const type = note.judgement.type
         this.#judgementRecord[type]++
+        const effect = new JudgementEffect(note.judgement)
+        this.#activeEffects.push(effect)
 
         if (type !== JudgementType.MISS && type !== JudgementType.MEH) {
           this.#combo++
         } else {
           this.#combo = 0
         }
-
-        const effect = new JudgementEffect(judgement)
-        this.#activeEffects.push(effect)
         // one hit => one judgement
         break
-      } else if (note.type === NoteType.HOLD) {
-        const hitDivision = note.offset - hitTiming
-        const maxMehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
-        const maxOkTime = JudgementAreaCalculators[JudgementType.OK](this.#od)
-        if (!note.isHeld && hitDivision <= maxMehTime) {
-          note.isHeld = true
-          note.hitTiming = hitTiming
-
-          // 过了 OK 区间还没按，直接灰条，断连
-          if (hitDivision > maxOkTime) {
-            note.grayed = true
-            this.#combo = 0
-          }
-          break
+      } else if (noteType === NoteType.HOLD) {
+        if (isHeld) {
+          // 理论上这里不可能存在这个 note 被按下去了，在 held 状态不重置的情况下又被按一次
+          console.warn('JudgementManager: note is already held, skipping hit', {
+            note,
+            hitTiming,
+          })
+          continue
         }
+
+        note.hitTiming = hitTiming
+        note.isHeld = true
+        break
       }
     }
   }
@@ -279,43 +315,59 @@ export class JudgementManager {
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
       // 已经按过的，不是自己轨道的，或者不是长按音符的，不处理
-      if (note.isHit || note.type !== NoteType.HOLD || releaseCol !== note.col || !note.isHeld) {
+      if (note.isHit || note.type !== NoteType.HOLD || releaseCol !== note.col || !note.isHeld || !note.hitTiming) {
         continue
       }
 
+      // 松手后，设置为未按下状态
       note.isHeld = false
-      note.releaseTiming = releaseTiming
 
-      // release time 已经进了最大的早 meh 区间，则直接标记 hit，后续也不再重置判定
-      if (note.end - note.releaseTiming <= JudgementAreaCalculators[JudgementType.MISS](this.#od)) {
-        note.hit()
-        const judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, releaseTiming)
-
-        if (!judgement) {
-          continue
-        }
-
-        const type = judgement.type
-        note.judgement = judgement
-        this.#judgementRecord[type]++
-        const effect = new JudgementEffect(note.judgement)
-        this.#activeEffects.push(effect)
-
-        if (type === JudgementType.MISS || type === JudgementType.MEH) {
-          this.#combo = 0
-          note.grayed = true
-        } else {
-          this.#combo ++
-        }
-
-        // 只检查一个
-        break
-      } else {
-        // 没过最大的早 meh 区间，直接灰条，断连
+      // 如果松手时间早于尾判最早的 meh 区间，则不判定
+      const mehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
+      if (note.end - releaseTiming > mehTime) {
+        note.hitTiming = null
         note.grayed = true
         this.#combo = 0
+        // 检查完一个即可
         break
       }
+
+      // 开始判定 hitTiming 和 releaseTiming
+      note.releaseTiming = releaseTiming
+
+      // 理论上这里不可能存在 releaseTiming - note.end > mehTime 的情况（在到了 miss 区间还没松手），因为在 update 的时候已经判断过了
+      if (releaseTiming - note.end > mehTime) {
+        console.warn('JudgementManager: releaseTiming is too late', {
+          note,
+          releaseTiming,
+        })
+        note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
+        this.#activeEffects.push(new JudgementEffect(note.judgement))
+        this.#judgementRecord[JudgementType.MEH]++
+        note.hit()
+      } else {
+        note.hit()
+        note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, releaseTiming)
+        if (!note.judgement) {
+          // 理论上不存在这里为 null 的情况，因为前面已经判断过了在 meh 区间松开的情况
+          console.warn('JudgementManager: createJudgementByRelease returned null, skipping release', {
+            note,
+            releaseTiming,
+          })
+          note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
+        }
+        this.#activeEffects.push(new JudgementEffect(note.judgement))
+        this.#judgementRecord[note.judgement.type]++
+        if (note.judgement.type === JudgementType.MISS || note.judgement.type === JudgementType.MEH) {
+          // 直接灰条 + 断连
+          note.grayed = true
+          this.#combo = 0
+        } else {
+          this.#combo++
+        }
+      }
+      // 一定有一个判定的，所以检查完当前直接不再向下检查
+      break
     }
   }
 

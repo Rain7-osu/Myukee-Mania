@@ -25,13 +25,13 @@ export class AudioManager {
   }
 
   /**
-   * load resources file
+   * load maps file
    * @param filename {string} filename
    * @return Promise<void>
    */
   load(filename) {
     return new Promise((resolve) => {
-      AudioManager.#el.src = `./resources/${filename}`
+      AudioManager.#el.src = `./maps/${filename}`
       AudioManager.#el.controls = true
 
       const onLoad = () => {

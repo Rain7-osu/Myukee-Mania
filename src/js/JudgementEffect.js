@@ -92,10 +92,16 @@ export class JudgementEffect extends Shape {
   render (context) {
     const config = JudgementConfig[this.#judgement.type]
 
-    const width = config.width * this.#scale
-    const height = config.height * this.#scale
+    let width = config.width * this.#scale
+    let height = config.height * this.#scale
     const x = (4 * NOTE_WIDTH - width) / 2
     const y = CANVAS_HEIGHT / 3 - height / 2
+
+    if (width >= config.width * this.#maxScale || height >= config.height * this.#maxScale) {
+      console.warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`);
+      width = config.width * this.#maxScale
+      height = config.height * this.#maxScale
+    }
 
     const image = this.#phase === 'enlarging' ? config.image : config.image2 || config.image
 

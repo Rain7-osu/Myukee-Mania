@@ -76,10 +76,6 @@ function main () {
   bindClick('retry', retry)
   bindClick('stop', stop)
   bindClick('resume', resume)
-  bindClick('increase', increase)
-  bindClick('decrease', decrease)
-  bindClick('fullscreen', fullscreen)
-  bindClick('exit-fullscreen', exitFullscreen)
   bindClick('test', test)
 }
 

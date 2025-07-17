@@ -21,10 +21,10 @@ export const WHITE_NOTE_COLOR = '#ffffff'
 export const DEFAULT_DELAY_TIME = 1200
 export const SECTION_LINE_COLOR = '#0f0'
 export const SECTION_LINE_HEIGHT = 1
-export const NOTE_WIDTH = 120
-export const NOTE_HEIGHT = 40
+export const NOTE_WIDTH = 150
+export const NOTE_HEIGHT = 50
 export const NOTE_GAP = 2
-export const DEFAULT_SPEED = 26
+export const DEFAULT_SPEED = 34
 export const MAX_SPEED = 40
 export const MIN_SPEED = 5
 
