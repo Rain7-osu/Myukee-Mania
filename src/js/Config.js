@@ -32,7 +32,7 @@ export const MIN_SPEED = 5
 export const HIT_EFFECT_RISE_SPEED = 25
 // per frame 10px
 export const HIT_EFFECT_FALL_SPEED = 10
-export const HIT_EFFECT_HEIGHT = Math.min(CANVAS_HEIGHT / 3, 360)
+export const HIT_EFFECT_HEIGHT = Math.min(CANVAS_HEIGHT / 2, 540)
 
 export const JUDGEMENT_Y = CANVAS_HEIGHT / 2
 export const JUDGEMENT_WIDTH = 3 * NOTE_WIDTH

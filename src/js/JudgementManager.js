@@ -1,28 +1,8 @@
-import { Judgement, JudgementType } from './Judgement'
-import { Shape } from './Shape'
+import { Judgement, JudgementAreaCalculators, JudgementAreaList, JudgementType } from './Judgement'
 import { JudgementEffect } from './JudgementEffect'
 import { NoteType } from './NoteType'
-
-const JudgementAreaList = [
-  JudgementType.PERFECT,
-  JudgementType.GREAT,
-  JudgementType.GOOD,
-  JudgementType.OK,
-  JudgementType.MEH,
-  JudgementType.MISS,
-]
-
-/**
- * @type {{[JudgementType]: (function(od: number): number)}}
- */
-const JudgementAreaCalculators = {
-  [JudgementType.PERFECT]: () => 16.0,
-  [JudgementType.GREAT]: (od) => 64.0 - 3 * od,
-  [JudgementType.GOOD]: (od) => 97.0 - 3 * od,
-  [JudgementType.OK]: (od) => 127.0 - 3 * od,
-  [JudgementType.MEH]: (od) => 151.0 - 3 * od,
-  [JudgementType.MISS]: (od) => 188.0 - 3 * od,
-}
+import { JudgementDeviationEffect } from './JudgementDeviationEffect'
+import { JudgementDeviation } from './JudgementDeviation'
 
 const DEFAULT_OD = 7
 
@@ -38,6 +18,10 @@ export class JudgementManager {
    */
   #activeEffects = []
   get activeEffects () { return this.#activeEffects }
+
+  /** @type {import('./JudgementDeviationEffect').JudgementDeviationEffect} */
+  #activeDeviations = new JudgementDeviationEffect()
+  get activeDeviations () { return  this.#activeDeviations }
 
   /**
    * @type {Note[]}
@@ -67,13 +51,7 @@ export class JudgementManager {
   init (notes, od) {
     this.#notes = notes
     this.#od = od || 8
-  }
-
-  /**
-   * @param od {number}
-   */
-  setOd (od) {
-    this.#od = od
+    this.#activeDeviations.init(od)
   }
 
   /**
@@ -173,6 +151,8 @@ export class JudgementManager {
     const maxOkTime = JudgementAreaCalculators[JudgementType.OK](this.#od)
     const notes = this.#notes
 
+    this.#activeDeviations.update(currentTiming)
+
     for (let i = 0; i < this.#activeEffects.length; i++) {
       const effect = this.#activeEffects[i]
       const nextEffect = i < this.activeEffects.length - 1 ? this.activeEffects[i + 1] : null
@@ -213,7 +193,7 @@ export class JudgementManager {
             })
             note.judgement = new Judgement(JudgementType.MEH, currentTiming, note.hitTiming, currentTiming)
           }
-          if (note.judgement.type === JudgementType.MISS || note.judgement.type === JudgementType.MEH) {
+          if (note.judgement.type <= JudgementType.MEH) {
             // 直接灰条
             note.grayed = true
             this.#combo = 0
@@ -281,6 +261,7 @@ export class JudgementManager {
         this.#judgementRecord[type]++
         const effect = new JudgementEffect(note.judgement)
         this.#activeEffects.push(effect)
+        this.#activeDeviations.push(new JudgementDeviation(hitTiming, hitTiming - note.offset, type))
 
         if (type !== JudgementType.MISS && type !== JudgementType.MEH) {
           this.#combo++
@@ -299,8 +280,12 @@ export class JudgementManager {
           continue
         }
 
+        const headJudgement = this.createJudgementByHit(note.offset, hitTiming)
+
         note.hitTiming = hitTiming
         note.isHeld = true
+        const type = headJudgement?.type || JudgementType.MISS
+        this.activeDeviations.push(new JudgementDeviation(hitTiming, hitTiming - note.offset, type))
         break
       }
     }
@@ -322,48 +307,56 @@ export class JudgementManager {
       // 松手后，设置为未按下状态
       note.isHeld = false
 
+      // 检查打击偏差
+      // 有灰条，说明肯定松过手了，直接不再产生打击偏差
+      // 有判定，说明也肯定送过手了，也直接不再产生打击偏差
+      if (!note.judgement && !note.grayed) {
+        // 通过 end 创建一个判定
+        const judgement = this.createJudgementByHit(note.end, releaseTiming)
+        const deviation = new JudgementDeviation(releaseTiming, releaseTiming - note.end, judgement?.type || JudgementType.MISS)
+        this.#activeDeviations.push(deviation)
+      }
+
       // 如果松手时间早于尾判最早的 meh 区间，则不判定
       const mehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
       if (note.end - releaseTiming > mehTime) {
         note.hitTiming = null
         note.grayed = true
         this.#combo = 0
-        // 检查完一个即可
-        break
-      }
-
-      // 开始判定 hitTiming 和 releaseTiming
-      note.releaseTiming = releaseTiming
-
-      // 理论上这里不可能存在 releaseTiming - note.end > mehTime 的情况（在到了 miss 区间还没松手），因为在 update 的时候已经判断过了
-      if (releaseTiming - note.end > mehTime) {
-        console.warn('JudgementManager: releaseTiming is too late', {
-          note,
-          releaseTiming,
-        })
-        note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
-        this.#activeEffects.push(new JudgementEffect(note.judgement))
-        this.#judgementRecord[JudgementType.MEH]++
-        note.hit()
       } else {
-        note.hit()
-        note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, releaseTiming)
-        if (!note.judgement) {
-          // 理论上不存在这里为 null 的情况，因为前面已经判断过了在 meh 区间松开的情况
-          console.warn('JudgementManager: createJudgementByRelease returned null, skipping release', {
+        // 开始判定 hitTiming 和 releaseTiming
+        note.releaseTiming = releaseTiming
+
+        // 理论上这里不可能存在 releaseTiming - note.end > mehTime 的情况（在到了 miss 区间还没松手），因为在 update 的时候已经判断过了
+        if (releaseTiming - note.end > mehTime) {
+          console.warn('JudgementManager: releaseTiming is too late', {
             note,
             releaseTiming,
           })
           note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
-        }
-        this.#activeEffects.push(new JudgementEffect(note.judgement))
-        this.#judgementRecord[note.judgement.type]++
-        if (note.judgement.type === JudgementType.MISS || note.judgement.type === JudgementType.MEH) {
-          // 直接灰条 + 断连
-          note.grayed = true
-          this.#combo = 0
+          this.#activeEffects.push(new JudgementEffect(note.judgement))
+          this.#judgementRecord[JudgementType.MEH]++
+          note.hit()
         } else {
-          this.#combo++
+          note.hit()
+          note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, releaseTiming)
+          if (!note.judgement) {
+            // 理论上不存在这里为 null 的情况，因为前面已经判断过了在 meh 区间松开的情况
+            console.warn('JudgementManager: createJudgementByRelease returned null, skipping release', {
+              note,
+              releaseTiming,
+            })
+            note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
+          }
+          this.#activeEffects.push(new JudgementEffect(note.judgement))
+          this.#judgementRecord[note.judgement.type]++
+          if (note.judgement.type <= JudgementType.MEH) {
+            // 直接灰条 + 断连
+            note.grayed = true
+            this.#combo = 0
+          } else {
+            this.#combo++
+          }
         }
       }
       // 一定有一个判定的，所以检查完当前直接不再向下检查

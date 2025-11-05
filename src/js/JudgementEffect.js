@@ -2,7 +2,6 @@ import { Shape } from './Shape'
 import { JudgementType } from './Judgement'
 import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config'
 import { FileManager } from './FileManager'
-import { easeOutQuad } from './utils'
 
 const loadImage = FileManager.loadImage
 

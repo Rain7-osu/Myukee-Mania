@@ -100,7 +100,7 @@ export class Controller {
   #accuracyManager
 
   /** @type {Stage} */
-  stageBoard
+  #stageBoard
 
   /**
    * 是否在一局游戏中
@@ -123,7 +123,7 @@ export class Controller {
     this.#judgementManager = new JudgementManager()
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
-    this.stageBoard = new Stage()
+    this.#stageBoard = new Stage()
   }
 
   /**
@@ -316,10 +316,11 @@ export class Controller {
       this.renderSectionLine()
       this.renderNotes()
       this.renderHitEffects()
-      this.#renderEngine.renderShape(this.stageBoard)
+      this.#renderEngine.renderShape(this.#stageBoard)
       this.renderJudgementEffects()
       this.renderComboEffect()
       this.renderSpeedChangeEffects()
+      this.#renderEngine.renderShape(this.#judgementManager.activeDeviations)
     }
   }
 

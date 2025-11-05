@@ -7,6 +7,27 @@ export const JudgementType = {
   MISS: 0,
 }
 
+export const JudgementAreaList = [
+  JudgementType.PERFECT,
+  JudgementType.GREAT,
+  JudgementType.GOOD,
+  JudgementType.OK,
+  JudgementType.MEH,
+  JudgementType.MISS,
+]
+
+/**
+ * @type {{[JudgementType]: (function(od: number): number)}}
+ */
+export const JudgementAreaCalculators = {
+  [JudgementType.PERFECT]: () => 16.0,
+  [JudgementType.GREAT]: (od) => 64.0 - 3 * od,
+  [JudgementType.GOOD]: (od) => 97.0 - 3 * od,
+  [JudgementType.OK]: (od) => 127.0 - 3 * od,
+  [JudgementType.MEH]: (od) => 151.0 - 3 * od,
+  [JudgementType.MISS]: (od) => 188.0 - 3 * od,
+}
+
 /**
  * the Judgement of hit notes
  */
