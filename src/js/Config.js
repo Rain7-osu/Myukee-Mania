@@ -1,6 +1,6 @@
-let CANVAS_WIDTH = window.screen.width
+let CANVAS_WIDTH = document.documentElement.clientWidth
 // TODO in renderEngine
-let CANVAS_HEIGHT = window.screen.height
+let CANVAS_HEIGHT = document.documentElement.clientHeight
 
 export { CANVAS_HEIGHT, CANVAS_WIDTH }
 

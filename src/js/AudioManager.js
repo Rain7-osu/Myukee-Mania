@@ -9,7 +9,7 @@ export class AudioManager {
   #duration = 0
 
   /**
-   * @param file {File | undefined}
+   * @param file {File?}
    */
   constructor (file) {
     if (!file) {
@@ -31,7 +31,7 @@ export class AudioManager {
    */
   load(filename) {
     return new Promise((resolve) => {
-      AudioManager.#el.src = `./maps/${filename}`
+      AudioManager.#el.src = filename
       AudioManager.#el.controls = true
 
       const onLoad = () => {

@@ -1,10 +1,12 @@
 import { Game } from './Game'
 import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight, setCanvasWidth } from './Config'
+import { MainManager } from './MainManager'
+import { throttle } from './utils'
 
 /**
  * @param id {string}
  */
-function $(id) {
+function $ (id) {
   return document.getElementById(id)
 }
 
@@ -12,71 +14,32 @@ function bindClick (btnId, handler) {
   $(btnId).addEventListener('click', handler)
 }
 
-function main () {
-  $('general-control').style.display = 'block'
-
-  const container = $('stage-container')
-  const game = Game.create()
+function createStageCanvas (id = 'stage') {
   const canvas = document.createElement('canvas')
-  canvas.id = 'stage'
-  container.append(canvas)
-  setCanvasWidth(document.documentElement.clientWidth)
+  canvas.id = id
   canvas.width = CANVAS_WIDTH
-  setCanvasHeight(document.documentElement.clientHeight)
   canvas.height = CANVAS_HEIGHT
-
-
-  function fullscreen () {
-    setCanvasHeight(window.screen.height)
-    canvas.height = CANVAS_HEIGHT
-    canvas.width = CANVAS_WIDTH
-
-    $('root').requestFullscreen({
-      navigationUI: 'hide'
-    })
-  }
-
-  async function start () {
-    game.init()
-    const selectedMap = $('map-select').value
-    await game.selectMap(selectedMap)
-    game.start()
-  }
-
-  function retry () {
-    game.retry()
-  }
-
-  function resume () {
-    game.resume()
-  }
-
-  function stop () {
-    game.pause()
-  }
-
-  function increase () {
-    game.increaseSpeed()
-  }
-
-  function decrease () {
-    game.decreaseSpeed()
-  }
-
-  function exitFullscreen() {
-    document.exitFullscreen()
-  }
-
-  function test() {
-    game.init()
-    game.testRender()
-  }
-
-  bindClick('start', start)
-  bindClick('retry', retry)
-  bindClick('stop', stop)
-  bindClick('resume', resume)
-  bindClick('test', test)
+  return canvas
 }
 
-bindClick('enter', main)
+function fullscreen () {
+  setCanvasHeight(window.screen.height)
+  setCanvasWidth(window.screen.width)
+
+  $('root').requestFullscreen({
+    navigationUI: 'hide',
+  })
+}
+
+async function run () {
+  fullscreen()
+  const canvas = createStageCanvas('stage')
+  const container = $('stage-container')
+  container.append(canvas)
+  const main = new MainManager(canvas)
+  await main.start()
+  main.init()
+  main.loopFrame()
+}
+
+bindClick('enter', run)

@@ -5,15 +5,15 @@
 
 export class KeyboardEventManager {
   /**
-   * @type {KeyboardEventHandler[]}
+   * @type {Record<string, KeyboardEventHandler>}
    */
   #keydownEventList = []
   /**
-   * @type {KeyboardEventHandler[]}
+   * @type {Record<string, KeyboardEventHandler>}
    */
   #keyupEventList = []
   /**
-   * @type {KeyboardEventHandler[]}
+   * @type {Record<string, KeyboardEventHandler>}
    */
   #keypressEventList = []
 
@@ -22,6 +22,8 @@ export class KeyboardEventManager {
    */
   #invokeKeydownEventHandler = (e) => {
     e.preventDefault()
+    e.stopPropagation()
+
     const key = e.key.toLowerCase()
     // console.log(`press key: ${key}`)
     if (this.#keydownEventList[key]) {
@@ -35,6 +37,8 @@ export class KeyboardEventManager {
    */
   #invokeKeyupEventHandler = (e) => {
     e.preventDefault()
+    e.stopPropagation()
+
     const key = e.key.toLowerCase()
     if (this.#keyupEventList[key]) {
       this.#keyupEventList[key](e)
@@ -47,6 +51,8 @@ export class KeyboardEventManager {
    */
   #invokeKeypressEventHandler = (e) => {
     e.preventDefault()
+    e.stopPropagation()
+
     const key = e.key.toLowerCase()
     if (this.#keypressEventList[key]) {
       this.#keypressEventList[key](e)
@@ -56,9 +62,9 @@ export class KeyboardEventManager {
   }
 
   /**
-   * @param keydownEventList {Record<string, KeyboardEvent>}
-   * @param keyupEventList {Record<string, KeyboardEvent>}
-   * @param keypressEventList {Record<string, KeyboardEvent>}
+   * @param keydownEventList {Record<string, KeyboardEventHandler>}
+   * @param keyupEventList {Record<string, KeyboardEventHandler>}
+   * @param keypressEventList {Record<string, KeyboardEventHandler>}
    */
   registerStageEvent({
     keydownEventList,

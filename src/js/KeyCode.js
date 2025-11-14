@@ -7,4 +7,5 @@ export const KeyCode = {
   TILED: '`',
   F4: 'f4',
   F3: 'f3',
+  F1: 'f1'
 }

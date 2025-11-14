@@ -19,7 +19,7 @@ export class FileManager {
    * @return Promise<string>
    */
   static async loadMapFile(name) {
-    const res = await fetch(`./maps/${name}`)
+    const res = await fetch(name)
     return await res.text()
   }
 

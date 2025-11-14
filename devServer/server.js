@@ -63,7 +63,7 @@ const server = http.createServer((req, res) => {
   if (req.url === '/') {
     serveFile(res, INDEX_HTML, 'text/html')
   } else {
-    let realPath = path.join(SRC_DIR, req.url)
+    let realPath = decodeURIComponent(path.join(SRC_DIR, req.url))
     if (path.extname(realPath) === '') {
       realPath += '.js'
     }
@@ -108,7 +108,7 @@ function serveFile (res, filePath, contentType) {
 
     let headers = { 'Content-Type': contentType }
 
-    if (contentType === 'audio/mp3') {
+    if (contentType === 'audio/mp3' || contentType === 'image/png') {
       const stat = fs.statSync(filePath)
       headers['Content-Length'] = stat.size
     }

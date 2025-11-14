@@ -4,7 +4,9 @@
   "description": "a web mania game",
   "main": "index.js",
   "scripts": {
-    "dev": "node ./devServer/server.js"
+    "dev": "node ./devServer/server.js",
+    "generate": "node ./src/local-scripts/generateSongList.js",
+    "prepare": "husky"
   },
   "keywords": [
     "mania",
@@ -13,8 +15,12 @@
   "author": "Myukee",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/ws": "^8.18.1",
     "chokidar": "^4.0.3",
+    "eslint": "^9.39.1",
+    "globals": "^16.5.0",
+    "husky": "^9.1.7",
     "ws": "^8.18.3"
   }
 }

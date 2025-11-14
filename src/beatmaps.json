@@ -1,0 +1,444 @@
+[
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "7K",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "0",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [7K].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "0"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "HD",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "1101043",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [HD].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "LeiN-'s SC",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "1101044",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [LeiN-'s SC].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "Memories",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "1181795",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [Memories].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "0"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "MX",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "1101045",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [MX].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "0"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "NM",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "1101046",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [NM].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "Helblinde - Memoria (Original Mix).mp3",
+      "AudioLeadIn": "2",
+      "PreviewTime": "159482",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "Memoria (Original Mix)",
+      "TitleUnicode": "Memoria (Original Mix)",
+      "Artist": "Helblinde",
+      "ArtistUnicode": "Helblinde",
+      "Creator": "Manwon",
+      "Version": "SHD",
+      "Source": "",
+      "Tags": "Stepmania Project Memoria Trance 10Dollar Presents Dump Revolution 3 LeiN-",
+      "BeatmapID": "1171715",
+      "BeatmapSetID": "518266"
+    },
+    "Events": {
+      "BgName": "BG.png"
+    },
+    "Path": {
+      "Directory": "518266 Helblinde - Memoria (Original Mix)",
+      "BgName": "BG.png",
+      "Filename": "Helblinde - Memoria (Original Mix) (Manwon) [SHD].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "04. AiAe.mp3",
+      "AudioLeadIn": "0",
+      "PreviewTime": "43674",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "AiAe",
+      "TitleUnicode": "AiAe",
+      "Artist": "Yuyoyuppe",
+      "ArtistUnicode": "ゆよゆっぺ",
+      "Creator": "Fullerene-",
+      "Version": "HD",
+      "Source": "",
+      "Tags": "waflessmo Yolomania 3 Yolo3 YUYOYU EP DJ'TEKINA//SOMETHING Hatsune Miku Append Dark Vocaloid Hardcore Dubstep",
+      "BeatmapID": "421065",
+      "BeatmapSetID": "174381"
+    },
+    "Events": {
+      "BgName": "bg.png"
+    },
+    "Path": {
+      "Directory": "Yuyoyuppe - AiAe",
+      "BgName": "bg.png",
+      "Filename": "Yuyoyuppe - AiAe (Fullerene-) [HD].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "04. AiAe.mp3",
+      "AudioLeadIn": "0",
+      "PreviewTime": "43674",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "AiAe",
+      "TitleUnicode": "AiAe",
+      "Artist": "Yuyoyuppe",
+      "ArtistUnicode": "ゆよゆっぺ",
+      "Creator": "Fullerene-",
+      "Version": "MX",
+      "Source": "",
+      "Tags": "waflessmo Yolomania 3 Yolo3 YUYOYU EP DJ'TEKINA//SOMETHING Hatsune Miku Append Dark Vocaloid Hardcore Dubstep",
+      "BeatmapID": "421063",
+      "BeatmapSetID": "174381"
+    },
+    "Events": {
+      "BgName": "bg.png"
+    },
+    "Path": {
+      "Directory": "Yuyoyuppe - AiAe",
+      "BgName": "bg.png",
+      "Filename": "Yuyoyuppe - AiAe (Fullerene-) [MX].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "04. AiAe.mp3",
+      "AudioLeadIn": "0",
+      "PreviewTime": "43674",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "AiAe",
+      "TitleUnicode": "AiAe",
+      "Artist": "Yuyoyuppe",
+      "ArtistUnicode": "ゆよゆっぺ",
+      "Creator": "Fullerene-",
+      "Version": "NM",
+      "Source": "",
+      "Tags": "waflessmo Yolomania 3 Yolo3 YUYOYU EP DJ'TEKINA//SOMETHING Hatsune Miku Append Dark Vocaloid Hardcore Dubstep",
+      "BeatmapID": "451509",
+      "BeatmapSetID": "174381"
+    },
+    "Events": {
+      "BgName": "bg.png"
+    },
+    "Path": {
+      "Directory": "Yuyoyuppe - AiAe",
+      "BgName": "bg.png",
+      "Filename": "Yuyoyuppe - AiAe (Fullerene-) [NM].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "04. AiAe.mp3",
+      "AudioLeadIn": "0",
+      "PreviewTime": "43674",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "AiAe",
+      "TitleUnicode": "AiAe",
+      "Artist": "Yuyoyuppe",
+      "ArtistUnicode": "ゆよゆっぺ",
+      "Creator": "Fullerene-",
+      "Version": "SC",
+      "Source": "",
+      "Tags": "waflessmo Yolomania 3 Yolo3 YUYOYU EP DJ'TEKINA//SOMETHING Hatsune Miku Append Dark Vocaloid Hardcore Dubstep",
+      "BeatmapID": "421064",
+      "BeatmapSetID": "174381"
+    },
+    "Events": {
+      "BgName": "bg.png"
+    },
+    "Path": {
+      "Directory": "Yuyoyuppe - AiAe",
+      "BgName": "bg.png",
+      "Filename": "Yuyoyuppe - AiAe (Fullerene-) [SC].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "04. AiAe.mp3",
+      "AudioLeadIn": "0",
+      "PreviewTime": "43674",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "AiAe",
+      "TitleUnicode": "AiAe",
+      "Artist": "Yuyoyuppe",
+      "ArtistUnicode": "ゆよゆっぺ",
+      "Creator": "Fullerene-",
+      "Version": "T",
+      "Source": "",
+      "Tags": "waflessmo Yolomania 3 Yolo3 YUYOYU EP DJ'TEKINA//SOMETHING Hatsune Miku Append Dark Vocaloid Hardcore Dubstep",
+      "BeatmapID": "0",
+      "BeatmapSetID": "174381"
+    },
+    "Events": {
+      "BgName": "bg.png"
+    },
+    "Path": {
+      "Directory": "Yuyoyuppe - AiAe",
+      "BgName": "bg.png",
+      "Filename": "Yuyoyuppe - AiAe (Fullerene-) [T].osu"
+    }
+  },
+  {
+    "General": {
+      "AudioFilename": "04. AiAe.mp3",
+      "AudioLeadIn": "0",
+      "PreviewTime": "43674",
+      "Countdown": "0",
+      "SampleSet": "Soft",
+      "StackLeniency": "0.7",
+      "Mode": "3",
+      "LetterboxInBreaks": "0",
+      "SpecialStyle": "0",
+      "WidescreenStoryboard": "1"
+    },
+    "Metadata": {
+      "Title": "AiAe",
+      "TitleUnicode": "AiAe",
+      "Artist": "Yuyoyuppe",
+      "ArtistUnicode": "ゆよゆっぺ",
+      "Creator": "Fullerene-",
+      "Version": "Wafles' SHD",
+      "Source": "",
+      "Tags": "waflessmo Yolomania 3 Yolo3 YUYOYU EP DJ'TEKINA//SOMETHING Hatsune Miku Append Dark Vocaloid Hardcore Dubstep",
+      "BeatmapID": "421066",
+      "BeatmapSetID": "174381"
+    },
+    "Events": {
+      "BgName": "bg.png"
+    },
+    "Path": {
+      "Directory": "Yuyoyuppe - AiAe",
+      "BgName": "bg.png",
+      "Filename": "Yuyoyuppe - AiAe (Fullerene-) [Wafles' SHD].osu"
+    }
+  }
+]

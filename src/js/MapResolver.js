@@ -164,4 +164,16 @@ export class MapResolver {
       end: +endValue,
     }
   }
+
+  resolveGeneral () {
+    const generals = this.#groups.General
+
+    return generals.reduce((prev, current) => {
+      const [key, value] = current.split(':').map((v) => v.trim())
+      return {
+        ...prev,
+        key: value,
+      };
+    }, {});
+  }
 }

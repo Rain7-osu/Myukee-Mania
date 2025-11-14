@@ -1,3 +1,4 @@
+import { Beatmap } from './Beatmap'
 import { Controller } from './Controller'
 import { FileManager } from './FileManager'
 import { MapResolver } from './MapResolver'
@@ -14,58 +15,61 @@ export class Game {
     return Game.#singleInstance
   }
 
-  #stage
+  /**
+   * @type {Controller}
+   */
+  controller
 
   init() {
-    this.#stage = new Controller('stage')
-    this.#stage.loopFrame()
+    this.controller = new Controller('stage')
   }
 
-  async selectMap(mapName) {
-    const mapFile = await FileManager.loadMapFile(`${mapName}.osu`)
+  /**
+   * @param beatmap {Beatmap}
+   * @return {Promise<void>}
+   */
+  async selectMap(beatmap) {
+    const mapFile = await FileManager.loadMapFile(`./beatmaps/${beatmap.filename}`)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     const audio = new AudioManager()
-    await audio.load(`${mapName}.mp3`)
-    this.#stage.init(currentMap, audio)
+    await audio.load(`./beatmaps/${beatmap.audioFilename}`)
+    this.controller.init(currentMap, audio)
   }
 
   start() {
-    this.#stage.start()
+    this.controller.loopFrame()
+    this.controller.start()
   }
 
   retry() {
-    this.#stage.retry()
+    this.controller.retry()
   }
 
   pause() {
-    this.#stage.pause()
+    this.controller.pause()
   }
 
   resume() {
-    this.#stage.resume()
+    this.controller.resume()
   }
 
   increaseSpeed() {
-    this.#stage.increaseSpeed()
+    this.controller.increaseSpeed()
   }
 
   decreaseSpeed() {
-    this.#stage.decreaseSpeed()
+    this.controller.decreaseSpeed()
   }
 
   goTiming(timing) {
-    this.#stage.renderFrame(timing)
+    this.controller.renderFrame(timing)
   }
 
   get map() {
-    return this.#stage.playingMap
+    return this.controller.playingMap
   }
 
   get bgm() {
-    return this.#stage.audio
-  }
-
-  testRender() {
-    this.#stage.testRender()
+    return this.controller.audio
   }
 }

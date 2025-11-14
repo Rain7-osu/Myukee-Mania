@@ -14,7 +14,7 @@ import { ProgressPercentEffect } from './ProgressEffect'
 import { AccuracyEffect } from './AccuracyEffect'
 import { AccuracyManager } from './AccuracyManager'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
-import { Stage } from './Stage'
+import { StageBoard } from './StageBoard'
 
 export class Controller {
   /**
@@ -99,7 +99,7 @@ export class Controller {
   /** @type {AccuracyManager} */
   #accuracyManager
 
-  /** @type {Stage} */
+  /** @type {StageBoard} */
   #stageBoard
 
   /**
@@ -123,7 +123,7 @@ export class Controller {
     this.#judgementManager = new JudgementManager()
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
-    this.#stageBoard = new Stage()
+    this.#stageBoard = new StageBoard()
   }
 
   /**
@@ -231,7 +231,7 @@ export class Controller {
     }, {})
 
     const optionKeyEvents = {
-      [KeyCode.ESCAPE]: () => {
+      [KeyCode.F1]: () => {
         if (this.#isPaused) {
           this.resume()
         } else {
@@ -305,7 +305,7 @@ export class Controller {
   }
 
   renderFrame () {
-    this.#renderEngine.renderBackground()
+    this.#renderEngine.clearBackground()
 
     if (this.#isPlaying) {
       this.renderFps()
