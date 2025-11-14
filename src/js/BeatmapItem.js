@@ -49,6 +49,7 @@ export class BeatmapItem extends Shape {
     }
 
     context.fillStyle = bg
+
     super.roundRect({
       context,
       x: LEFT,
@@ -63,6 +64,7 @@ export class BeatmapItem extends Shape {
 
     context.fillStyle = TITLE_COLOR
     context.font = '32px 黑体'
+    context.textAlign = 'left'
     context.fillText(this.#beatmap.songName, textPaddingLeft, this.#offsetY + 44)
 
     context.font = '20px 黑体'
@@ -100,6 +102,9 @@ export class BeatmapItem extends Shape {
     return this.#selected
   }
 
+  /**
+   * @return {Beatmap}
+   */
   get beatmap () {
     return this.#beatmap
   }

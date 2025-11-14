@@ -153,7 +153,7 @@ export class MapResolver {
     const endValue = +end
 
     let type = NoteType.TAP
-    if (endValue > 1) {
+    if (endValue > 20) {
       type = NoteType.HOLD
     }
 

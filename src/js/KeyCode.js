@@ -4,8 +4,9 @@ export const KeyCode = {
   J: 'j',
   K: 'k',
   ESCAPE: 'escape',
-  TILED: '`',
-  F4: 'f4',
-  F3: 'f3',
-  F1: 'f1'
+  TILED: '`', // retry
+  F4: 'f4', // speed ++
+  F3: 'f3', // speed --
+  F2: 'f2', // quit
+  F1: 'f1' // pause
 }

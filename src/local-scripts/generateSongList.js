@@ -39,15 +39,19 @@ const main = async () => {
 
         for (let subItem of itemDirs) {
           if (checkOsuFile(subItem)) {
-            const subItemPath = path.join(itemPath, subItem)
-            const fileContent = await readFile(subItemPath, 'utf-8')
-            const config = resolveConfig(fileContent)
-            config.Path = {
-              Directory: path.basename(itemPath),
-              BgName: config.Events.BgName,
-              Filename: path.basename(subItemPath)
+            try {
+              const subItemPath = path.join(itemPath, subItem)
+              const fileContent = await readFile(subItemPath, 'utf-8')
+              const config = resolveConfig(fileContent)
+              config.Path = {
+                Directory: path.basename(itemPath),
+                BgName: config.Events.BgName,
+                Filename: path.basename(subItemPath)
+              }
+              config && beatmaps.push(config)
+            } catch (err) {
+              console.error(`An error occurred when process ${subItem} because of`, err)
             }
-            config && beatmaps.push(config)
           }
         }
       }

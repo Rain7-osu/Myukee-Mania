@@ -86,12 +86,10 @@ export class MainManager {
       }
       const y = e.clientY
 
-      // 检查是否在列表项上
       const items = this.#beatmapListManager.beatmaps
-      // 检查是否在列表项上
-      const startIndex = Math.max(0, Math.floor((config.scrollY - CANVAS_HEIGHT / 2) / (config.itemHeight + config.itemSpacing)))
-      const endIndex = Math.min(items.length - 1,
-        Math.ceil((config.scrollY + CANVAS_HEIGHT / 2 * 3) / (config.itemHeight + config.itemSpacing)))
+      // 检查是否在列表项上 TODO 计算一下，减少额外遍历
+      const startIndex = 0
+      const endIndex = items.length - 1
 
       let hoveredItem = null
       for (let i = startIndex; i <= endIndex; i++) {
@@ -167,7 +165,10 @@ export class MainManager {
    */
   async play (beatmap) {
     this.#play = true
-    this.#game.init()
+    this.#game.init(() => {
+      this.#play = false
+      this.loopFrame()
+    })
     await this.#game.selectMap(beatmap)
     this.#game.start()
   }
@@ -206,7 +207,6 @@ export class MainManager {
 
   renderLoading () {
     this.#layoutEngine.renderShape(this.#loadingEffect)
-    // this.#loadingEffect.update()
   }
 
   renderBeatmaps () {

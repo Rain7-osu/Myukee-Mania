@@ -107,9 +107,22 @@ export class Controller {
    * @type {boolean}
    */
   #isPlaying = false
+  /**
+   * @type {boolean}
+   */
+  #isQuit = false
 
   /** @type {SpeedChangeEffect} */
   #speedChangeEffect = null
+
+  /**
+   * @type {(() => void) | undefined}
+   */
+  #quitCallback
+
+  set afterQuit(quitCallback) {
+    this.#quitCallback =  quitCallback
+  }
 
   /**
    * @constructor
@@ -238,6 +251,9 @@ export class Controller {
           this.pause()
         }
       },
+      [KeyCode.F2]: () => {
+        this.quit()
+      },
       [KeyCode.F4]: () => this.increaseSpeed(),
       [KeyCode.F3]: () => this.decreaseSpeed(),
     }
@@ -252,6 +268,12 @@ export class Controller {
         ...optionKeyEvents,
       },
     })
+  }
+
+  quit() {
+    this.#isQuit = true
+    this.#quitCallback?.()
+    this.audio.abort()
   }
 
   /**
@@ -325,6 +347,11 @@ export class Controller {
   }
 
   loopFrame () {
+    if (this.#isQuit) {
+      this.#isQuit = false
+      return
+    }
+
     if (this.#isPlaying) {
       const timing = this.getGameTiming()
 
@@ -336,7 +363,6 @@ export class Controller {
         if (timing > this.#playingAudio.duration + 3000) {
           this.#isPlaying = false
           this.#isPaused = false
-          alert('游戏结束！')
         }
       }
     }

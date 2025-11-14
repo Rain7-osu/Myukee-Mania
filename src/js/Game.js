@@ -20,8 +20,12 @@ export class Game {
    */
   controller
 
-  init() {
+  /**
+   * @param afterQuit {() => void}
+   */
+  init(afterQuit) {
     this.controller = new Controller('stage')
+    this.controller.afterQuit = afterQuit
   }
 
   /**
@@ -39,6 +43,10 @@ export class Game {
   start() {
     this.controller.loopFrame()
     this.controller.start()
+  }
+
+  quit() {
+    this.controller.quit()
   }
 
   retry() {
