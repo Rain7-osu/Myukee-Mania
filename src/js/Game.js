@@ -33,10 +33,10 @@ export class Game {
    * @return {Promise<void>}
    */
   async selectMap(beatmap) {
-    const mapFile = await FileManager.loadMapFile(`./beatmaps/${beatmap.filename}`)
+    const mapFile = await FileManager.loadMapFile(beatmap.filename)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
-    const audio = new AudioManager()
-    await audio.load(`./beatmaps/${beatmap.audioFile}`)
+    const audio = AudioManager.getInstance()
+    await audio.load(beatmap.audioFile)
     this.controller.init(currentMap, audio)
   }
 

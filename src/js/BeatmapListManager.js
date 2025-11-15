@@ -2,6 +2,7 @@ import { Beatmap } from './Beatmap'
 import { BeatmapItem } from './BeatmapItem'
 import { BeatmapList } from './BeatmapList'
 import { selectRandomArrayItem } from './utils'
+import { warn } from './dev'
 
 export class BeatmapListManager {
   /**
@@ -38,7 +39,7 @@ export class BeatmapListManager {
         return prev
       }
       const beatmapItem = new BeatmapItem(beatmap)
-      this.#beatmapItemMap.set(beatmap.beatmapId, beatmapItem)
+      this.#beatmapItemMap.set(beatmap.id, beatmapItem)
       return [...prev, beatmapItem]
     }, [])
     this.#beatmapList.beatmaps = this.#beatmaps
@@ -73,12 +74,19 @@ export class BeatmapListManager {
    */
   select (beatmapId) {
     if (!beatmapId) {
-      const beatmapIds = Array.from(this.#beatmapItemMap.keys())
-      const randomId = selectRandomArrayItem(beatmapIds)
-      const randomBeatmap = this.#beatmapItemMap.get(randomId)
-      randomBeatmap.select()
-      this.#selectedBeatmapItem = randomBeatmap
+      // 暂时选第一个，后面随机选
+      this.#beatmaps[0].select()
+      this.#selectedBeatmapItem = this.#beatmaps[0]
       return false
+
+      // const beatmapIds = Array.from(this.#beatmapItemMap.keys())
+      // const randomId = selectRandomArrayItem(beatmapIds)
+      // const randomBeatmap = this.#beatmapItemMap.get(randomId)
+      // randomBeatmap.select()
+      // const index = this.beatmaps.findIndex((v) => v.beatmap.id === randomBeatmap.beatmap.id)
+      // this.#beatmapList.scrollToIndex(index)
+      // this.#selectedBeatmapItem = randomBeatmap
+      // return false
     }
     const hasSelected = this.#selectedBeatmapItem?.beatmap?.id === beatmapId
     const beatmapItem = this.#beatmapItemMap.get(beatmapId)
@@ -87,7 +95,7 @@ export class BeatmapListManager {
       !hasSelected && beatmapItem.select()
       return hasSelected
     } else {
-      console.warn('selected beatmap not exist')
+      warn('selected beatmap not exist')
       return false
     }
   }
@@ -95,7 +103,7 @@ export class BeatmapListManager {
   /**
    * @param beatmapItem {BeatmapItem}
    */
-  selectItem(beatmapItem) {
+  selectItem (beatmapItem) {
     this.#selectedBeatmapItem?.cancelSelect()
     beatmapItem.select()
     this.#selectedBeatmapItem = beatmapItem

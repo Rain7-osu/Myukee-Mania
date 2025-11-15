@@ -62,11 +62,18 @@ export class Beatmap {
   }
 
   get filename () {
-    return this.#filename
+    return `./beatmaps/${this.#filename}`
   }
 
   get audioFile () {
-    return this.#audioFilename
+    return `./beatmaps/${this.#audioFilename}`
+  }
+
+  /**
+   * @return {number}
+   */
+  get previewTime () {
+    return this.#previewTime
   }
 
   constructor ({

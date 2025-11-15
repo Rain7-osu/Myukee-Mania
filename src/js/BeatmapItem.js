@@ -79,11 +79,14 @@ export class BeatmapItem extends Shape {
     let i = 0
     while (i ++ < this.#beatmap.star) {
       context.fillStyle = TITLE_COLOR
-      context.fillRect(paddingLeft + (i - 1) * 15, offsetY + 12, 10, 10)
+      context.fillRect(paddingLeft + (i - 1) * 25, offsetY + 12, 20, 20)
     }
-    const lastStar = (this.#beatmap.star - i + 1) * 10
+    const lastStar = this.#beatmap.star - i + 2
+    const lastStarSize = lastStar * 10 + 10
+    const lastStarOffset = (20 - lastStarSize) / 2.0
+
     if (lastStar > 0.2) {
-      context.fillRect(paddingLeft + i * 15, offsetY + 12, lastStar, lastStar)
+      context.fillRect(paddingLeft + (i - 1) * 25, offsetY + 12 + lastStarOffset, lastStarSize, lastStarSize)
     }
   }
 

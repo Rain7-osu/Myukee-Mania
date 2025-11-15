@@ -1,6 +1,11 @@
 export class AudioManager {
   static #el = document.createElement('audio')
   static #container = document.getElementById('audio-control')
+  static #instance = new AudioManager()
+
+  static getInstance () {
+    return AudioManager.#instance
+  }
 
   /**
    * the length of the audio
@@ -8,12 +13,14 @@ export class AudioManager {
    */
   #duration = 0
 
+  #playingFilename = ''
+
   /**
    * @param file {File?}
    */
   constructor (file) {
     if (!file) {
-      return;
+      return
     }
     AudioManager.#el.id = 'audio'
     const urlObj = URL.createObjectURL(file)
@@ -27,37 +34,52 @@ export class AudioManager {
   /**
    * load maps file
    * @param filename {string} filename
+   * @param startTime {number?}
    * @return Promise<void>
    */
-  load(filename) {
+  load (filename, startTime) {
     return new Promise((resolve) => {
       AudioManager.#el.src = filename
+      if (startTime) {
+        AudioManager.#el.currentTime = startTime / 100.0
+      }
       AudioManager.#el.controls = true
+      AudioManager.#el.autoplay = false
 
       const onLoad = () => {
-        this.#duration = AudioManager.#el.duration * 1000
-        AudioManager.#el.removeEventListener('canplaythrough', onLoad)
-        resolve()
+        if (AudioManager.#el.duration) {
+          this.#duration = AudioManager.#el.duration * 1000
+          AudioManager.#el.removeEventListener('loadedmetadata', onLoad)
+          this.#playingFilename = filename
+          resolve()
+        }
       }
 
-      AudioManager.#el.addEventListener('canplaythrough', onLoad)
+      AudioManager.#el.addEventListener('loadedmetadata', onLoad)
     })
   }
 
-  async play() {
+  /**
+   * @param time {number}
+   */
+  setCurrentTime (time) {
+    AudioManager.#el.currentTime = time
+  }
+
+  async play () {
     await AudioManager.#el.play()
   }
 
-  abort() {
+  abort () {
     AudioManager.#el.pause()
     AudioManager.#el.currentTime = 0
   }
 
-  pause() {
+  pause () {
     AudioManager.#el.pause()
   }
 
-  get duration() {
+  get duration () {
     return this.#duration
   }
 }

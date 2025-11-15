@@ -37,4 +37,8 @@ export class BeatmapList extends Shape {
       beatmap.render(context)
     }
   }
+
+  scrollToIndex (index) {
+    this.#scrollY = (BeatmapItem.configs.HEIGHT + GAP) * index
+  }
 }

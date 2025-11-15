@@ -6,6 +6,7 @@ import { Game } from './Game'
 import { BeatmapItem } from './BeatmapItem'
 import { BeatmapList } from './BeatmapList'
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
+import { AudioManager } from './AudioManager'
 
 /**
  * 主界面管理器
@@ -52,6 +53,10 @@ export class MainManager {
     minScrollY: CANVAS_HEIGHT / 2,
   }
 
+  #autoManager = AudioManager.getInstance()
+
+  #isHoveringItem = false
+
   /**
    * @param canvas {HTMLCanvasElement}
    */
@@ -81,6 +86,7 @@ export class MainManager {
       }
       const x = e.clientX
       if (x < CANVAS_WIDTH / 2) {
+        this.#isHoveringItem = false
         this.#beatmapListManager.hoverOut()
         return
       }
@@ -102,8 +108,10 @@ export class MainManager {
       }
 
       if (!hoveredItem) {
+        this.#isHoveringItem = false
         this.#beatmapListManager.hoverOut()
       } else {
+        this.#isHoveringItem = true
         this.#beatmapListManager.hover(hoveredItem)
       }
     }
@@ -142,7 +150,7 @@ export class MainManager {
     }
 
     const handleClick = async () => {
-      if (this.#play) {
+      if (this.#play || !this.#isHoveringItem) {
         return
       }
       if (this.#beatmapListManager.selectedBeatmapItem === this.#beatmapListManager.hoveredBeatmapItem) {
@@ -151,12 +159,25 @@ export class MainManager {
       } else if (this.#beatmapListManager.hoveredBeatmapItem) {
         this.#beatmapListManager.hoveredBeatmapItem.select()
         this.#beatmapListManager.selectItem(this.#beatmapListManager.hoveredBeatmapItem)
+        const beatmap = this.#beatmapListManager.selectedBeatmapItem.beatmap
+        this.playAuto(beatmap)
       }
     }
 
     canvas.addEventListener('wheel', handleWheel)
     canvas.addEventListener('mousemove', handelMouseMove)
     canvas.addEventListener('click', handleClick)
+  }
+
+  /**
+   * @param beatmap {Beatmap}
+   * @return {Promise<void>}
+   */
+  async playAuto (beatmap) {
+    this.#autoManager.abort()
+    console.log(beatmap.previewTime)
+    await this.#autoManager.load(beatmap.audioFile, beatmap.previewTime)
+    await this.#autoManager.play()
   }
 
   /**
@@ -181,6 +202,7 @@ export class MainManager {
   async start () {
     await this.loadSongList()
     this.#beatmapListManager.select()
+    await this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
   }
 
   loopFrame () {
