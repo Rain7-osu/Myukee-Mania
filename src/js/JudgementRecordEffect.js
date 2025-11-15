@@ -25,7 +25,7 @@ export class JudgementRecordEffect extends Shape {
     judgementTypes.sort((a, b) => Number(b) - Number(a)).forEach((type) => {
       const content = `${type}: ${this.#record[type]}`
       context.fillStyle = '#FFF'
-      context.font = 'bold 18px Arial'
+      context.font = 'bold 18px 微软雅黑'
       context.fillText(content, x, y)
       y += 24
     })

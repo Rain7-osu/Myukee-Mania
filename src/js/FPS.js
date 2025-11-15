@@ -15,7 +15,7 @@ export class FPS extends Shape {
 
   render (context) {
     const text = `FPS:${this.#value}`
-    context.font = 'bold 24px Arial'
+    context.font = 'bold 24px 微软雅黑'
     context.fillStyle = '#f00'
     const textMetrics = context.measureText(text)
 

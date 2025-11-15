@@ -66,7 +66,7 @@ export class SpeedChangeEffect extends Shape {
     context.fillRect(x, y, CANVAS_WIDTH, this.#height)
 
     const text = `已将下落速度调整为 ${this.#currentSpeed}`
-    context.font = 'normal 36px Ariel'
+    context.font = 'normal 36px 微软雅黑'
     context.textAlign = 'left'
     context.textBaseline = 'middle'
     context.fillStyle = '#ffffff'

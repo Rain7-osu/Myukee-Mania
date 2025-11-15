@@ -32,7 +32,7 @@ export class AccuracyEffect extends Shape {
     const x = CANVAS_WIDTH - 10
     const y = 140
 
-    context.font = 'bold 64px Arial'
+    context.font = 'bold 64px 微软雅黑'
     context.fillStyle = '#FFF'
     context.textAlign = 'right'
     context.fillText(acc, x, y)

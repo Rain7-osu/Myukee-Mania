@@ -64,15 +64,15 @@ export class BeatmapItem extends Shape {
     let offsetY = this.#offsetY
 
     context.fillStyle = TITLE_COLOR
-    context.font = '32px 黑体'
+    context.font = '32px 微软雅黑'
     context.textAlign = 'left'
     context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 44)
 
-    context.font = '20px 黑体'
+    context.font = '20px 微软雅黑'
     context.fillStyle = TITLE_COLOR
     context.fillText(this.#beatmap.description, paddingLeft, offsetY += 24)
 
-    context.font = 'bold 24px 黑体'
+    context.font = 'bold 24px 微软雅黑'
     context.fillStyle = TITLE_COLOR
     context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += 28)
 

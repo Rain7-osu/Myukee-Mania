@@ -8,7 +8,7 @@ export class MainLoadingEffect extends Shape {
 
   render (context) {
     context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    context.font = '28px'
+    context.font = '28px 微软雅黑'
     context.fillText('Loading...', 0, 0)
   }
 
