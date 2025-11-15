@@ -2,58 +2,71 @@ import { FileManager } from './FileManager'
 
 export class Beatmap {
   /** @private */
-  artist
+  #artist
   /** @private */
-  title
+  #title
   /** @private */
-  version
+  #version
   /** @private */
-  audioFilename
+  #audioFilename
   /** @private */
-  previewTime
+  #previewTime
   /** @private */
-  beatmapId
+  #beatmapId
   /** @private */
-  creator
+  #creator
   /** @private */
-  bg
+  #bg
   /** @private */
-  filename
+  #filename
+  /** @private */
+  #starRating
 
   /**
    * @type {HTMLImageElement}
    */
-  image
+  #image
+
+  /**
+   * @return {string}
+   */
+  get id () {
+    return this.#beatmapId
+  }
 
   get bgImage () {
-    if (!this.image) {
-      this.image = FileManager.loadImage(`./beatmaps/${this.bgName}`)
+    if (!this.#image) {
+      this.#image = FileManager.loadImage(`./beatmaps/${this.bgName}`)
     }
-    return this.image
+    return this.#image
   }
 
   get songName () {
-    return this.title
+    return this.#title
   }
 
   get description () {
-    return this.artist + ' // ' + this.creator
+    return this.#artist + ' // ' + this.#creator
   }
 
   get difficulty () {
-    return this.version + '(4K)'
+    return this.#version
+  }
+
+  get star () {
+    return this.#starRating
   }
 
   get bgName () {
-    return this.bg
+    return this.#bg
   }
 
   get filename () {
-    return this.filename
+    return this.#filename
   }
 
   get audioFile () {
-    return this.audioFilename
+    return this.#audioFilename
   }
 
   constructor ({
@@ -66,16 +79,18 @@ export class Beatmap {
     creator,
     bg,
     filename,
+    starRating,
   }) {
-    this.artist = artist
-    this.title = title
-    this.version = version
-    this.audioFilename = audioFilename
-    this.previewTime = previewTime
-    this.beatmapId = beatmapId
-    this.creator = creator
-    this.bg = bg
-    this.filename = filename
+    this.#artist = artist
+    this.#title = title
+    this.#version = version
+    this.#audioFilename = audioFilename
+    this.#previewTime = previewTime
+    this.#beatmapId = beatmapId
+    this.#creator = creator
+    this.#bg = bg
+    this.#filename = filename
+    this.#starRating = starRating
   }
 
   /**
@@ -95,6 +110,7 @@ export class Beatmap {
       creator: config.Metadata.Creator,
       bg: config.Path.Directory + '/' + config.Path.BgName,
       filename: config.Path.Directory + '/' + config.Path.Filename,
+      starRating: config.StarRating,
     })
   }
 }

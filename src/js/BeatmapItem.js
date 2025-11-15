@@ -2,7 +2,7 @@ import { Shape } from './Shape'
 import { Beatmap } from './Beatmap'
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
 
-const HEIGHT = 120
+const HEIGHT = 140
 const SELECTED_BG = '#ffffffcc'
 const BG = '#1e90ffb3'
 const HOVER_BG = '#e9ecef'
@@ -60,20 +60,31 @@ export class BeatmapItem extends Shape {
       fill: bg,
     })
 
-    const textPaddingLeft = LEFT + 25
+    const paddingLeft = LEFT + 25
+    let offsetY = this.#offsetY
 
     context.fillStyle = TITLE_COLOR
     context.font = '32px 黑体'
     context.textAlign = 'left'
-    context.fillText(this.#beatmap.songName, textPaddingLeft, this.#offsetY + 44)
+    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 44)
 
     context.font = '20px 黑体'
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.description, textPaddingLeft, this.#offsetY + 44 + 24)
+    context.fillText(this.#beatmap.description, paddingLeft, offsetY += 24)
 
     context.font = 'bold 24px 黑体'
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.difficulty, textPaddingLeft, this.#offsetY + 44 + 24 + 28)
+    context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += 28)
+
+    let i = 0
+    while (i ++ < this.#beatmap.star) {
+      context.fillStyle = TITLE_COLOR
+      context.fillRect(paddingLeft + (i - 1) * 15, offsetY + 12, 10, 10)
+    }
+    const lastStar = (this.#beatmap.star - i + 1) * 10
+    if (lastStar > 0.2) {
+      context.fillRect(paddingLeft + i * 15, offsetY + 12, lastStar, lastStar)
+    }
   }
 
   /**

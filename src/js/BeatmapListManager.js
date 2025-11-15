@@ -80,7 +80,7 @@ export class BeatmapListManager {
       this.#selectedBeatmapItem = randomBeatmap
       return false
     }
-    const hasSelected = this.#selectedBeatmapItem?.beatmap?.beatmapId === beatmapId
+    const hasSelected = this.#selectedBeatmapItem?.beatmap?.id === beatmapId
     const beatmapItem = this.#beatmapItemMap.get(beatmapId)
     this.#selectedBeatmapItem = beatmapItem
     if (beatmapItem) {

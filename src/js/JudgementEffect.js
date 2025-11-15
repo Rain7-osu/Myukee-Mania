@@ -40,12 +40,12 @@ const JudgementConfig = {
   [JudgementType.MISS]: {
     image: loadImage('./skin/mania-hit0.png'),
     priority: 5,
-    width: 181,
-    height: 99
+    width: 270.5,
+    height: 148.5
   },
 }
 
-const DEFAULT_MAX_SCALE = 1.25
+const DEFAULT_MAX_SCALE = 1.28
 const INIT_SCALE = 1
 const INIT_ALPHA = 1
 const GROW_TIME = 100

@@ -36,7 +36,7 @@ export class Game {
     const mapFile = await FileManager.loadMapFile(`./beatmaps/${beatmap.filename}`)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     const audio = new AudioManager()
-    await audio.load(`./beatmaps/${beatmap.audioFilename}`)
+    await audio.load(`./beatmaps/${beatmap.audioFile}`)
     this.controller.init(currentMap, audio)
   }
 

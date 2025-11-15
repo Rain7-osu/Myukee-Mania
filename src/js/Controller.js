@@ -120,8 +120,8 @@ export class Controller {
    */
   #quitCallback
 
-  set afterQuit(quitCallback) {
-    this.#quitCallback =  quitCallback
+  set afterQuit (quitCallback) {
+    this.#quitCallback = quitCallback
   }
 
   /**
@@ -256,6 +256,7 @@ export class Controller {
       },
       [KeyCode.F4]: () => this.increaseSpeed(),
       [KeyCode.F3]: () => this.decreaseSpeed(),
+      [KeyCode.TILED]: () => this.retry(),
     }
 
     this.#keyboardEventManager.registerStageEvent({
@@ -270,7 +271,7 @@ export class Controller {
     })
   }
 
-  quit() {
+  quit () {
     this.#isQuit = true
     this.#quitCallback?.()
     this.audio.abort()
@@ -470,10 +471,6 @@ export class Controller {
 
   get audio () {
     return this.#playingAudio
-  }
-
-  testRender () {
-    this.#renderEngine.renderShape(new ScoreEffect(990133))
   }
 }
 

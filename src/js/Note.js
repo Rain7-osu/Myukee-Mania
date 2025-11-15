@@ -1,7 +1,6 @@
 import { BLUE_NOTE_COLOR, NOTE_GAP, NOTE_HEIGHT, NOTE_WIDTH, WHITE_NOTE_COLOR } from './Config'
-import { NoteCol, NoteType } from './NoteType'
+import { NoteType } from './NoteType'
 import { OffsetShape } from './Shape'
-import { JudgementType } from './Judgement'
 
 /**
  * @description 0 - 480

@@ -45,7 +45,7 @@ export class Judgement {
   #releaseTiming
 
   /**
-   * @param {JudgementType} type
+   * @param {JudgementType[string]} type
    * @param {number} judgeTiming
    * @param {number=} hitTiming
    * @param {number=} releaseTiming
