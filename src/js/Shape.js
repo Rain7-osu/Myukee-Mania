@@ -120,6 +120,55 @@ export class Shape {
       ctx.stroke()
     }
   }
+
+  /**
+   * @param ctx {CanvasRenderingContext2D}
+   * @param cx {number}
+   * @param cy {number}
+   * @param outerRadius {number}
+   * @param innerRadius {number}
+   * @param rotation {number}
+   * @param fillColor {string}
+   * @param strokeColor {string}
+   * @param strokeWidth {number}
+   */
+  drawStar({
+    context: ctx,
+    cx, cy, outerRadius, innerRadius, rotation, fillColor, strokeColor, strokeWidth
+  }) {
+    // 开始绘制路径
+    ctx.beginPath();
+
+    // 计算五角星的10个顶点（5个外顶点和5个内顶点）
+    for (let i = 0; i < 10; i++) {
+      // 计算当前角度（弧度）
+      const angle = rotation * Math.PI / 180 + i * Math.PI / 5;
+      // 交替使用外半径和内半径
+      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      // 计算顶点坐标
+      const x = cx + radius * Math.cos(angle);
+      const y = cy + radius * Math.sin(angle);
+
+      // 如果是第一个点，移动到该点，否则画线到该点
+      if (i === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    }
+
+    // 闭合路径
+    ctx.closePath();
+
+    // 设置填充样式并填充
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+
+    // 设置描边样式并描边
+    ctx.lineWidth = strokeWidth;
+    ctx.strokeStyle = strokeColor;
+    ctx.stroke();
+  }
 }
 
 export class OffsetShape {

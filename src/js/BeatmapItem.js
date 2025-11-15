@@ -76,18 +76,44 @@ export class BeatmapItem extends Shape {
     context.fillStyle = TITLE_COLOR
     context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += 28)
 
-    let i = 0
-    while (i ++ < this.#beatmap.star) {
-      context.fillStyle = TITLE_COLOR
-      context.fillRect(paddingLeft + (i - 1) * 25, offsetY + 12, 20, 20)
-    }
-    const lastStar = this.#beatmap.star - i + 2
-    const lastStarSize = lastStar * 10 + 10
-    const lastStarOffset = (20 - lastStarSize) / 2.0
+    const star = Math.min(10, this.#beatmap.star)
 
-    if (lastStar > 0.2) {
-      context.fillRect(paddingLeft + (i - 1) * 25, offsetY + 12 + lastStarOffset, lastStarSize, lastStarSize)
+    let i = 0
+    let size = 20
+    let left = paddingLeft + 10
+    const top = offsetY + 22
+    while (i < star - 1) {
+      context.fillStyle = TITLE_COLOR
+
+      super.drawStar({
+        context,
+        cx: left,
+        cy: top,
+        outerRadius: size / 2.0,
+        innerRadius: size / 4.0,
+        fillColor: TITLE_COLOR,
+        strokeWidth: 0,
+        rotation: 54,
+      })
+
+      left += size + 5
+      size++
+      i++
     }
+
+    // 小于 1.1 的，直接画到前面的星星上，更大一点
+    const lastStar = star - i
+    const lastStarSize = lastStar * 15.0 + 5.0
+    super.drawStar({
+      context,
+      cx: left,
+      cy: top,
+      outerRadius: lastStarSize / 2.0,
+      innerRadius: lastStarSize / 4.0,
+      fillColor: TITLE_COLOR,
+      strokeWidth: 0,
+      rotation: 54,
+    })
   }
 
   /**
