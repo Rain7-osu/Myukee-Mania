@@ -1,4 +1,4 @@
-import { FileManager } from './FileManager'
+import { FileManager } from './FileManager.js'
 
 export const NumberImageConfig = {
   ['default-0']: {

@@ -1,7 +1,5 @@
-import { Game } from './Game'
-import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight, setCanvasWidth } from './Config'
-import { MainManager } from './MainManager'
-import { throttle } from './utils'
+import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight, setCanvasWidth } from './Config.js'
+import { MainManager } from './MainManager.js'
 
 /**
  * @param id {string}

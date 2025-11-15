@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
-import { JudgementType } from './Judgement'
-import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config'
-import { FileManager } from './FileManager'
+import { Shape } from './Shape.js'
+import { JudgementType } from './Judgement.js'
+import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config.js'
+import { FileManager } from './FileManager.js'
 
 const loadImage = FileManager.loadImage
 

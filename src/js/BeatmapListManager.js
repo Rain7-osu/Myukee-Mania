@@ -1,8 +1,7 @@
-import { Beatmap } from './Beatmap'
-import { BeatmapItem } from './BeatmapItem'
-import { BeatmapList } from './BeatmapList'
-import { selectRandomArrayItem } from './utils'
-import { warn } from './dev'
+import { Beatmap } from './Beatmap.js'
+import { BeatmapItem } from './BeatmapItem.js'
+import { BeatmapList } from './BeatmapList.js'
+import { warn } from './dev.js'
 
 export class BeatmapListManager {
   /**

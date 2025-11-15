@@ -1,6 +1,6 @@
-import { Shape } from './Shape'
-import { Beatmap } from './Beatmap'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { Beatmap } from './Beatmap.js'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
 
 const HEIGHT = 140
 const SELECTED_BG = '#ffffffcc'

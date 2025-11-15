@@ -1,9 +1,9 @@
-import { Judgement, JudgementAreaCalculators, JudgementAreaList, JudgementType } from './Judgement'
-import { JudgementEffect } from './JudgementEffect'
-import { NoteType } from './NoteType'
-import { JudgementDeviationEffect } from './JudgementDeviationEffect'
-import { JudgementDeviation } from './JudgementDeviation'
-import { warn } from './dev'
+import { Judgement, JudgementAreaCalculators, JudgementAreaList, JudgementType } from './Judgement.js'
+import { JudgementEffect } from './JudgementEffect.js'
+import { NoteType } from './NoteType.js'
+import { JudgementDeviationEffect } from './JudgementDeviationEffect.js'
+import { JudgementDeviation } from './JudgementDeviation.js'
+import { warn } from './dev.js'
 
 const DEFAULT_OD = 7
 
@@ -15,7 +15,7 @@ export class JudgementManager {
   #od = DEFAULT_OD
 
   /**
-   * @type {import('./JudgementEffect').JudgementEffect[]}
+   * @type {import('./JudgementEffect.js').JudgementEffect[]}
    */
   #activeEffects = []
   get activeEffects () { return this.#activeEffects }

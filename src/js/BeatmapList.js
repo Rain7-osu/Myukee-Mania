@@ -1,5 +1,5 @@
-import { Shape } from './Shape'
-import { BeatmapItem } from './BeatmapItem'
+import { Shape } from './Shape.js'
+import { BeatmapItem } from './BeatmapItem.js'
 
 const GAP = 10
 

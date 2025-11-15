@@ -1,6 +1,6 @@
-import { Shape } from './Shape'
-import { KeyCode } from './KeyCode'
-import { CANVAS_HEIGHT, HIT_EFFECT_FALL_SPEED, HIT_EFFECT_HEIGHT, HIT_EFFECT_RISE_SPEED, NOTE_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { KeyCode } from './KeyCode.js'
+import { CANVAS_HEIGHT, HIT_EFFECT_FALL_SPEED, HIT_EFFECT_HEIGHT, HIT_EFFECT_RISE_SPEED, NOTE_WIDTH } from './Config.js'
 
 /**
  * press key beautiful effect

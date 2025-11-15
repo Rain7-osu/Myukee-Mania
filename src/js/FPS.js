@@ -1,5 +1,5 @@
-import { Shape } from './Shape'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
 
 export class FPS extends Shape {
   /** @type {number} */

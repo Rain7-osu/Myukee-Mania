@@ -1,4 +1,4 @@
-import { RenderEngine } from './RenderEngine'
+import { RenderEngine } from './RenderEngine.js'
 
 export class LayoutRenderEngine extends RenderEngine {
   /**

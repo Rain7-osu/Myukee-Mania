@@ -1,5 +1,5 @@
-import { OffsetShape } from './Shape'
-import { NOTE_WIDTH, SECTION_LINE_COLOR, SECTION_LINE_HEIGHT } from './Config'
+import { OffsetShape } from './Shape.js'
+import { NOTE_WIDTH, SECTION_LINE_COLOR, SECTION_LINE_HEIGHT } from './Config.js'
 
 export class SectionLine extends OffsetShape {
   constructor (offset) {

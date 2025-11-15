@@ -1,6 +1,6 @@
-import { Shape } from './Shape'
-import { JudgementType } from './Judgement'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { JudgementType } from './Judgement.js'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
 
 const MAX_REMAIN_TIME = 6000.0
 const HEIGHT = 32

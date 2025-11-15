@@ -1,6 +1,6 @@
-import { Shape } from './Shape'
-import { KeyCode } from './KeyCode'
-import { HitEffect } from './HitEffect'
+import { Shape } from './Shape.js'
+import { KeyCode } from './KeyCode.js'
+import { HitEffect } from './HitEffect.js'
 
 export class HitEffectManager extends Shape {
   /**

@@ -1,12 +1,12 @@
-import { Beatmap } from './Beatmap'
-import { LayoutRenderEngine } from './LayoutRenderEngine'
-import { MainLoadingEffect } from './MainLoadingEffect'
-import { BeatmapListManager } from './BeatmapListManager'
-import { Game } from './Game'
-import { BeatmapItem } from './BeatmapItem'
-import { BeatmapList } from './BeatmapList'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
-import { AudioManager } from './AudioManager'
+import { Beatmap } from './Beatmap.js'
+import { LayoutRenderEngine } from './LayoutRenderEngine.js'
+import { MainLoadingEffect } from './MainLoadingEffect.js'
+import { BeatmapListManager } from './BeatmapListManager.js'
+import { Game } from './Game.js'
+import { BeatmapItem } from './BeatmapItem.js'
+import { BeatmapList } from './BeatmapList.js'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
+import { AudioManager } from './AudioManager.js'
 
 /**
  * 主界面管理器
@@ -175,7 +175,6 @@ export class MainManager {
    */
   async playAuto (beatmap) {
     this.#autoManager.abort()
-    console.log(beatmap.previewTime)
     await this.#autoManager.load(beatmap.audioFile, beatmap.previewTime)
     await this.#autoManager.play()
   }

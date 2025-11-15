@@ -1,6 +1,6 @@
-import { BLUE_NOTE_COLOR, NOTE_GAP, NOTE_HEIGHT, NOTE_WIDTH, WHITE_NOTE_COLOR } from './Config'
-import { NoteType } from './NoteType'
-import { OffsetShape } from './Shape'
+import { BLUE_NOTE_COLOR, NOTE_GAP, NOTE_HEIGHT, NOTE_WIDTH, WHITE_NOTE_COLOR } from './Config.js'
+import { NoteType } from './NoteType.js'
+import { OffsetShape } from './Shape.js'
 
 /**
  * @description 0 - 480

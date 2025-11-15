@@ -1,5 +1,5 @@
-import { Shape } from './Shape'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
 
 export class MainLoadingEffect extends Shape {
   #rotate = 0

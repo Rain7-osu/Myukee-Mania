@@ -1,5 +1,5 @@
-import { Shape } from './Shape'
-import { CANVAS_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { CANVAS_WIDTH } from './Config.js'
 
 /**
  * Generates a percentage text with 4 significant digits.

@@ -1,4 +1,4 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, DEFAULT_SPEED } from './Config'
+import { CANVAS_HEIGHT, CANVAS_WIDTH, DEFAULT_SPEED } from './Config.js'
 
 // TODO Move stage render method out
 export class RenderEngine {

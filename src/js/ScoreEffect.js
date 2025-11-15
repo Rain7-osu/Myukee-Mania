@@ -1,6 +1,6 @@
-import { Shape } from './Shape'
-import { NumberImageConfig } from './ResourceConfig'
-import { CANVAS_WIDTH } from './Config'
+import { Shape } from './Shape.js'
+import { NumberImageConfig } from './ResourceConfig.js'
+import { CANVAS_WIDTH } from './Config.js'
 
 export class ScoreEffect extends Shape {
   #score

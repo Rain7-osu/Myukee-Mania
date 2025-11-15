@@ -1,7 +1,6 @@
-import { Shape } from './Shape'
-import { FileManager } from './FileManager'
-import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config'
-import { NumberImageConfig } from './ResourceConfig'
+import { Shape } from './Shape.js'
+import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config.js'
+import { NumberImageConfig } from './ResourceConfig.js'
 
 export class ComboEffect extends Shape {
   /** @type {number} */
