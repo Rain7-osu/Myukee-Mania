@@ -135,7 +135,7 @@ export class Skin {
           select: {
             gap: 20,
             extra: 200,
-            bgColor: '#ffffffcc',
+            bgColor: '#e9ecef',
             title: {
               color: '#212529',
             },
@@ -143,7 +143,7 @@ export class Skin {
           hover: {
             extra: 40,
             gap: 10,
-            bgColor: '#e9ecef',
+            bgColor:  '#ffffffcc',
             title: {
               color: '#212529',
             },
@@ -164,6 +164,7 @@ export class Skin {
             },
           },
           baseLeft: CANVAS.WIDTH / 2,
+          width: CANVAS.WIDTH / 2 - 200 - 40
         },
       },
     },

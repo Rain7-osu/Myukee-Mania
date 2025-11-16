@@ -2,20 +2,13 @@ import { Shape } from './Shape.js'
 import { Beatmap } from './Beatmap.js'
 import { CANVAS } from './Config.js'
 import { Skin } from './Skin'
+import { ScrollItem } from './ScrollItem'
 
-export class BeatmapItem extends Shape {
+export class BeatmapItem extends ScrollItem {
   /**
    * @type {Beatmap}
    */
   #beatmap
-
-  #hovered = false
-
-  #selected = false
-
-  #offsetY = 0
-
-  #offsetX = 0
 
   /**
    * @param beatmap {Beatmap}
@@ -23,46 +16,67 @@ export class BeatmapItem extends Shape {
   constructor (beatmap) {
     super()
     this.#beatmap = beatmap
+    const {
+      select: { extra: SELECT_EXTRA, gap: SELECT_GAP },
+      hover: { extra: HOVER_EXTRA, gap: HOVER_GAP },
+      base: { height: HEIGHT, gap: BASE_GAP },
+      width,
+    } = Skin.config.main.beatmap.item
+
+    this.style = {
+      marginTop: BASE_GAP,
+      marginBottom: 0,
+      width: width,
+      height: HEIGHT,
+      left: CANVAS.WIDTH - width,
+    }
+
+    this.hoverStyle = {
+      marginTop: HOVER_GAP,
+      marginBottom: HOVER_GAP - BASE_GAP,
+      width: width + HOVER_EXTRA,
+      height: HEIGHT,
+      left: CANVAS.WIDTH - width - HOVER_EXTRA,
+    }
+
+    this.activeStyle = {
+      marginTop: SELECT_GAP,
+      marginBottom: SELECT_GAP - BASE_GAP,
+      width: width + SELECT_EXTRA,
+      height: HEIGHT,
+      left: CANVAS.WIDTH - width - SELECT_EXTRA,
+    }
+
+    this.activeHoverStyle = {
+      marginTop: SELECT_GAP + HOVER_GAP,
+      marginBottom: SELECT_GAP + HOVER_GAP - BASE_GAP,
+      width: width + SELECT_EXTRA + HOVER_EXTRA,
+      height: HEIGHT,
+      left: CANVAS.WIDTH - width - SELECT_EXTRA - HOVER_EXTRA,
+    }
   }
 
-  render (context) {
+  renderByStyle (context, generalLeft, generalTop, generalWidth, height) {
     const {
-      select: { extra: SELECT_EXTRA, bgColor: SELECTED_BG },
-      hover: { extra: HOVER_EXTRA, bgColor: HOVER_BG },
+      select: { bgColor: SELECTED_BG },
+      hover: { bgColor: HOVER_BG },
       base: {
-        height: HEIGHT,
         bgColor: BG,
         title: { color: TITLE_COLOR, font: TITLE_FONT },
         description: { font: DESC_FONT },
         subtitle: { font: SUBTITLE_FONT },
       },
-      baseLeft,
     } = Skin.config.main.beatmap.item
 
-    if (this.#offsetY + HEIGHT <= 0 || this.#offsetY >= CANVAS.HEIGHT) {
+    if (generalTop + height <= 0 || generalTop >= CANVAS.HEIGHT) {
       // 在屏幕外
       return
     }
 
-    let currentLeft = baseLeft + HOVER_EXTRA + SELECT_EXTRA
-    let currentWidth = baseLeft - HOVER_EXTRA - SELECT_EXTRA
-    if (this.#hovered) {
-      currentLeft -= HOVER_EXTRA
-      currentWidth += HOVER_EXTRA
-    }
-    if (this.#selected) {
-      currentLeft -= SELECT_EXTRA
-      currentWidth += SELECT_EXTRA
-    }
-    if (this.#offsetX) {
-      currentLeft += this.#offsetX
-      currentWidth -= this.#offsetX
-    }
-
     let bg = BG
-    if (this.#selected) {
+    if (this.active) {
       bg = SELECTED_BG
-    } else if (this.#hovered) {
+    } else if (this.hovered) {
       bg = HOVER_BG
     }
 
@@ -70,16 +84,16 @@ export class BeatmapItem extends Shape {
 
     super.roundRect({
       context,
-      x: currentLeft,
-      y: this.#offsetY,
-      width: currentWidth,
-      height: HEIGHT,
+      x: generalLeft,
+      y: generalTop,
+      width: generalWidth,
+      height,
       radius: 0,
       fill: bg,
     })
 
-    const paddingLeft = currentLeft + 25
-    let offsetY = this.#offsetY
+    const paddingLeft = generalLeft + 25
+    let offsetY = generalTop
 
     context.fillStyle = TITLE_COLOR
     context.font = TITLE_FONT
@@ -136,45 +150,12 @@ export class BeatmapItem extends Shape {
     })
   }
 
-  /**
-   * @param offsetY {number}
-   */
-  set offsetY (offsetY) {
-    this.#offsetY = offsetY
-  }
-
-  /**
-   * @param offsetX {number}
-   */
-  set offsetX (offsetX) {
-    this.#offsetX = offsetX
-  }
-
-  /**
-   * @return {number}
-   */
-  get offsetY () {
-    return this.#offsetY
-  }
-
-  get offsetX () {
-    return this.#offsetX
-  }
-
   hover () {
-    this.#hovered = true
+    this.hovered = true
   }
 
   hoverOut () {
-    this.#hovered = false
-  }
-
-  get hovered () {
-    return this.#hovered
-  }
-
-  get selected () {
-    return this.#selected
+    this.hovered = false
   }
 
   /**
@@ -185,10 +166,10 @@ export class BeatmapItem extends Shape {
   }
 
   select () {
-    this.#selected = true
+    this.active = true
   }
 
   cancelSelect () {
-    this.#selected = false
+    this.active = false
   }
 }

@@ -38,31 +38,15 @@ export class BeatmapList extends Shape {
     const beatmapItems = this.#beatmapItems
     let offsetY = this.#scrollY
     const offsetX = Math.min(Math.abs(this.#scrollSpeed * 5.0), CANVAS.WIDTH / 4.0)
-    const {
-      item: {
-        base: { height, gap: BASE_GAP },
-        select: { gap: SELECT_GAP },
-        hover: { gap: HOVER_GAP },
-      },
-    } = Skin.config.main.beatmap
+    let lastMarginBottom = 0
 
     for (let i = 0; i < beatmapItems.length; i++) {
       const beatmapItem = beatmapItems[i]
-
-      let bottomGap = BASE_GAP
-      let topExtraGap = 0
-      if (beatmapItem.selected) {
-        bottomGap = SELECT_GAP
-        topExtraGap = -BASE_GAP + SELECT_GAP
-      } else if (beatmapItem.hovered) {
-        bottomGap = HOVER_GAP
-        topExtraGap = -BASE_GAP + HOVER_GAP
-      }
-
-      offsetY += topExtraGap
+      const { marginTop, height, marginBottom } = beatmapItem.currentStyle
       beatmapItem.offsetY = offsetY
       beatmapItem.offsetX = offsetX
-      offsetY += height + bottomGap
+      offsetY += height + marginTop + marginBottom
+      lastMarginBottom = marginBottom
       beatmapItem.render(context)
     }
   }
