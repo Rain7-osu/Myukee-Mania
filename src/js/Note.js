@@ -1,6 +1,6 @@
-import { BLUE_NOTE_COLOR, NOTE_GAP, NOTE_HEIGHT, NOTE_WIDTH, WHITE_NOTE_COLOR } from './Config.js'
 import { NoteType } from './NoteType.js'
 import { OffsetShape } from './Shape.js'
+import { Skin } from './Skin'
 
 /**
  * @description 0 - 480
@@ -69,6 +69,7 @@ export class Note extends OffsetShape {
   /** @type {boolean} */
   #grayed = false
   set grayed (value) { this.#grayed = value }
+
   get grayed () { return this.#grayed }
 
   /**
@@ -82,10 +83,13 @@ export class Note extends OffsetShape {
     super(offset, end)
     this.#col = col
     this.#type = type
+    const {
+      color: { blue, white },
+    } = Skin.config.stage.note
     if (col === 0 || col === 3) {
-      this.#color = BLUE_NOTE_COLOR
+      this.#color = blue
     } else {
-      this.#color = WHITE_NOTE_COLOR
+      this.#color = white
     }
   }
 
@@ -94,7 +98,7 @@ export class Note extends OffsetShape {
    */
   hit () { this.#isHit = true }
 
-  reset() {
+  reset () {
     this.#grayed = false
     this.#hitTiming = null
     this.#releaseTiming = null
@@ -106,11 +110,19 @@ export class Note extends OffsetShape {
   }
 
   render (context, offsetY, endY) {
+    const {
+      note: {
+        width: NOTE_WIDTH,
+        height: NOTE_HEIGHT,
+        gap: NOTE_GAP,
+      },
+      columnStart,
+    } = Skin.config.stage
     context.fillStyle = this.#color
     if (this.#type === NoteType.TAP) {
       if (offsetY > 0) {
         // y - NOTE_HEIGHT: judgement on the bottom of note
-        context.fillRect(this.#col * NOTE_WIDTH + NOTE_GAP / 2, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
+        context.fillRect(this.#col * NOTE_WIDTH + NOTE_GAP / 2 + columnStart, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
     } else if (this.#type === NoteType.HOLD) {
       const height = offsetY - endY
@@ -119,7 +131,7 @@ export class Note extends OffsetShape {
         context.fillStyle = this.#color + '50'
       }
       if (offsetY > 0) {
-        context.fillRect(this.#col * NOTE_WIDTH, endY, NOTE_WIDTH - 2, height)
+        context.fillRect(this.#col * NOTE_WIDTH + columnStart, endY, NOTE_WIDTH - 2, height)
       }
     }
   }

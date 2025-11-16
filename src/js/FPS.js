@@ -1,5 +1,5 @@
 import { Shape } from './Shape.js'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
+import { Skin } from './Skin'
 
 export class FPS extends Shape {
   /** @type {number} */
@@ -14,13 +14,11 @@ export class FPS extends Shape {
   }
 
   render (context) {
+    const { right, bottom, fillStyle, font } = Skin.config.fps
     const text = `FPS:${this.#value}`
-    context.font = 'bold 24px 微软雅黑'
-    context.fillStyle = '#f00'
+    context.font = font
+    context.fillStyle = fillStyle
     const textMetrics = context.measureText(text)
-
-    const x = CANVAS_WIDTH - textMetrics.width - 10
-    const y = CANVAS_HEIGHT - 24
-    context.fillText(text, x, y, textMetrics.width, 24)
+    context.fillText(text, right - textMetrics.width, bottom, textMetrics.width)
   }
 }

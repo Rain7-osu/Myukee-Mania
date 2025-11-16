@@ -1,5 +1,5 @@
 import { Shape } from './Shape.js'
-import { CANVAS_WIDTH } from './Config.js'
+import { CANVAS } from './Config.js'
 
 const RESULT_WIDTH = 100
 const RESULT_TOP = 200
@@ -19,7 +19,7 @@ export class JudgementRecordEffect extends Shape {
   render (context) {
     const judgementTypes = Object.keys(this.#record)
 
-    const x = CANVAS_WIDTH - RESULT_WIDTH
+    const x = CANVAS.WIDTH - RESULT_WIDTH
     let y = RESULT_TOP
 
     judgementTypes.sort((a, b) => Number(b) - Number(a)).forEach((type) => {

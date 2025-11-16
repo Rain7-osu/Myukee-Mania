@@ -1,28 +1,21 @@
 import { Shape } from './Shape.js'
 import { Beatmap } from './Beatmap.js'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
-
-const HEIGHT = 140
-const SELECTED_BG = '#ffffffcc'
-const BG = '#1e90ffb3'
-const HOVER_BG = '#e9ecef'
-const TITLE_COLOR = '#212529'
+import { CANVAS } from './Config.js'
+import { Skin } from './Skin'
 
 export class BeatmapItem extends Shape {
-  static configs = {
-    HEIGHT,
-  }
-
   /**
    * @type {Beatmap}
    */
   #beatmap
 
-  #hover = false
+  #hovered = false
 
   #selected = false
 
   #offsetY = 0
+
+  #offsetX = 0
 
   /**
    * @param beatmap {Beatmap}
@@ -33,18 +26,43 @@ export class BeatmapItem extends Shape {
   }
 
   render (context) {
-    const WIDTH = CANVAS_WIDTH / 2
-    const LEFT = CANVAS_WIDTH / 2
+    const {
+      select: { extra: SELECT_EXTRA, bgColor: SELECTED_BG },
+      hover: { extra: HOVER_EXTRA, bgColor: HOVER_BG },
+      base: {
+        height: HEIGHT,
+        bgColor: BG,
+        title: { color: TITLE_COLOR, font: TITLE_FONT },
+        description: { font: DESC_FONT },
+        subtitle: { font: SUBTITLE_FONT },
+      },
+      baseLeft,
+    } = Skin.config.main.beatmap.item
 
-    if (this.#offsetY + HEIGHT <= 0 || this.#offsetY >= CANVAS_HEIGHT) {
+    if (this.#offsetY + HEIGHT <= 0 || this.#offsetY >= CANVAS.HEIGHT) {
       // 在屏幕外
       return
+    }
+
+    let currentLeft = baseLeft + HOVER_EXTRA + SELECT_EXTRA
+    let currentWidth = baseLeft - HOVER_EXTRA - SELECT_EXTRA
+    if (this.#hovered) {
+      currentLeft -= HOVER_EXTRA
+      currentWidth += HOVER_EXTRA
+    }
+    if (this.#selected) {
+      currentLeft -= SELECT_EXTRA
+      currentWidth += SELECT_EXTRA
+    }
+    if (this.#offsetX) {
+      currentLeft += this.#offsetX
+      currentWidth -= this.#offsetX
     }
 
     let bg = BG
     if (this.#selected) {
       bg = SELECTED_BG
-    } else if (this.#hover) {
+    } else if (this.#hovered) {
       bg = HOVER_BG
     }
 
@@ -52,27 +70,27 @@ export class BeatmapItem extends Shape {
 
     super.roundRect({
       context,
-      x: LEFT,
+      x: currentLeft,
       y: this.#offsetY,
-      width: WIDTH,
+      width: currentWidth,
       height: HEIGHT,
       radius: 0,
       fill: bg,
     })
 
-    const paddingLeft = LEFT + 25
+    const paddingLeft = currentLeft + 25
     let offsetY = this.#offsetY
 
     context.fillStyle = TITLE_COLOR
-    context.font = '32px 微软雅黑'
+    context.font = TITLE_FONT
     context.textAlign = 'left'
     context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 44)
 
-    context.font = '20px 微软雅黑'
+    context.font = DESC_FONT
     context.fillStyle = TITLE_COLOR
     context.fillText(this.#beatmap.description, paddingLeft, offsetY += 24)
 
-    context.font = 'bold 24px 微软雅黑'
+    context.font = SUBTITLE_FONT
     context.fillStyle = TITLE_COLOR
     context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += 28)
 
@@ -93,6 +111,7 @@ export class BeatmapItem extends Shape {
         innerRadius: size / 4.0,
         fillColor: TITLE_COLOR,
         strokeWidth: 0,
+        strokeColor: TITLE_COLOR,
         rotation: 54,
       })
 
@@ -112,6 +131,7 @@ export class BeatmapItem extends Shape {
       innerRadius: lastStarSize / 4.0,
       fillColor: TITLE_COLOR,
       strokeWidth: 0,
+      strokeColor: TITLE_COLOR,
       rotation: 54,
     })
   }
@@ -124,18 +144,33 @@ export class BeatmapItem extends Shape {
   }
 
   /**
+   * @param offsetX {number}
+   */
+  set offsetX (offsetX) {
+    this.#offsetX = offsetX
+  }
+
+  /**
    * @return {number}
    */
   get offsetY () {
     return this.#offsetY
   }
 
+  get offsetX () {
+    return this.#offsetX
+  }
+
   hover () {
-    this.#hover = true
+    this.#hovered = true
   }
 
   hoverOut () {
-    this.#hover = false
+    this.#hovered = false
+  }
+
+  get hovered () {
+    return this.#hovered
   }
 
   get selected () {

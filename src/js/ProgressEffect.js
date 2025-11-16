@@ -1,5 +1,5 @@
 import { Shape } from './Shape.js'
-import { CANVAS_WIDTH } from './Config.js'
+import { CANVAS } from './Config.js'
 
 const RADIUS = 25
 const LINE_WIDTH = 3
@@ -18,7 +18,7 @@ export class ProgressPercentEffect extends Shape {
 
   render (context) {
     const percent = this.#percent > 0 ? this.#percent : 0
-    const centerX = CANVAS_WIDTH - 300
+    const centerX = CANVAS.WIDTH - 300
     const centerY = 120
 
     // 绘制进度弧

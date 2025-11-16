@@ -1,6 +1,7 @@
 import { Shape } from './Shape.js'
 import { KeyCode } from './KeyCode.js'
-import { CANVAS_HEIGHT, HIT_EFFECT_FALL_SPEED, HIT_EFFECT_HEIGHT, HIT_EFFECT_RISE_SPEED, NOTE_WIDTH } from './Config.js'
+import { CANVAS } from './Config.js'
+import { Skin } from './Skin'
 
 /**
  * press key beautiful effect
@@ -56,9 +57,11 @@ export class HitEffect extends Shape {
     this.#alpha = 1.0
     this.#held = true
 
+    const { width: NOTE_WIDTH } = Skin.config.stage.note
+
     this.#rect = {
       x: this.#col * NOTE_WIDTH,
-      y: CANVAS_HEIGHT,
+      y: CANVAS.HEIGHT,
       width: NOTE_WIDTH,
       height: 0,
     }
@@ -69,9 +72,11 @@ export class HitEffect extends Shape {
    */
   render (ctx) {
     const {
-      x, y,
+      x: baseX, y,
       width, height,
     } = this.#rect
+    const { columnStart } = Skin.config.stage
+    const x = baseX + columnStart
 
     ctx.fillStyle = this.#col === 1 || this.#col === 2
       ? this.createBlueGradiant(ctx)
@@ -85,7 +90,6 @@ export class HitEffect extends Shape {
     ctx.closePath()
     ctx.fill()
 
-
     // render bottom highlight
     ctx.fillStyle = this.#col === 1 || this.#col === 2 ?
       'rgba(0, 230, 255, 0.7)' :
@@ -97,6 +101,11 @@ export class HitEffect extends Shape {
    * @return {boolean} current effect is alive
    */
   update () {
+    const {
+      speed: { rise: HIT_EFFECT_RISE_SPEED, fall: HIT_EFFECT_FALL_SPEED },
+      height: HIT_EFFECT_HEIGHT,
+    } = Skin.config.stage.hitEffect
+
     if (this.#phase === 'rising') {
       this.#rect.height += HIT_EFFECT_RISE_SPEED
       if (this.#rect.height >= HIT_EFFECT_HEIGHT) {

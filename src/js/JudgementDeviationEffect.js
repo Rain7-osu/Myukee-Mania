@@ -1,6 +1,6 @@
 import { Shape } from './Shape.js'
 import { JudgementAreaCalculators, JudgementType } from './Judgement.js'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
+import { CANVAS } from './Config.js'
 
 const BG_COLOR = 'rgba(0, 0, 0, 0.5)'
 const YELLOW_COLOR = '#dead50'
@@ -48,13 +48,13 @@ export class JudgementDeviationEffect extends Shape {
    * @param context {CanvasRenderingContext2D}
    */
   renderBar (context) {
-    const y = CANVAS_HEIGHT - this.#config.height
-    const x = (CANVAS_WIDTH - this.#config.width) / 2.0
+    const y = CANVAS.HEIGHT - this.#config.height
+    const x = (CANVAS.WIDTH - this.#config.width) / 2.0
     const colorY = y + (this.#config.height - this.#config.colorHeight) / 2.0
     const yellowX = x
-    const greenX = (CANVAS_WIDTH - this.#config.greenWidth) / 2.0
-    const blueX = (CANVAS_WIDTH - this.#config.blueWidth) / 2.0
-    const whiteX = (CANVAS_WIDTH - WHITE_LINE_WIDTH) / 2.0
+    const greenX = (CANVAS.WIDTH - this.#config.greenWidth) / 2.0
+    const blueX = (CANVAS.WIDTH - this.#config.blueWidth) / 2.0
+    const whiteX = (CANVAS.WIDTH - WHITE_LINE_WIDTH) / 2.0
     const whiteY = y
 
     // 绘制背景
@@ -91,7 +91,9 @@ export class JudgementDeviationEffect extends Shape {
 
   render (context) {
     this.renderBar(context)
+    context.globalCompositeOperation = 'lighter'
     this.#activeDeviations.forEach(deviation => deviation.render(context))
+    context.globalCompositeOperation = 'source-over'
   }
 
   /**

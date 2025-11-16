@@ -1,13 +1,13 @@
 import { Shape } from './Shape.js'
 import { JudgementType } from './Judgement.js'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
+import { CANVAS } from './Config.js'
 
 const MAX_REMAIN_TIME = 6000.0
 const HEIGHT = 32
 const LINE_WIDTH = 4
 const BLUE_COLOR = (a) => `rgba(46, 187, 230, ${a})`
 const GREEN_COLOR = (a) => `rgba(83, 232, 10, ${a})`
-const YELLOW_COLOR = (a) =>  `rgba(222, 173, 80, ${a})`
+const YELLOW_COLOR = (a) => `rgba(222, 173, 80, ${a})`
 
 /**
  * 打击偏差
@@ -17,9 +17,10 @@ export class JudgementDeviation extends Shape {
   #judgeTiming = 0
   /** @type {number} */
   #deviation = 0
-  /** @type {number} */
-  #active = false
+  /** @type {boolean} */
+  #active
   get active () { return this.#active }
+
   /** @type {(a: number) => string} */
   #color
   /** @type {number} */
@@ -49,7 +50,7 @@ export class JudgementDeviation extends Shape {
     }
   }
 
-  update(currentTiming) {
+  update (currentTiming) {
     const renderedTime = currentTiming - this.#judgeTiming
 
     if (renderedTime > MAX_REMAIN_TIME) {
@@ -68,8 +69,8 @@ export class JudgementDeviation extends Shape {
 
   render (context) {
     context.fillStyle = this.#color(this.#alpha)
-    const x = CANVAS_WIDTH / 2.0 + this.#deviation * this.#scale
-    const y = CANVAS_HEIGHT - HEIGHT * this.#scale
+    const x = CANVAS.WIDTH / 2.0 + this.#deviation * this.#scale
+    const y = CANVAS.HEIGHT - HEIGHT * this.#scale
     context.fillRect(x, y, LINE_WIDTH, HEIGHT * this.#scale)
   }
 }

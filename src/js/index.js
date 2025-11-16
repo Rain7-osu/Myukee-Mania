@@ -1,4 +1,4 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, setCanvasHeight, setCanvasWidth } from './Config.js'
+import { CANVAS, setCanvasSize } from './Config.js'
 import { MainManager } from './MainManager.js'
 
 /**
@@ -15,14 +15,16 @@ function bindClick (btnId, handler) {
 function createStageCanvas (id = 'stage') {
   const canvas = document.createElement('canvas')
   canvas.id = id
-  canvas.width = CANVAS_WIDTH
-  canvas.height = CANVAS_HEIGHT
+  canvas.width = CANVAS.WIDTH
+  canvas.height = CANVAS.HEIGHT
   return canvas
 }
 
 function fullscreen () {
-  setCanvasHeight(window.screen.height)
-  setCanvasWidth(window.screen.width)
+  setCanvasSize({
+    WIDTH: window.screen.width,
+    HEIGHT: window.screen.height,
+  })
 
   $('root').requestFullscreen({
     navigationUI: 'hide',

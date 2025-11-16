@@ -15,8 +15,9 @@ import { AccuracyEffect } from './AccuracyEffect.js'
 import { AccuracyManager } from './AccuracyManager.js'
 import { SpeedChangeEffect } from './SpeedChangeEffect.js'
 import { StageBoard } from './StageBoard.js'
+import { RankEffect } from './RankEffect'
 
-export class Controller {
+export class StageController {
   /**
    * @type {RenderEngine}
    */
@@ -389,6 +390,7 @@ export class Controller {
   renderAccuracyEffect () {
     const acc = this.#accuracyManager.calcAcc()
     this.#renderEngine.renderShape(new AccuracyEffect(acc))
+    this.#renderEngine.renderShape(new RankEffect(acc))
   }
 
   renderProgressEffect () {

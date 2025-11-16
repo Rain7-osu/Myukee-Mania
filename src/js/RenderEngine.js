@@ -1,4 +1,4 @@
-import { CANVAS_HEIGHT, CANVAS_WIDTH, DEFAULT_SPEED } from './Config.js'
+import { CANVAS, DEFAULT_SPEED } from './Config.js'
 
 // TODO Move stage render method out
 export class RenderEngine {
@@ -49,7 +49,7 @@ export class RenderEngine {
   convertOffsetToY (offset) {
     const timing = this.timing
     // per frame fall (10 * speed) px
-    return (timing - offset) / 10 * this.#speed + CANVAS_HEIGHT
+    return (timing - offset) / 10 * this.#speed + CANVAS.HEIGHT
   }
 
   /**
@@ -71,13 +71,13 @@ export class RenderEngine {
   }
 
   clearBackground () {
-    this.#context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    this.#context.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
   }
 
   /**
    * @param image {HTMLImageElement}
    */
   renderBackgroundImage (image) {
-    this.#context.drawImage(image, 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    this.#context.drawImage(image, 0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
   }
 }

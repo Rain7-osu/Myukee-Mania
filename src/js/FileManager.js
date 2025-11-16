@@ -1,5 +1,3 @@
-const FILE_READ_SUCCESS = 4
-
 export class FileManager {
   /**
    * @type {File | null}

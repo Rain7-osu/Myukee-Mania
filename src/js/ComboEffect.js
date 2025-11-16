@@ -1,6 +1,6 @@
 import { Shape } from './Shape.js'
-import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config.js'
-import { NumberImageConfig } from './ResourceConfig.js'
+import { CANVAS } from './Config.js'
+import { Skin } from './Skin'
 
 export class ComboEffect extends Shape {
   /** @type {number} */
@@ -15,20 +15,29 @@ export class ComboEffect extends Shape {
     if (!this.#value) {
       return
     }
+
+    const {
+      columnStart,
+      note: { width: NOTE_WIDTH },
+      combo: { top: TOP, assets },
+    } = Skin.config.stage
+
+    const numberResource = assets || Skin.config.common.number.default
+
     const imageList = String(this.#value)
       .split('')
       .map((name) => `default-${name}`)
 
     const width = imageList.reduce((previousValue, currentValue) => {
-      return previousValue + (NumberImageConfig[currentValue]?.width || 0)
+      return previousValue + (numberResource[currentValue]?.width || 0)
     }, 0)
 
-    let x = (4 * NOTE_WIDTH - width) / 2
+    let x = columnStart + (4 * NOTE_WIDTH - width) / 2.0
 
     imageList.forEach((name) => {
-      const config = NumberImageConfig[name]
-      context.drawImage(config.image, x, CANVAS_HEIGHT / 1.5 - config.height / 2, config.width, config.height)
+      const config = numberResource[name]
+      context.drawImage(config.image, x, TOP - config.height / 2, config.width, config.height)
       x += config.width
     })
-  }x
+  }
 }

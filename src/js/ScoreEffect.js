@@ -1,6 +1,5 @@
 import { Shape } from './Shape.js'
-import { NumberImageConfig } from './ResourceConfig.js'
-import { CANVAS_WIDTH } from './Config.js'
+import { Skin } from './Skin'
 
 export class ScoreEffect extends Shape {
   #score
@@ -12,18 +11,20 @@ export class ScoreEffect extends Shape {
   constructor (score) {
     super()
     // 把 score 数字，数字字符数组，并且长度为 8 位，不足的前置补零，并且 score 是整数，四舍五入
-    this.#score = String(Math.round(score)).padStart(8, '0').split('');
+    this.#score = String(Math.round(score)).padStart(8, '0').split('')
   }
 
   render (context) {
+    const NumberImageConfig = Skin.config.stage.score.assets || Skin.config.common.number.default
+    const { top: y, right } = Skin.config.stage.score
+
     const numList = this.#score.map((name) => `default-${name}`)
 
     const width = numList.reduce((previousValue, currentValue) => {
       return previousValue + (NumberImageConfig[currentValue]?.width || 0)
     }, 0)
 
-    let x = CANVAS_WIDTH - width - 10
-    const y = 10
+    let x = right - width
 
     numList.forEach((name) => {
       const config = NumberImageConfig[name]

@@ -1,5 +1,5 @@
 import { Shape } from './Shape.js'
-import { CANVAS_HEIGHT, CANVAS_WIDTH } from './Config.js'
+import { CANVAS } from './Config.js'
 
 const HEIGHT = 80
 
@@ -61,9 +61,9 @@ export class SpeedChangeEffect extends Shape {
 
   render (context) {
     const x = 0
-    const y = (CANVAS_HEIGHT - this.#height) / 2.0
+    const y = (CANVAS.HEIGHT - this.#height) / 2.0
     context.fillStyle = 'rgba(16,16,16,0.8)'
-    context.fillRect(x, y, CANVAS_WIDTH, this.#height)
+    context.fillRect(x, y, CANVAS.WIDTH, this.#height)
 
     const text = `已将下落速度调整为 ${this.#currentSpeed}`
     context.font = 'normal 36px 微软雅黑'
@@ -72,8 +72,8 @@ export class SpeedChangeEffect extends Shape {
     context.fillStyle = '#ffffff'
 
     const textMetrics = context.measureText(text)
-    const textX = (CANVAS_WIDTH - textMetrics.width) / 2.0
-    const textY = CANVAS_HEIGHT / 2.0
+    const textX = (CANVAS.WIDTH - textMetrics.width) / 2.0
+    const textY = CANVAS.HEIGHT / 2.0
     context.fillText(text, textX, textY)
     context.restore()
   }

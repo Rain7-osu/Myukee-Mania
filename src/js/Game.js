@@ -1,5 +1,5 @@
 import { Beatmap } from './Beatmap.js'
-import { Controller } from './Controller.js'
+import { StageController } from './StageController.js'
 import { FileManager } from './FileManager.js'
 import { MapResolver } from './MapResolver.js'
 import { AudioManager } from './AudioManager.js'
@@ -16,7 +16,7 @@ export class Game {
   }
 
   /**
-   * @type {Controller}
+   * @type {StageController}
    */
   controller
 
@@ -24,7 +24,7 @@ export class Game {
    * @param afterQuit {() => void}
    */
   init(afterQuit) {
-    this.controller = new Controller('stage')
+    this.controller = new StageController('stage')
     this.controller.afterQuit = afterQuit
   }
 

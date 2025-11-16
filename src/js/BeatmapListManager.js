@@ -41,7 +41,7 @@ export class BeatmapListManager {
       this.#beatmapItemMap.set(beatmap.id, beatmapItem)
       return [...prev, beatmapItem]
     }, [])
-    this.#beatmapList.beatmaps = this.#beatmaps
+    this.#beatmapList.beatmapItems = this.#beatmaps
   }
 
   /**

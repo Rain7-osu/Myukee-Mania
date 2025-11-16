@@ -1,7 +1,8 @@
 import { Shape } from './Shape.js'
 import { JudgementType } from './Judgement.js'
-import { CANVAS_HEIGHT, NOTE_WIDTH } from './Config.js'
 import { FileManager } from './FileManager.js'
+import { Skin } from './Skin'
+import { warn } from './dev'
 
 const loadImage = FileManager.loadImage
 
@@ -11,47 +12,39 @@ const JudgementConfig = {
     image2: loadImage('./skin/mania-hit300g-1.png'),
     priority: 0,
     width: 188,
-    height: 91
+    height: 91,
   },
   [JudgementType.GREAT]: {
     image: loadImage('./skin/mania-hit300.png'),
     priority: 1,
     width: 226,
-    height: 131
+    height: 131,
   },
   [JudgementType.GOOD]: {
     image: loadImage('./skin/mania-hit200.png'),
     priority: 2,
     width: 207,
-    height: 120
+    height: 120,
   },
   [JudgementType.OK]: {
     image: loadImage('./skin/mania-hit100.png'),
     priority: 3,
     width: 182,
-    height: 116
+    height: 116,
   },
   [JudgementType.MEH]: {
     image: loadImage('./skin/mania-hit50.png'),
     priority: 4,
     width: 142,
-    height: 113
+    height: 113,
   },
   [JudgementType.MISS]: {
     image: loadImage('./skin/mania-hit0.png'),
     priority: 5,
     width: 270.5,
-    height: 148.5
+    height: 148.5,
   },
 }
-
-const DEFAULT_MAX_SCALE = 1.28
-const INIT_SCALE = 1
-const INIT_ALPHA = 1
-const GROW_TIME = 100
-const BACK_TIME = 200
-const FADE_TIME = 1000
-const FADE_SCALE = 1
 
 export class JudgementEffect extends Shape {
   /** @type {import('./Judgement').Judgement} */
@@ -67,14 +60,14 @@ export class JudgementEffect extends Shape {
   #phase
 
   /** @type {number} */
-  #maxScale = DEFAULT_MAX_SCALE
+  #maxScale = Skin.config.stage.judgement.effect.defaultMaxScale
 
   /**
    * @type {boolean}
    */
   #active
 
-  get active() {
+  get active () {
     return this.#active
   }
 
@@ -85,19 +78,22 @@ export class JudgementEffect extends Shape {
     super()
     this.#judgement = judgement
     this.#active = true
+    const { initAlpha: INIT_ALPHA, initScale: INIT_SCALE } = Skin.config.stage.judgement.effect
     this.#scale = INIT_SCALE
     this.#alpha = INIT_ALPHA
   }
+
   render (context) {
     const config = JudgementConfig[this.#judgement.type]
+    const { judgement: { top }, note: { width: NOTE_WIDTH }, columnStart } = Skin.config.stage
 
     let width = config.width * this.#scale
     let height = config.height * this.#scale
-    const x = (4 * NOTE_WIDTH - width) / 2
-    const y = CANVAS_HEIGHT / 3 - height / 2
+    const x = (4 * NOTE_WIDTH - width) / 2 + columnStart
+    const y = top - height / 2
 
     if (width >= config.width * this.#maxScale || height >= config.height * this.#maxScale) {
-      console.warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`);
+      warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`)
       width = config.width * this.#maxScale
       height = config.height * this.#maxScale
     }
@@ -114,7 +110,7 @@ export class JudgementEffect extends Shape {
    * @param currentTiming
    * @param {JudgementEffect | null} nextEffect
    */
-  update(currentTiming, nextEffect) {
+  update (currentTiming, nextEffect) {
     const elapsedTime = currentTiming - this.#judgement.judgeTiming
 
     // 如果有下一个 effect，则判断下一个 effect 是不是马上要展示了
@@ -127,6 +123,13 @@ export class JudgementEffect extends Shape {
         return
       }
     }
+
+    const {
+      growTime: GROW_TIME,
+      initAlpha: INIT_ALPHA,
+      backTime: BACK_TIME,
+      fadeTime: FADE_TIME,
+    } = Skin.config.stage.judgement.effect
 
     if (elapsedTime < GROW_TIME) {
       // 放大动画

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas可滚动列表 - 惯性滚动效果</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+        padding: 20px;
+        color: #333;
+        overflow: hidden;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 800px;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+      }
+
+      .header {
+        background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+        margin-bottom: 5px;
+      }
+
+      .header p {
+        font-size: 1rem;
+        opacity: 0.9;
+      }
+
+      .canvas-container {
+        position: relative;
+        width: 100%;
+        height: 500px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+      }
+
+      #listCanvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .instructions {
+        padding: 15px;
+        text-align: center;
+        background-color: #f1f3f5;
+        border-top: 1px solid #dee2e6;
+        font-size: 0.9rem;
+        color: #6c757d;
+      }
+
+      .footer {
+        padding: 15px;
+        text-align: center;
+        background-color: #e9ecef;
+        font-size: 0.8rem;
+        color: #495057;
+      }
+
+      .stats {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        z-index: 10;
+      }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Canvas可滚动列表 - 惯性滚动效果</h1>
+        <p>快速滚动滚轮体验惯性效果 | 包含100个项目</p>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="listCanvas"></canvas>
+        <div class="stats">
+            <div>滚动速度: <span id="speedValue">0</span> px/frame</div>
+            <div>惯性状态: <span id="inertiaStatus">停止</span></div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        快速滚动鼠标滚轮体验惯性效果 | 点击列表项可查看详情
+    </div>
+
+    <div class="footer">
+        使用纯Canvas实现，支持虚拟滚动和惯性效果
+    </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const canvas = document.getElementById('listCanvas');
+    const ctx = canvas.getContext('2d');
+    const speedValue = document.getElementById('speedValue');
+    const inertiaStatus = document.getElementById('inertiaStatus');
+
+    // 设置Canvas尺寸
+    const container = canvas.parentElement;
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+
+    // 列表数据
+    const items = [];
+    const titles = [
+      "项目计划文档", "季度报告总结", "技术设计方案", "产品需求文档",
+      "市场调研分析", "用户体验报告", "团队协作指南", "项目管理流程",
+      "代码规范文档", "测试用例设计", "部署操作手册", "系统架构图",
+      "性能优化方案", "安全审计报告", "数据备份策略", "故障排查指南",
+      "用户培训材料", "产品发布说明", "API接口文档", "数据库设计"
+    ];
+
+    const descriptions = [
+      "详细的项目计划和时间安排，包含关键里程碑和交付物。",
+      "本季度工作成果总结和下季度计划，涵盖各部门表现。",
+      "系统技术架构和实现方案，包含技术选型和实现细节。",
+      "产品功能需求和用户故事，详细描述产品特性和用户价值。",
+      "市场趋势和竞争对手分析，为产品决策提供数据支持。",
+      "用户使用产品的体验反馈和改进建议，提升用户满意度。",
+      "团队协作规范和沟通流程，提高团队工作效率。",
+      "项目从启动到交付的全流程管理方法和工具使用。",
+      "代码编写规范和最佳实践，保证代码质量和可维护性。",
+      "功能测试、性能测试和安全测试的用例设计和方法。",
+      "系统部署和运维操作步骤，确保系统稳定运行。",
+      "系统组件和模块关系图，展示整体技术架构。",
+      "系统性能瓶颈分析和优化方案，提升系统响应速度。",
+      "系统安全漏洞扫描和修复方案，保障系统安全。",
+      "数据备份和恢复策略，防止数据丢失和损坏。",
+      "常见问题排查步骤和解决方案，快速定位和修复问题。",
+      "用户使用产品培训材料和操作指南，帮助用户快速上手。",
+      "产品版本发布内容和更新说明，告知用户新功能和改进。",
+      "系统API接口说明和使用方法，方便第三方集成。",
+      "数据库表结构和关系设计，保证数据一致性和完整性。"
+    ];
+
+    for (let i = 1; i <= 100; i++) {
+      const titleIndex = (i - 1) % titles.length;
+      const descIndex = (i - 1) % descriptions.length;
+      items.push({
+        id: i,
+        title: `${titles[titleIndex]} ${i}`,
+        description: descriptions[descIndex]
+      });
+    }
+
+    // 列表配置
+    const config = {
+      itemHeight: 80,
+      scrollY: 0,
+      maxScrollY: 0,
+      itemSpacing: 10,
+      scrollBarWidth: 8,
+      scrollBarMargin: 4,
+      hoveredItem: null,
+      selectedItem: null,
+      // 惯性滚动相关
+      velocity: 0,
+      isInertiaScrolling: false,
+      lastScrollTime: 0,
+      lastScrollY: 0,
+      friction: 0.95, // 摩擦系数
+      minVelocity: 0.1, // 最小速度阈值
+      maxVelocity: 50 // 最大速度限制
+    };
+
+    // 计算最大滚动距离
+    config.maxScrollY = Math.max(0, items.length * (config.itemHeight + config.itemSpacing) - canvas.height);
+
+    // 颜色配置
+    const colors = {
+      background: '#f8f9fa',
+      itemBackground: '#ffffff',
+      itemHover: '#e9ecef',
+      itemSelected: '#dbeafe',
+      title: '#212529',
+      description: '#6c757d',
+      scrollTrack: '#e9ecef',
+      scrollThumb: '#adb5bd',
+      scrollThumbHover: '#6c757d'
+    };
+
+    // 绘制列表
+    function drawList() {
+      // 清除画布
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 绘制背景
+      ctx.fillStyle = colors.background;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // 计算可见区域
+      const startIndex = Math.max(0, Math.floor(config.scrollY / (config.itemHeight + config.itemSpacing)));
+      const endIndex = Math.min(items.length - 1,
+        Math.ceil((config.scrollY + canvas.height) / (config.itemHeight + config.itemSpacing)));
+
+      // 绘制可见项目
+      for (let i = startIndex; i <= endIndex; i++) {
+        const item = items[i];
+        const y = i * (config.itemHeight + config.itemSpacing) - config.scrollY;
+
+        // 跳过不在可见区域的项目
+        if (y + config.itemHeight < 0 || y > canvas.height) continue;
+
+        // 绘制项目背景
+        if (item === config.selectedItem) {
+          ctx.fillStyle = colors.itemSelected;
+        } else if (item === config.hoveredItem) {
+          ctx.fillStyle = colors.itemHover;
+        } else {
+          ctx.fillStyle = colors.itemBackground;
+        }
+
+        // 绘制圆角矩形背景
+        roundRect(ctx, 10, y, canvas.width - 20, config.itemHeight, 8, true, false);
+
+        // 绘制标题
+        ctx.fillStyle = colors.title;
+        ctx.font = 'bold 16px "Segoe UI", sans-serif';
+        ctx.fillText(item.title, 25, y + 28);
+
+        // 绘制描述
+        ctx.fillStyle = colors.description;
+        ctx.font = '14px "Segoe UI", sans-serif';
+
+        // 描述文本换行处理
+        const maxWidth = canvas.width - 50;
+        wrapText(ctx, item.description, 25, y + 50, maxWidth, 18);
+
+        // 绘制分隔线
+        if (i < items.length - 1) {
+          ctx.beginPath();
+          ctx.moveTo(20, y + config.itemHeight);
+          ctx.lineTo(canvas.width - 20, y + config.itemHeight);
+          ctx.strokeStyle = '#e9ecef';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      // 绘制滚动条
+      drawScrollBar();
+    }
+
+    // 绘制圆角矩形
+    function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+      if (typeof stroke === 'undefined') {
+        stroke = true;
+      }
+      if (typeof radius === 'undefined') {
+        radius = 5;
+      }
+      if (typeof radius === 'number') {
+        radius = {tl: radius, tr: radius, br: radius, bl: radius};
+      } else {
+        var defaultRadius = {tl: 0, tr: 0, br: 0, bl: 0};
+        for (var side in defaultRadius) {
+          radius[side] = radius[side] || defaultRadius[side];
+        }
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(x + radius.tl, y);
+      ctx.lineTo(x + width - radius.tr, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr);
+      ctx.lineTo(x + width, y + height - radius.br);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height);
+      ctx.lineTo(x + radius.bl, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl);
+      ctx.lineTo(x, y + radius.tl);
+      ctx.quadraticCurveTo(x, y, x + radius.tl, y);
+      ctx.closePath();
+
+      if (fill) {
+        ctx.fill();
+      }
+      if (stroke) {
+        ctx.stroke();
+      }
+    }
+
+    // 文本换行函数
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      let testLine = '';
+      let lineCount = 0;
+
+      for (let n = 0; n < words.length; n++) {
+        testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+
+        if (testWidth > maxWidth && n > 0) {
+          if (lineCount < 2) { // 最多显示两行
+            ctx.fillText(line, x, y);
+            line = words[n] + ' ';
+            y += lineHeight;
+            lineCount++;
+          } else {
+            // 第三行显示省略号
+            line = line.trim() + '...';
+            if (ctx.measureText(line).width > maxWidth) {
+              // 如果加上省略号还是超长，需要进一步处理
+              while (ctx.measureText(line + '...').width > maxWidth && line.length > 0) {
+                line = line.substring(0, line.length - 1);
+              }
+              line += '...';
+            }
+            ctx.fillText(line, x, y);
+            return;
+          }
+        } else {
+          line = testLine;
+        }
+      }
+
+      if (lineCount < 2) {
+        ctx.fillText(line, x, y);
+      }
+    }
+
+    // 绘制滚动条
+    function drawScrollBar() {
+      if (config.maxScrollY <= 0) return;
+
+      const scrollTrackX = canvas.width - config.scrollBarWidth - config.scrollBarMargin;
+      const scrollTrackHeight = canvas.height;
+      const scrollThumbHeight = Math.max(40, (canvas.height / (items.length * (config.itemHeight + config.itemSpacing))) * canvas.height);
+      const scrollThumbY = (config.scrollY / config.maxScrollY) * (canvas.height - scrollThumbHeight);
+
+      // 绘制滚动条轨道
+      ctx.fillStyle = colors.scrollTrack;
+      roundRect(ctx, scrollTrackX, 0, config.scrollBarWidth, scrollTrackHeight, 4, true, false);
+
+      // 绘制滚动条滑块
+      ctx.fillStyle = colors.scrollThumb;
+      roundRect(ctx, scrollTrackX, scrollThumbY, config.scrollBarWidth, scrollThumbHeight, 4, true, false);
+    }
+
+    // 处理滚动事件
+    function handleScroll(e) {
+      e.preventDefault();
+
+      // 计算滚动速度
+      const currentTime = Date.now();
+      if (config.lastScrollTime > 0) {
+        const timeDiff = currentTime - config.lastScrollTime;
+        const scrollDiff = config.scrollY - config.lastScrollY;
+
+        // 计算速度 (像素/帧)
+        config.velocity = (scrollDiff / timeDiff) * 16; // 标准化为每帧速度
+
+        // 限制最大速度
+        if (Math.abs(config.velocity) > config.maxVelocity) {
+          config.velocity = config.velocity > 0 ? config.maxVelocity : -config.maxVelocity;
+        }
+
+        speedValue.textContent = Math.abs(config.velocity).toFixed(1);
+      }
+
+      config.lastScrollTime = currentTime;
+      config.lastScrollY = config.scrollY;
+
+      // 更新滚动位置
+      config.scrollY += e.deltaY * 0.5;
+      config.scrollY = Math.max(0, Math.min(config.scrollY, config.maxScrollY));
+
+      // 如果正在惯性滚动，停止它
+      if (config.isInertiaScrolling) {
+        config.isInertiaScrolling = false;
+        inertiaStatus.textContent = "停止";
+      }
+
+      drawList();
+    }
+
+    // 惯性滚动动画
+    function inertiaScroll() {
+      if (Math.abs(config.velocity) > config.minVelocity) {
+        config.isInertiaScrolling = true;
+        inertiaStatus.textContent = "惯性滚动中";
+
+        // 应用速度
+        config.scrollY += config.velocity;
+
+        // 应用摩擦力减速
+        config.velocity *= config.friction;
+
+        // 边界检查
+        if (config.scrollY < 0) {
+          config.scrollY = 0;
+          config.velocity = 0;
+        } else if (config.scrollY > config.maxScrollY) {
+          config.scrollY = config.maxScrollY;
+          config.velocity = 0;
+        }
+
+        // 更新速度显示
+        speedValue.textContent = Math.abs(config.velocity).toFixed(1);
+
+        drawList();
+
+        // 继续惯性滚动
+        requestAnimationFrame(inertiaScroll);
+      } else {
+        config.isInertiaScrolling = false;
+        inertiaStatus.textContent = "停止";
+        config.velocity = 0;
+      }
+    }
+
+    // 处理鼠标移动事件
+    function handleMouseMove(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // 检查是否在滚动条上
+      const scrollTrackX = canvas.width - config.scrollBarWidth - config.scrollBarMargin;
+      if (x >= scrollTrackX && x <= scrollTrackX + config.scrollBarWidth) {
+        canvas.style.cursor = 'pointer';
+        return;
+      }
+
+      // 检查是否在列表项上
+      const startIndex = Math.max(0, Math.floor(config.scrollY / (config.itemHeight + config.itemSpacing)));
+      const endIndex = Math.min(items.length - 1,
+        Math.ceil((config.scrollY + canvas.height) / (config.itemHeight + config.itemSpacing)));
+
+      let found = false;
+      for (let i = startIndex; i <= endIndex; i++) {
+        const itemY = i * (config.itemHeight + config.itemSpacing) - config.scrollY;
+
+        if (y >= itemY && y <= itemY + config.itemHeight) {
+          config.hoveredItem = items[i];
+          canvas.style.cursor = 'pointer';
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        config.hoveredItem = null;
+        canvas.style.cursor = 'default';
+      }
+
+      drawList();
+    }
+
+    // 处理鼠标点击事件
+    function handleClick(e) {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // 检查是否点击了滚动条
+      const scrollTrackX = canvas.width - config.scrollBarWidth - config.scrollBarMargin;
+      if (x >= scrollTrackX && x <= scrollTrackX + config.scrollBarWidth) {
+        // 点击滚动条，跳转到相应位置
+        const scrollThumbHeight = Math.max(40, (canvas.height / (items.length * (config.itemHeight + config.itemSpacing))) * canvas.height);
+        const clickRatio = y / canvas.height;
+        config.scrollY = clickRatio * config.maxScrollY;
+        drawList();
+        return;
+      }
+
+      // 检查是否点击了列表项
+      const startIndex = Math.max(0, Math.floor(config.scrollY / (config.itemHeight + config.itemSpacing)));
+      const endIndex = Math.min(items.length - 1,
+        Math.ceil((config.scrollY + canvas.height) / (config.itemHeight + config.itemSpacing)));
+
+      for (let i = startIndex; i <= endIndex; i++) {
+        const itemY = i * (config.itemHeight + config.itemSpacing) - config.scrollY;
+
+        if (y >= itemY && y <= itemY + config.itemHeight) {
+          config.selectedItem = items[i];
+          alert(`您点击了: ${items[i].title}\n\n${items[i].description}`);
+          drawList();
+          break;
+        }
+      }
+    }
+
+    // 处理窗口大小变化
+    function handleResize() {
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+      config.maxScrollY = Math.max(0, items.length * (config.itemHeight + config.itemSpacing) - canvas.height);
+      drawList();
+    }
+
+    // 初始化事件监听
+    canvas.addEventListener('wheel', handleScroll);
+    canvas.addEventListener('mousemove', handleMouseMove);
+    canvas.addEventListener('click', handleClick);
+    window.addEventListener('resize', handleResize);
+
+    // 监听鼠标滚轮结束，开始惯性滚动
+    let wheelTimeout;
+    canvas.addEventListener('wheel', function() {
+      clearTimeout(wheelTimeout);
+      wheelTimeout = setTimeout(function() {
+        if (!config.isInertiaScrolling && Math.abs(config.velocity) > config.minVelocity) {
+          requestAnimationFrame(inertiaScroll);
+        }
+      }, 100);
+    });
+
+    // 初始绘制
+    drawList();
+  });
+</script>
+</body>
+</html>

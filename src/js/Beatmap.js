@@ -76,6 +76,18 @@ export class Beatmap {
     return this.#previewTime
   }
 
+  /**
+   * @param artist {string}
+   * @param title {string}
+   * @param version {string}
+   * @param audioFilename {string}
+   * @param previewTime {number}
+   * @param beatmapId {string}
+   * @param creator {string}
+   * @param bg {string}
+   * @param filename {string}
+   * @param starRating {number}
+   */
   constructor ({
     artist,
     title,

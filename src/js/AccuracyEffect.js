@@ -1,5 +1,5 @@
 import { Shape } from './Shape.js'
-import { CANVAS_WIDTH } from './Config.js'
+import { Skin } from './Skin'
 
 /**
  * Generates a percentage text with 4 significant digits.
@@ -8,9 +8,9 @@ import { CANVAS_WIDTH } from './Config.js'
  */
 const formatPercentage = value => {
   if (value <= 0) {
-    return '00.00%';
+    return '00.00%'
   }
-  return (value * 100).toFixed(2) + '%';
+  return (value * 100).toFixed(2) + '%'
 }
 
 export class AccuracyEffect extends Shape {
@@ -23,18 +23,16 @@ export class AccuracyEffect extends Shape {
    */
   constructor (acc) {
     super()
-    this.#acc = acc || 0
+    this.#acc = acc || 1
   }
 
   render (context) {
     const acc = formatPercentage(this.#acc)
+    const { x, y, font: FONT, textAlign: TEXT_ALIGN, color: COLOR } = Skin.config.stage.accuracy
 
-    const x = CANVAS_WIDTH - 10
-    const y = 140
-
-    context.font = 'bold 64px 微软雅黑'
-    context.fillStyle = '#FFF'
-    context.textAlign = 'right'
+    context.font = FONT
+    context.fillStyle = COLOR
+    context.textAlign = TEXT_ALIGN
     context.fillText(acc, x, y)
   }
 }
