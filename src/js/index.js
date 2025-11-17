@@ -1,5 +1,5 @@
-import { CANVAS, setCanvasSize } from './Config.js'
-import { MainManager } from './MainManager.js'
+import { CANVAS, setCanvasSize } from './Config'
+import { MainManager } from './MainManager'
 
 /**
  * @param id {string}
@@ -38,8 +38,7 @@ async function run () {
   container.append(canvas)
   const main = new MainManager(canvas)
   await main.start()
-  main.init()
-  main.loopFrame()
+  // main.init()
 }
 
 bindClick('enter', run)

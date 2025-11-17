@@ -1,6 +1,6 @@
-import { Shape } from './Shape.js'
-import { KeyCode } from './KeyCode.js'
-import { CANVAS } from './Config.js'
+import { Shape } from './Shape'
+import { KeyCode } from './KeyCode'
+import { CANVAS } from './Config'
 import { Skin } from './Skin'
 
 /**

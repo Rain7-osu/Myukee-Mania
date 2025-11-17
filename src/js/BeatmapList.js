@@ -1,30 +1,24 @@
-import { Shape } from './Shape.js'
-import { BeatmapItem } from './BeatmapItem.js'
+import { BeatmapItem } from './BeatmapItem'
+import { ScrollList } from './ScrollList'
 import { CANVAS } from './Config'
-import { Skin } from './Skin'
 
-export class BeatmapList extends Shape {
+/**
+ * @extends {ScrollList<BeatmapItem>}
+ */
+export class BeatmapList extends ScrollList {
   /**
    * @type {BeatmapItem[]}
    */
   #beatmapItems = []
 
-  #scrollY = 0
-
-  #scrollSpeed = 0
-
-  /**
-   * @param scrollY {number}
-   */
-  set scrollY (scrollY) {
-    this.#scrollY = scrollY
-  }
-
-  /**
-   * @param speed {number}
-   */
-  set scrollSpeed (speed) {
-    this.#scrollSpeed = speed
+  constructor () {
+    super({
+      // 惯性滚动相关
+      friction: 0.95, // 摩擦系数
+      minVelocity: 0.1, // 最小速度阈值
+      maxVelocity: 75, // 最大速度限制
+      initialScrollY: -CANVAS.HEIGHT / 2,
+    })
   }
 
   /**
@@ -34,24 +28,14 @@ export class BeatmapList extends Shape {
     this.#beatmapItems = beatmapItems
   }
 
-  render (context) {
-    const beatmapItems = this.#beatmapItems
-    let offsetY = this.#scrollY
-    const offsetX = Math.min(Math.abs(this.#scrollSpeed * 5.0), CANVAS.WIDTH / 4.0)
-    let lastMarginBottom = 0
-
-    for (let i = 0; i < beatmapItems.length; i++) {
-      const beatmapItem = beatmapItems[i]
-      const { marginTop, height, marginBottom } = beatmapItem.currentStyle
-      beatmapItem.offsetY = offsetY
-      beatmapItem.offsetX = offsetX
-      offsetY += height + marginTop + marginBottom
-      lastMarginBottom = marginBottom
-      beatmapItem.render(context)
-    }
+  /**
+   * @return {BeatmapItem[]}
+   */
+  listItems () {
+    return this.#beatmapItems
   }
 
-  scrollToIndex (index) {
-    this.#scrollY = (Skin.config.main.beatmap.item.base.height + Skin.config.main.beatmap.gap) * index
+  getOffsetX (scrollSpeed) {
+    return Math.min(Math.abs(scrollSpeed * 5.0), CANVAS.WIDTH / 4.0)
   }
 }

@@ -1,4 +1,4 @@
-import { Shape } from './Shape.js'
+import { Shape } from './Shape'
 import { Skin } from './Skin'
 
 export class ScoreEffect extends Shape {

@@ -1,4 +1,4 @@
-import { FileManager } from './FileManager.js'
+import { FileManager } from './FileManager'
 
 export class Beatmap {
   /** @private */

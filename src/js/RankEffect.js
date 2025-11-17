@@ -1,5 +1,5 @@
-import { Shape } from './Shape.js'
-import { FileManager } from './FileManager.js'
+import { Shape } from './Shape'
+import { FileManager } from './FileManager'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 

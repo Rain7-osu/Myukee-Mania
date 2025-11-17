@@ -1,6 +1,6 @@
-import { Shape } from './Shape.js'
-import { Beatmap } from './Beatmap.js'
-import { CANVAS } from './Config.js'
+import { Shape } from './Shape'
+import { Beatmap } from './Beatmap'
+import { CANVAS } from './Config'
 import { Skin } from './Skin'
 import { ScrollItem } from './ScrollItem'
 

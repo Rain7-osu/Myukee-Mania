@@ -1,5 +1,5 @@
-import { Shape } from './Shape.js'
-import { CANVAS } from './Config.js'
+import { Shape } from './Shape'
+import { CANVAS } from './Config'
 
 const RESULT_WIDTH = 100
 const RESULT_TOP = 200

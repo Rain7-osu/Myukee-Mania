@@ -1,5 +1,5 @@
-import { NoteType } from './NoteType.js'
-import { OffsetShape } from './Shape.js'
+import { NoteType } from './NoteType'
+import { OffsetShape } from './Shape'
 import { Skin } from './Skin'
 
 /**

@@ -1,7 +1,7 @@
-import { Beatmap } from './Beatmap.js'
-import { BeatmapItem } from './BeatmapItem.js'
-import { BeatmapList } from './BeatmapList.js'
-import { warn } from './dev.js'
+import { Beatmap } from './Beatmap'
+import { BeatmapItem } from './BeatmapItem'
+import { BeatmapList } from './BeatmapList'
+import { warn } from './dev'
 
 export class BeatmapListManager {
   /**
@@ -29,9 +29,10 @@ export class BeatmapListManager {
   #beatmapList = new BeatmapList()
 
   /**
+   * @private
    * @param configs {any[]}
    */
-  loadFromConfigs (configs) {
+  loadConfigs(configs) {
     this.#beatmaps = configs.reduce((prev, item) => {
       const beatmap = Beatmap.fromConfig(item)
       if (!beatmap) {
@@ -42,6 +43,13 @@ export class BeatmapListManager {
       return [...prev, beatmapItem]
     }, [])
     this.#beatmapList.beatmapItems = this.#beatmaps
+  }
+
+  /**
+   * @param configs {any[]}
+   */
+  init (configs) {
+    this.loadConfigs(configs)
   }
 
   /**

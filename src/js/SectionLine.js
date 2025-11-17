@@ -1,4 +1,4 @@
-import { OffsetShape } from './Shape.js'
+import { OffsetShape } from './Shape'
 import { Skin } from './Skin'
 
 export class SectionLine extends OffsetShape {

@@ -1,6 +1,6 @@
-import { convertNumberToNodeCol, NoteType } from './NoteType.js'
-import { Note } from './Note.js'
-import { PlayMap } from './PlayMap.js'
+import { convertNumberToNodeCol, NoteType } from './NoteType'
+import { Note } from './Note'
+import { PlayMap } from './PlayMap'
 
 const LINE_WRAP_CHAR = '\r\n'
 const GROUP_NAME_MATCH = /\[(\w+)]/

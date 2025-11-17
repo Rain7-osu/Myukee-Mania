@@ -1,4 +1,4 @@
-import { CANVAS, DEFAULT_SPEED } from './Config.js'
+import { CANVAS, DEFAULT_SPEED } from './Config'
 
 // TODO Move stage render method out
 export class RenderEngine {

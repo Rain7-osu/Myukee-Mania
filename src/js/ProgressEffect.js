@@ -1,5 +1,5 @@
-import { Shape } from './Shape.js'
-import { CANVAS } from './Config.js'
+import { Shape } from './Shape'
+import { CANVAS } from './Config'
 
 const RADIUS = 25
 const LINE_WIDTH = 3

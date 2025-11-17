@@ -1,6 +1,6 @@
-import { Shape } from './Shape.js'
-import { JudgementType } from './Judgement.js'
-import { FileManager } from './FileManager.js'
+import { Shape } from './Shape'
+import { JudgementType } from './Judgement'
+import { FileManager } from './FileManager'
 import { Skin } from './Skin'
 import { warn } from './dev'
 

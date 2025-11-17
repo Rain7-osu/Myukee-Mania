@@ -1,4 +1,4 @@
-import { JudgementType } from './Judgement.js'
+import { JudgementType } from './Judgement'
 
 const MAX_SCORE = 1_000_000
 

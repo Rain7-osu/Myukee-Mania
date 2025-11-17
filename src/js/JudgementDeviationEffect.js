@@ -1,6 +1,6 @@
-import { Shape } from './Shape.js'
-import { JudgementAreaCalculators, JudgementType } from './Judgement.js'
-import { CANVAS } from './Config.js'
+import { Shape } from './Shape'
+import { JudgementAreaCalculators, JudgementType } from './Judgement'
+import { CANVAS } from './Config'
 
 const BG_COLOR = 'rgba(0, 0, 0, 0.5)'
 const YELLOW_COLOR = '#dead50'

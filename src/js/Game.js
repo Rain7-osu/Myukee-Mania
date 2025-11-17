@@ -1,8 +1,8 @@
-import { Beatmap } from './Beatmap.js'
-import { StageController } from './StageController.js'
-import { FileManager } from './FileManager.js'
-import { MapResolver } from './MapResolver.js'
-import { AudioManager } from './AudioManager.js'
+import { Beatmap } from './Beatmap'
+import { StageController } from './StageController'
+import { FileManager } from './FileManager'
+import { MapResolver } from './MapResolver'
+import { AudioManager } from './AudioManager'
 
 export class Game {
   /** @type Game */

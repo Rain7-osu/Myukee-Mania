@@ -1,4 +1,5 @@
 import { Shape } from './Shape'
+import { CANVAS } from './Config'
 
 /**
  * @typedef {{
@@ -148,12 +149,12 @@ export class ScrollItem extends Shape {
   }
 
   render (context) {
-    const style = this.currentStyle
-    if (style.marginTop > 0) {
-      this.renderByStyle(context, style.left + this.#offsetX, style.marginTop + this.#offsetY, style.width - this.#offsetX, style.height)
+    const { left, top, height, width } = this.rect()
+    if (top > CANVAS.HEIGHT || top + height < 0) {
       return
     }
-    this.renderByStyle(context, style.left + this.#offsetX, style.marginTop + this.#offsetY, style.width - this.#offsetX, style.height)
+
+    this.renderByStyle(context, left, top, width, height)
   }
 
   /**
@@ -184,5 +185,16 @@ export class ScrollItem extends Shape {
       style = this.#style
     }
     return style
+  }
+
+  rect () {
+    const style = this.currentStyle
+
+    return {
+      left: this.#offsetX + style.left,
+      top: this.#offsetY + style.marginTop,
+      width: style.width - this.#offsetX,
+      height: style.height,
+    }
   }
 }
