@@ -76,7 +76,11 @@ export class AudioManager {
   }
 
   pause () {
-    AudioManager.#el.pause()
+    if (AudioManager.#el.paused) {
+      this.play()
+    } else {
+      AudioManager.#el.pause()
+    }
   }
 
   get duration () {

@@ -21,39 +21,43 @@ export class BeatmapItem extends ScrollItem {
       hover: { extra: HOVER_EXTRA, gap: HOVER_GAP },
       base: { height: HEIGHT, gap: BASE_GAP },
       width,
+      baseLeft,
     } = Skin.config.main.beatmap.item
 
     this.style = {
       marginTop: BASE_GAP,
       marginBottom: 0,
-      width: width,
+      width,
       height: HEIGHT,
-      left: CANVAS.WIDTH - width,
+      left: baseLeft,
     }
 
     this.hoverStyle = {
       marginTop: HOVER_GAP,
       marginBottom: HOVER_GAP - BASE_GAP,
-      width: width + HOVER_EXTRA,
+      width,
       height: HEIGHT,
-      left: CANVAS.WIDTH - width - HOVER_EXTRA,
+      left: baseLeft - HOVER_EXTRA,
     }
 
-    this.activeStyle = {
-      marginTop: SELECT_GAP,
-      marginBottom: SELECT_GAP - BASE_GAP,
-      width: width + SELECT_EXTRA,
-      height: HEIGHT,
-      left: CANVAS.WIDTH - width - SELECT_EXTRA,
-    }
+    this.activeStyle = this.style
+    this.activeHoverStyle = this.hoverStyle
 
-    this.activeHoverStyle = {
-      marginTop: SELECT_GAP + HOVER_GAP,
-      marginBottom: SELECT_GAP + HOVER_GAP - BASE_GAP,
-      width: width + SELECT_EXTRA + HOVER_EXTRA,
-      height: HEIGHT,
-      left: CANVAS.WIDTH - width - SELECT_EXTRA - HOVER_EXTRA,
-    }
+    // this.activeStyle = {
+    //   marginTop: HOVER_GAP,
+    //   marginBottom: SELECT_GAP - BASE_GAP,
+    //   width,
+    //   height: HEIGHT,
+    //   left: baseLeft - SELECT_EXTRA,
+    // }
+
+    // this.activeHoverStyle = {
+    //   marginTop: SELECT_GAP + HOVER_GAP,
+    //   marginBottom: SELECT_GAP + HOVER_GAP - BASE_GAP,
+    //   width,
+    //   height: HEIGHT,
+    //   left: baseLeft - (SELECT_EXTRA + HOVER_EXTRA),
+    // }
   }
 
   renderByStyle (context, generalLeft, generalTop, generalWidth, height) {
@@ -98,7 +102,7 @@ export class BeatmapItem extends ScrollItem {
     context.fillStyle = TITLE_COLOR
     context.font = TITLE_FONT
     context.textAlign = 'left'
-    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 44)
+    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 50)
 
     context.font = DESC_FONT
     context.fillStyle = TITLE_COLOR
@@ -111,9 +115,9 @@ export class BeatmapItem extends ScrollItem {
     const star = Math.min(10, this.#beatmap.star)
 
     let i = 0
-    let size = 20
+    let size = 24
     let left = paddingLeft + 10
-    const top = offsetY + 22
+    const top = offsetY + 26
     while (i < star - 1) {
       context.fillStyle = TITLE_COLOR
 
@@ -148,14 +152,6 @@ export class BeatmapItem extends ScrollItem {
       strokeColor: TITLE_COLOR,
       rotation: 54,
     })
-  }
-
-  hover () {
-    this.hovered = true
-  }
-
-  hoverOut () {
-    this.hovered = false
   }
 
   /**

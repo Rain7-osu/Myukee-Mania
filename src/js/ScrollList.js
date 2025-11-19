@@ -1,7 +1,8 @@
 import { Shape } from './Shape'
 import { ScrollItem } from './ScrollItem'
 import { CANVAS } from './Config'
-import { warn } from './dev'
+import { createLimitLog, warn } from './dev'
+import { Skin } from './Skin'
 
 /**
  * @typedef {{
@@ -30,8 +31,8 @@ export class ScrollList extends Shape {
       minVelocity: 0.1, // 最小速度阈值
       maxVelocity: 75, // 最大速度限制
       initialScrollY: 0,
-      minDeltaScrollY: CANVAS.HEIGHT / 2, // 允许scrollY 额外减少的值，第一个元素的 offsetY 减去这个值 > 0 时，将会渲染
-      maxDeltaScrollY: CANVAS.HEIGHT / 2, // 允许 scrollY 额外增加的值，最后一个元素的 offsetY 加上这个值 < CANVAS.HEIGHT 时，将会渲染
+      minDeltaScrollY: CANVAS.HEIGHT / 3 - Skin.config.main.beatmap.item.base.height / 2, // 允许scrollY 额外减少的值，第一个元素的 offsetY 减去这个值 > 0 时，将会渲染
+      maxDeltaScrollY: CANVAS.HEIGHT / 3, // 允许 scrollY 额外增加的值，最后一个元素的 offsetY 加上这个值 < CANVAS.HEIGHT 时，将会渲染
       ...listConfig,
     }
     this.#scrollY = this.#listConfig.initialScrollY
@@ -55,15 +56,14 @@ export class ScrollList extends Shape {
    */
   #scrollY = 0
 
-  #scrollSpeed = 0
-
   /**
    * @param scrollY {number}
    */
   set scrollY (scrollY) {
-    console.log('set y', scrollY)
     this.#scrollY = scrollY
   }
+
+  #scrollSpeed = 0
 
   /**
    * @param speed {number}
@@ -98,9 +98,16 @@ export class ScrollList extends Shape {
   #minScrollY
 
   /**
-   * @type {T | null}
+   * @type {ScrollItem | null}
+   */
+  #activeItem
+  #activeIndex = -1
+
+  /**
+   * @type {ScrollItem | null}
    */
   #hoveredItem
+  #hoveredIndex = -1
 
   /**
    * @type {{
@@ -110,18 +117,29 @@ export class ScrollList extends Shape {
   #eventMaps = { onClick: () => {} }
 
   /**
+   * @type {() => void}
+   */
+  #removeEventsHandler = () => {}
+  #hasRegistered = false
+  #wheelTimeout = -1
+  #isWheeling = false
+  #hasInit = false
+  #lastScrollY = 0
+  #pendingHoverInRender = false
+
+  /**
    * @private
    * @return {{maxScrollY: number, minScrollY: number}}
    */
   calcScrollYConfig () {
-    const listItems = this.listItems()
+    const listItems = this.scrollItems()
     if (typeof this.#maxScrollY === 'undefined') {
       // 临时先用列表项 + gap 直接计算出来
       // 后续要考虑 hover 的情况
       this.#maxScrollY = listItems.reduce((prev, current) => {
         const style = current.currentStyle
         return prev + style.marginTop + style.height + style.marginBottom
-      }, 0) - this.#listConfig.maxDeltaScrollY
+      }, 0) - CANVAS.HEIGHT + this.#listConfig.maxDeltaScrollY
     }
 
     if (typeof this.#minScrollY === 'undefined') {
@@ -163,7 +181,6 @@ export class ScrollList extends Shape {
     this.#status.lastScrollY = this.#scrollY
     this.#scrollY += e.deltaY * 0.5
     this.#scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
-    this.handleMouseMove(e)
   }
 
   /**
@@ -174,23 +191,45 @@ export class ScrollList extends Shape {
   handleMouseMove (e) {
     e.preventDefault()
 
+    const now = performance.now()
+
     const x = e.clientX
     const y = e.clientY
-    const items = this.listItems()
+
+    const items = this.scrollItems()
+    /** @type {ScrollItem | null} */
+    const hoveredItem = this.#hoveredItem
     for (let i = 0; i < items.length; i++) {
-      const { left, top, width, height } = items[i].rect()
+      const { left, top, width, height } = items[i].renderInfo()
       const hovered = x > left && x < left + width && y > top && y < top + height
-      items[i].hovered = hovered
+
       if (hovered) {
-        if (this.#hoveredItem !== items[i]) {
-          this.#hoveredItem && (this.#hoveredItem.hovered = false)
+        if (!this.#hoveredItem) {
+          items[i].hoverIn()
           this.#hoveredItem = items[i]
+          this.#hoveredIndex = i
+          this.hoverInRefreshScrollItems()
+        } else if (this.#hoveredItem !== items[i]) {
+          this.#hoveredItem.hoverOut()
+          items[i].hoverIn()
+          // 先处理数据，然后再存值
+          this.hoverSwitchRefreshScrollItems(items[i], i)
+          this.#hoveredItem = items[i]
+          this.#hoveredIndex = i
+        } else {
+          // this.#hoveredItem === items[i] => skip
         }
         return
       }
     }
-    this.#hoveredItem && (this.#hoveredItem.hovered = false)
-    this.#hoveredItem = null
+
+    if (hoveredItem) {
+      this.hoverOutRefreshScrollItems()
+      hoveredItem.hoverOut()
+      this.#hoveredItem = null
+      this.#hoveredIndex = -1
+    }
+    this.#status.wheelEvent = e
   }
 
   /**
@@ -203,7 +242,10 @@ export class ScrollList extends Shape {
       return
     }
 
+    this.#activeIndex = this.#hoveredIndex
+    this.#activeItem = this.#hoveredItem
     this.#eventMaps.onClick(this.#hoveredItem)
+    this.#status.wheelEvent = e
   }
 
   /**
@@ -220,9 +262,12 @@ export class ScrollList extends Shape {
     const scrollY = this.#scrollY
 
     if (Math.abs(scrollSpeed) > minVelocity) {
+      if (Math.abs(scrollSpeed) < 1 && wheelEvent) {
+        this.handleMouseMove(wheelEvent)
+      }
+
       this.#status.isInertiaScrolling = true
       this.#scrollY += scrollSpeed
-      wheelEvent && this.handleMouseMove(wheelEvent)
       this.#scrollSpeed *= friction
 
       if (scrollY < minScrollY) {
@@ -239,23 +284,12 @@ export class ScrollList extends Shape {
   }
 
   /**
-   * @type {() => void}
-   */
-  #removeEventsHandler = () => {}
-
-  #hasRegistered = false
-
-  #wheelTimeout = -1
-
-  #isWheeling = false
-
-  /**
    * @param canvas {HTMLCanvasElement}
    * @param eventMaps {{
-   *   onClick: (item: ScrollItem) => void;
+   *   onClick: (item: T) => void;
    * }}
    */
-  listenEvents (canvas, eventMaps) {
+  registerEvents (canvas, eventMaps) {
     if (this.#hasRegistered) {
       return this.#removeEventsHandler
     }
@@ -269,11 +303,12 @@ export class ScrollList extends Shape {
     canvas.addEventListener('mousemove', handleMouseMove)
     canvas.addEventListener('click', handleClick)
 
-    const listenWheelEnd = () => {
+    const listenWheelEnd = (e) => {
       clearTimeout(this.#wheelTimeout)
       this.#isWheeling = true
       this.#wheelTimeout = setTimeout(() => {
         this.#isWheeling = false
+        // this.#status.wheelEvent && this.handleMouseMove(e)
       }, 100)
     }
 
@@ -302,41 +337,152 @@ export class ScrollList extends Shape {
    * @abstract
    * @return {T[]}
    */
-  listItems () {
+  scrollItems () {
     throw new Error('please implements the listItems method')
   }
 
   /**
    * @protected
-   * @param scrollSpeed
+   * @param scrollSpeed {number}
+   * @param offsetY {number}
    * @return {number}
    */
-  getOffsetX (scrollSpeed) {
+  getOffsetX (scrollSpeed, offsetY) {
     return 0
+  }
+
+  /**
+   * @param newHoverItem {ScrollItem}
+   * @param newHoverIndex {number}
+   */
+  hoverSwitchRefreshScrollItems (newHoverItem, newHoverIndex) {
+    // 类型缩减
+    if (!this.#hoveredItem) {
+      return
+    }
+
+    const oldHoverItem = this.#hoveredItem
+    const oldHoverIndex = this.#hoveredIndex
+
+    if (newHoverIndex === oldHoverIndex || newHoverItem === oldHoverItem) {
+      return
+    }
+    const delta = newHoverItem.hoverStyle.marginBottom
+
+    if (newHoverIndex > oldHoverIndex) {
+      // hover switch 在下面, 那么 old hoverItem 往上不需要协调处理，new hoverItem 往下不需要处理
+      let nextItem = oldHoverItem
+      while (nextItem && nextItem !== newHoverItem) {
+        nextItem.translateY = -delta
+        nextItem = nextItem.next
+      }
+    } else if (newHoverIndex < oldHoverIndex) {
+      // hover switch 在上面，那么 old hoverItem 往下不需要协调处理, new hoverItem 往上不需要处理
+      let lastItem = oldHoverItem
+      while (lastItem && lastItem !== newHoverItem) {
+        lastItem.translateY = delta
+        lastItem = lastItem.last
+      }
+    }
+    newHoverItem.translateY = 0
+  }
+
+  hoverOutRefreshScrollItems () {
+    /** @type {ScrollItem | null} */
+    const hoverItem = this.#hoveredItem
+    if (!hoverItem || this.#hoveredIndex < 0) {
+      return
+    }
+
+    let lastItem = hoverItem.last
+    while (lastItem) {
+      lastItem.translateY = 0
+      lastItem = lastItem.last
+    }
+    let nextItem = hoverItem.next
+    while (nextItem) {
+      nextItem.translateY = 0
+      nextItem = nextItem.next
+    }
+  }
+
+  hoverInRefreshScrollItems () {
+    /** @type {ScrollItem | null} */
+    const hoverItem = this.#hoveredItem
+    if (!hoverItem || this.#hoveredIndex < 0) {
+      return
+    }
+
+    const delta = hoverItem.hoverStyle.marginBottom
+    let lastItem = hoverItem.last
+    while (lastItem) {
+      lastItem.translateY = -delta
+      lastItem = lastItem.last
+    }
+
+    let nextItem = hoverItem.next
+    while (nextItem) {
+      nextItem.translateY = +delta
+      nextItem = nextItem.next
+    }
+  }
+
+  initScrollItems () {
+    /** @type {ScrollItem[]} */
+    const scrollItems = this.scrollItems()
+    let offsetY = 0
+
+    for (let i = 0; i < scrollItems.length; i++) {
+      const scrollItem = scrollItems[i]
+      const { marginTop, marginBottom, height } = scrollItem.currentStyle
+
+      if (i > 0) {
+        offsetY += marginTop
+      }
+      scrollItem.offsetY = offsetY
+      scrollItem.scrollY = this.#scrollY
+      offsetY += height + marginBottom
+    }
+  }
+
+  scrollRefreshItems () {
+    /** @type {ScrollItem[]} */
+    const scrollItems = this.scrollItems()
+    for (const scrollItem of scrollItems) {
+      scrollItem.scrollY = this.#scrollY
+      scrollItem.offsetX = this.getOffsetX(this.#scrollSpeed, scrollItem.offsetY - this.#scrollY)
+    }
   }
 
   render (context) {
     if (!this.#isWheeling) {
       this.inertiaScroll()
     }
-    const scrollItems = this.listItems()
-    let offsetY = -this.#scrollY
-    const offsetX = this.getOffsetX(this.#scrollSpeed)
-    let lastMarginBottom = 0
-    let lastHovered = false
-    let lastActivated = false
+    // this.update()
 
-    for (let i = 0; i < scrollItems.length; i++) {
-      const scrollItem = scrollItems[i]
-      const { marginTop, height, marginBottom } = scrollItem.currentStyle
-      scrollItem.offsetY = offsetY
-      scrollItem.offsetX = offsetX
-      offsetY += height + marginBottom
-      !lastHovered && !lastActivated && (offsetY += marginTop)
-      lastMarginBottom = marginBottom
-      lastHovered = scrollItem.hovered
-      lastActivated = scrollItem.active
-      scrollItem.render(context)
+    if (!this.#hasInit) {
+      this.initScrollItems()
+      this.#hasInit = true
     }
+
+    if (this.#lastScrollY !== this.#scrollY) {
+      this.scrollRefreshItems()
+      this.#lastScrollY = this.#scrollY
+    }
+
+    this.scrollItems().forEach((item, index) => item.render(context))
+  }
+
+  #cancelUpdate = () => {}
+
+  /**
+   * @param scrollY {number | ((prev: number) => number)}
+   */
+  scrollTo (scrollY) {
+    const targetScrollY = typeof scrollY === 'function' ? scrollY(this.#scrollY) : scrollY
+    this.#cancelUpdate()
+    this.#cancelUpdate = this.createUpdate(this.#scrollY, targetScrollY, 160, (delta) => {
+      this.#scrollY += delta
+    })
   }
 }

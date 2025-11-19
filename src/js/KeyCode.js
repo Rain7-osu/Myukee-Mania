@@ -8,5 +8,6 @@ export const KeyCode = {
   F4: 'f4', // speed ++
   F3: 'f3', // speed --
   F2: 'f2', // quit
-  F1: 'f1' // pause
+  F1: 'f1', // pause
+  F5: 'f5', // - pause music
 }

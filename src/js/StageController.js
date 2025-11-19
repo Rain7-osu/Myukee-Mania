@@ -276,6 +276,7 @@ export class StageController {
     this.#isQuit = true
     this.#quitCallback?.()
     this.audio.abort()
+    this.#keyboardEventManager.removeStageEvent()
   }
 
   /**

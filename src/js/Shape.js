@@ -1,4 +1,15 @@
 /**
+ * @typedef {{
+ *   delta: number;
+ *   lastTime: number;
+ *   startTime: number;
+ *   endTime: number;
+ *   updateFn: (delta: number) => void;
+ * }} ShapeUpdate
+ */
+
+
+/**
  * @abstract
  */
 export class Shape {
@@ -168,6 +179,52 @@ export class Shape {
     ctx.lineWidth = strokeWidth;
     ctx.strokeStyle = strokeColor;
     ctx.stroke();
+  }
+
+  /**
+   * @private
+   * @type {ShapeUpdate[]}
+   */
+  #updates = []
+
+  /**
+   * @protected
+   * @param current {number}
+   * @param target {number}
+   * @param updateTime {number}
+   * @param updateFn {(delta: number) => void}
+   */
+  createUpdate (current, target, updateTime, updateFn) {
+    const delta = target - current
+    const now = performance.now()
+    const endTime = now + updateTime
+
+    this.#updates.push({
+      delta,
+      startTime: now,
+      lastTime: now,
+      endTime,
+      updateFn,
+    })
+
+    return () => {
+      this.#updates = []
+    }
+  }
+
+  /**
+   * @protected
+   */
+  update () {
+    const now = performance.now()
+    this.#updates = this.#updates.filter(update => update.endTime >= now)
+
+    this.#updates.forEach((update) => {
+      const { delta, endTime, startTime, lastTime, updateFn } = update
+      const currentDelta = (Math.min(now, endTime) - lastTime) / (endTime - startTime) * delta
+      update.lastTime = now
+      updateFn(currentDelta)
+    })
   }
 }
 

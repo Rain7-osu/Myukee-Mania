@@ -2,6 +2,8 @@ import { Beatmap } from './Beatmap'
 import { BeatmapItem } from './BeatmapItem'
 import { BeatmapList } from './BeatmapList'
 import { warn } from './dev'
+import { CANVAS } from './Config'
+import { selectRandomArrayItem } from './utils'
 
 export class BeatmapListManager {
   /**
@@ -19,11 +21,6 @@ export class BeatmapListManager {
   #selectedBeatmapItem = null
 
   /**
-   * @type {null | BeatmapItem}
-   */
-  #hoveredBeatmapItem = null
-
-  /**
    * @type {BeatmapList}
    */
   #beatmapList = new BeatmapList()
@@ -32,17 +29,26 @@ export class BeatmapListManager {
    * @private
    * @param configs {any[]}
    */
-  loadConfigs(configs) {
-    this.#beatmaps = configs.reduce((prev, item) => {
-      const beatmap = Beatmap.fromConfig(item)
+  loadConfigs (configs) {
+    /** @type {BeatmapItem | null} */
+    let lastBeatmap = null
+    /** @type {BeatmapItem[]} */
+    const result = []
+    for (let i = 0; i < configs.length; i++) {
+      const beatmap = Beatmap.fromConfig(configs[i])
       if (!beatmap) {
-        return prev
+        continue
       }
       const beatmapItem = new BeatmapItem(beatmap)
+      beatmapItem.last = lastBeatmap
+      lastBeatmap && (lastBeatmap.next = beatmapItem)
       this.#beatmapItemMap.set(beatmap.id, beatmapItem)
-      return [...prev, beatmapItem]
-    }, [])
-    this.#beatmapList.beatmapItems = this.#beatmaps
+      result.push(beatmapItem)
+      lastBeatmap = beatmapItem
+    }
+
+    this.#beatmaps = result
+    this.#beatmapList.beatmapItems = result
   }
 
   /**
@@ -53,24 +59,10 @@ export class BeatmapListManager {
   }
 
   /**
-   * @return {BeatmapItem[]}
-   */
-  get beatmaps () {
-    return this.#beatmaps
-  }
-
-  /**
    * @return {BeatmapItem|null}
    */
   get selectedBeatmapItem () {
     return this.#selectedBeatmapItem
-  }
-
-  /**
-   * @return {BeatmapItem|null}
-   */
-  get hoveredBeatmapItem () {
-    return this.#hoveredBeatmapItem
   }
 
   /**
@@ -90,8 +82,7 @@ export class BeatmapListManager {
       // const randomId = selectRandomArrayItem(beatmapIds)
       // const randomBeatmap = this.#beatmapItemMap.get(randomId)
       // randomBeatmap.select()
-      // const index = this.beatmaps.findIndex((v) => v.beatmap.id === randomBeatmap.beatmap.id)
-      // this.#beatmapList.scrollToIndex(index)
+      // this.#beatmapList.scrollTo(randomBeatmap.renderInfo().top)
       // this.#selectedBeatmapItem = randomBeatmap
       // return false
     }
@@ -114,16 +105,9 @@ export class BeatmapListManager {
     this.#selectedBeatmapItem?.cancelSelect()
     beatmapItem.select()
     this.#selectedBeatmapItem = beatmapItem
-  }
-
-  hover (beatmapItem) {
-    this.#hoveredBeatmapItem?.hoverOut()
-    beatmapItem.hover()
-    this.#hoveredBeatmapItem = beatmapItem
-  }
-
-  hoverOut () {
-    this.#hoveredBeatmapItem?.hoverOut()
+    this.#beatmapList.scrollTo((prev) => {
+      return prev + beatmapItem.renderInfo().top - CANVAS.HEIGHT / 2
+    })
   }
 
   /**

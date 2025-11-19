@@ -1,6 +1,7 @@
 import { BeatmapItem } from './BeatmapItem'
 import { ScrollList } from './ScrollList'
 import { CANVAS } from './Config'
+import { Skin } from './Skin'
 
 /**
  * @extends {ScrollList<BeatmapItem>}
@@ -14,10 +15,10 @@ export class BeatmapList extends ScrollList {
   constructor () {
     super({
       // 惯性滚动相关
-      friction: 0.95, // 摩擦系数
+      friction: 0.98, // 摩擦系数
       minVelocity: 0.1, // 最小速度阈值
       maxVelocity: 75, // 最大速度限制
-      initialScrollY: -CANVAS.HEIGHT / 2,
+      initialScrollY: -CANVAS.HEIGHT / 3 + Skin.config.main.beatmap.item.base.height / 2,
     })
   }
 
@@ -31,11 +32,14 @@ export class BeatmapList extends ScrollList {
   /**
    * @return {BeatmapItem[]}
    */
-  listItems () {
+  scrollItems () {
     return this.#beatmapItems
   }
 
-  getOffsetX (scrollSpeed) {
-    return Math.min(Math.abs(scrollSpeed * 5.0), CANVAS.WIDTH / 4.0)
+  getOffsetX (scrollSpeed, offsetY) {
+    const speedOffset = Math.min(Math.abs(scrollSpeed * 5.0), CANVAS.WIDTH / 4.0)
+    const itemHeight = Skin.config.main.beatmap.item.base.height
+    const scrollOffset = Math.abs(offsetY - CANVAS.HEIGHT / 2) / itemHeight * 25
+    return Math.min(speedOffset + scrollOffset, 240)
   }
 }

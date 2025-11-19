@@ -100,7 +100,7 @@ export class Skin {
       judgement: {
         top: CANVAS.HEIGHT / 3,
         effect: {
-          defaultMaxScale: 1.5,
+          defaultMaxScale: 1.28,
           initScale: 1.25,
           initAlpha: 1,
           growTime: 100,
@@ -141,15 +141,15 @@ export class Skin {
             },
           },
           hover: {
-            extra: 40,
+            extra: 80,
             gap: 10,
-            bgColor:  '#ffffffcc',
+            bgColor: '#ffffffcc',
             title: {
               color: '#212529',
             },
           },
           base: {
-            height: 140,
+            height: 160,
             gap: -20,
             bgColor: '#1e90ffb3',
             title: {
@@ -163,8 +163,8 @@ export class Skin {
               font: 'bold 24px 微软雅黑',
             },
           },
-          baseLeft: CANVAS.WIDTH / 2,
-          width: CANVAS.WIDTH / 2 - 200 - 40
+          baseLeft: CANVAS.WIDTH / 2 + 200,
+          width: CANVAS.WIDTH,
         },
       },
     },

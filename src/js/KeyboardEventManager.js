@@ -1,21 +1,21 @@
 /**
-  @callback KeyboardEventHandler
-  @param {KeyboardEvent} e
+ @callback KeyboardEventHandler
+ @param {KeyboardEvent} e
  */
 
 export class KeyboardEventManager {
   /**
    * @type {Record<string, KeyboardEventHandler>}
    */
-  #keydownEventList = []
+  #keydownEventList = {}
   /**
    * @type {Record<string, KeyboardEventHandler>}
    */
-  #keyupEventList = []
+  #keyupEventList = {}
   /**
    * @type {Record<string, KeyboardEventHandler>}
    */
-  #keypressEventList = []
+  #keypressEventList = {}
 
   /**
    * @param e {KeyboardEvent}
@@ -66,10 +66,10 @@ export class KeyboardEventManager {
    * @param keyupEventList {Record<string, KeyboardEventHandler>}
    * @param keypressEventList {Record<string, KeyboardEventHandler>}
    */
-  registerStageEvent({
-    keydownEventList,
-    keyupEventList,
-    keypressEventList,
+  registerStageEvent ({
+    keydownEventList = {},
+    keyupEventList = {},
+    keypressEventList = {},
   }) {
     this.#keydownEventList = keydownEventList
     this.#keyupEventList = keyupEventList
@@ -80,7 +80,7 @@ export class KeyboardEventManager {
     document.addEventListener('keypress', this.#invokeKeypressEventHandler)
   }
 
-  removeStageEvent() {
+  removeStageEvent () {
     document.removeEventListener('keydown', this.#invokeKeydownEventHandler)
     document.removeEventListener('keyup', this.#invokeKeyupEventHandler)
     document.removeEventListener('keypress', this.#invokeKeypressEventHandler)

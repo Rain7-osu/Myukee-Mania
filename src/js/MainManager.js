@@ -6,6 +6,8 @@ import { Game } from './Game'
 import { CANVAS } from './Config'
 import { AudioManager } from './AudioManager'
 import { Skin } from './Skin'
+import { KeyboardEventManager } from './KeyboardEventManager'
+import { KeyCode } from './KeyCode'
 
 /**
  * 主界面管理器
@@ -56,6 +58,10 @@ export class MainManager {
   #autoManager = AudioManager.getInstance()
 
   #isHoveringItem = false
+  /**
+   * @type {KeyboardEventManager}
+   */
+  #keyboardEventManager
 
   /**
    * @param canvas {HTMLCanvasElement}
@@ -65,8 +71,9 @@ export class MainManager {
       this.#canvas = canvas
       this.#layoutEngine = new LayoutRenderEngine(canvas)
     }
-  }
 
+    this.#keyboardEventManager = new KeyboardEventManager()
+  }
 
   /**
    * @private
@@ -88,7 +95,7 @@ export class MainManager {
     this.#play = true
     this.#game.init(() => {
       this.#play = false
-      this.loopFrame()
+      this.run()
     })
     await this.#game.selectMap(beatmap)
     this.#game.start()
@@ -103,21 +110,57 @@ export class MainManager {
   }
 
   /**
+   * @private
+   */
+  run () {
+    this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
+    this.#beatmapListManager.beatmapList.registerEvents(this.#canvas, {
+      onClick: (item) => {
+        if (this.#beatmapListManager.selectedBeatmapItem === item) {
+          this.play(item.beatmap)
+          this.disposeEvents()
+          this.#beatmapListManager.beatmapList.removeEvents()
+        } else {
+          this.#beatmapListManager.selectItem(item)
+          this.playAuto(item.beatmap)
+        }
+      },
+    })
+    this.loopFrame()
+  }
+
+  /**
+   * @private
+   */
+  registerEvents () {
+    this.#keyboardEventManager.registerStageEvent({
+      keydownEventList: {
+        [KeyCode.F5]: (e) => {
+          e.preventDefault()
+          this.#autoManager.pause()
+        },
+      },
+    })
+  }
+
+  disposeEvents () {
+    this.#keyboardEventManager.removeStageEvent()
+  }
+
+  /**
    * @return {Promise<void>}
    */
   async start () {
     const songs = await this.loadSongList()
     this.#beatmapListManager.init(songs)
     this.#beatmapListManager.select()
-    this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
-    this.#beatmapListManager.beatmapList.listenEvents(this.#canvas, {
-      onClick: (item) => {
-        this.play(item.beatmap)
-      },
-    })
-    this.loopFrame()
+    this.run()
+    this.registerEvents()
   }
 
+  /**
+   * @private
+   */
   loopFrame () {
     requestAnimationFrame(() => {
       if (this.#play) {
@@ -129,10 +172,15 @@ export class MainManager {
 
       this.renderBackground()
       this.renderBeatmaps()
+      this.#layoutEngine.renderHorizontalLine(720)
+      this.#layoutEngine.renderHorizontalLine(400)
       this.loopFrame()
     })
   }
 
+  /**
+   * @private
+   */
   renderBackground () {
     const selectBeatmap = this.#beatmapListManager.selectedBeatmapItem.beatmap
     if (selectBeatmap) {
@@ -141,10 +189,16 @@ export class MainManager {
     }
   }
 
+  /**
+   * @private
+   */
   renderLoading () {
     this.#layoutEngine.renderShape(this.#loadingEffect)
   }
 
+  /**
+   * @private
+   */
   renderBeatmaps () {
     this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
   }

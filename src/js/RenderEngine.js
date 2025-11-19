@@ -80,4 +80,20 @@ export class RenderEngine {
   renderBackgroundImage (image) {
     this.#context.drawImage(image, 0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
   }
+
+  renderPositionLine () {
+    this.#context.fillStyle = 'red'
+    this.#context.fillRect(CANVAS.WIDTH / 2 - 1, 0, 2, CANVAS.HEIGHT)
+    this.#context.fillRect(0, CANVAS.HEIGHT / 2 - 1, CANVAS.WIDTH, 2)
+  }
+
+  renderVerticalLine(x) {
+    this.#context.fillStyle = 'red'
+    this.#context.fillRect(x, 0, 2, CANVAS.HEIGHT)
+  }
+
+  renderHorizontalLine(y) {
+    this.#context.fillStyle = 'red'
+    this.#context.fillRect(0, y, CANVAS.WIDTH, 2)
+  }
 }
