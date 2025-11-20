@@ -10,4 +10,5 @@ export const KeyCode = {
   F2: 'f2', // quit
   F1: 'f1', // pause
   F5: 'f5', // - pause music
+  ENTER: 'enter',
 }

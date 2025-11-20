@@ -16,6 +16,7 @@ import { AccuracyManager } from './AccuracyManager'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { StageBoard } from './StageBoard'
 import { RankEffect } from './RankEffect'
+import { JudgementLineEffect } from './JudgementLineEffect'
 
 export class StageController {
   /**
@@ -103,6 +104,9 @@ export class StageController {
   /** @type {StageBoard} */
   #stageBoard
 
+  /** @type {JudgementLineEffect} */
+  #judgementLineEffect
+
   /**
    * 是否在一局游戏中
    * @type {boolean}
@@ -138,6 +142,7 @@ export class StageController {
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
     this.#stageBoard = new StageBoard()
+    this.#judgementLineEffect = new JudgementLineEffect()
   }
 
   /**
@@ -330,10 +335,10 @@ export class StageController {
   }
 
   renderFrame () {
-    this.#renderEngine.clearBackground()
-
+    // TODO update 逻辑抽出
     if (this.#isPlaying) {
       this.renderFps()
+      this.renderStageBoard()
       this.renderScoreEffect()
       this.renderJudgementResultEffect()
       this.renderProgressEffect()
@@ -341,11 +346,11 @@ export class StageController {
       this.renderSectionLine()
       this.renderNotes()
       this.renderHitEffects()
-      this.#renderEngine.renderShape(this.#stageBoard)
       this.renderJudgementEffects()
       this.renderComboEffect()
+      this.renderJudgementLine()
       this.renderSpeedChangeEffects()
-      this.#renderEngine.renderShape(this.#judgementManager.activeDeviations)
+      this.renderJudgementDeviations()
     }
   }
 
@@ -355,6 +360,11 @@ export class StageController {
       return
     }
 
+    this.updateFrame()
+    this.renderFrame()
+  }
+
+  updateFrame () {
     if (this.#isPlaying) {
       const timing = this.getGameTiming()
 
@@ -377,9 +387,18 @@ export class StageController {
         this.#speedChangeEffect = null
       }
     }
+  }
 
-    this.renderFrame()
-    this.#requestAnimationFrameHandle = window.requestAnimationFrame(this.loopFrame.bind(this))
+  renderJudgementLine() {
+    this.#renderEngine.renderShape(this.#judgementLineEffect)
+  }
+
+  renderJudgementDeviations () {
+    this.#renderEngine.renderShape(this.#judgementManager.activeDeviations)
+  }
+
+  renderStageBoard () {
+    this.#renderEngine.renderShape(this.#stageBoard)
   }
 
   renderSpeedChangeEffects () {

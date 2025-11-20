@@ -4,6 +4,7 @@ html, body {
   background-color: dimgray;
   width: 100vw;
   height: 100vh;
+  cursor: none;
 }
 
 #enter {
@@ -44,4 +45,37 @@ html, body {
 
 #audio-control {
   margin-top: 40px;
+}
+
+.custom-cursor {
+  position: fixed;
+  width: 200px;
+  height: 200px;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform 0.1s ease;
+}
+
+.cursor-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+#cursor {
+  width: 200px;
+  height: 200px;
+  background-image: url(../skin/cursor.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+#cursor-middle {
+  background-image: url(../skin/cursor-middle.png);
+  width: 64px;
+  height: 64px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: translate(68px, 68px);
 }

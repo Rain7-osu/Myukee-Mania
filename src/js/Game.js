@@ -41,8 +41,11 @@ export class Game {
   }
 
   start() {
-    this.controller.loopFrame()
     this.controller.start()
+  }
+
+  loopFrame() {
+    this.controller.loopFrame()
   }
 
   quit() {

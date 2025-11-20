@@ -193,6 +193,13 @@ export class ScrollItem extends Shape {
   }
 
   /**
+   * @param val {boolean}
+   */
+  set hovered (val) {
+    this.#hovered = val
+  }
+
+  /**
    * @return {boolean}
    */
   get hovered () {
@@ -204,34 +211,19 @@ export class ScrollItem extends Shape {
 
   hoverIn () {
     this.#hovered = true
-    // this.#cancelUpdate()
-    // this.#cancelUpdate = this.createUpdate(
-    //   0,
-    //   this.#renderInfo.left - this.currentStyle.left,
-    //   200,
-    //   (delta) => {
-    //     Object.assign(this.#renderInfo, {
-    //       left: this.#renderInfo.left - delta,
-    //       width: this.#renderInfo.width + delta,
-    //     })
-    //   },
-    // )
+    const distance = this.#hoverStyle.left - this.#style.left
+
+    this.createTransition(this.#translateX, distance, 800, 'easeOut', (value) => {
+      this.#translateX = value
+    })
   }
 
   hoverOut () {
     this.#hovered = false
-    // this.#cancelUpdate()
-    // this.#cancelUpdate = this.createUpdate(
-    //   0,
-    //   this.#renderInfo.left - this.currentStyle.left,
-    //   200,
-    //   (delta) => {
-    //     Object.assign(this.#renderInfo, {
-    //       left: this.#renderInfo.left - delta,
-    //       width: this.#renderInfo.width + delta,
-    //     })
-    //   },
-    // )
+
+    this.createTransition(this.#translateX, 0, 800, 'easeOut', (value) => {
+      this.#translateX = value
+    })
   }
 
   /**
@@ -323,7 +315,7 @@ export class ScrollItem extends Shape {
    * @return {RenderInfo}
    */
   renderInfo () {
-    const style = this.currentStyle
+    const style = this.style
 
     this.#renderInfo = {
       left: this.#offsetX + style.left + this.#translateX,

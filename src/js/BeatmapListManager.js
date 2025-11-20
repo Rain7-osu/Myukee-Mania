@@ -10,10 +10,6 @@ export class BeatmapListManager {
    * @type {Map<string, BeatmapItem>}
    */
   #beatmapItemMap = new Map()
-  /**
-   * @type {BeatmapItem[]}
-   */
-  #beatmaps = []
 
   /**
    * @type {null | BeatmapItem}
@@ -47,7 +43,6 @@ export class BeatmapListManager {
       lastBeatmap = beatmapItem
     }
 
-    this.#beatmaps = result
     this.#beatmapList.beatmapItems = result
   }
 
@@ -66,36 +61,14 @@ export class BeatmapListManager {
   }
 
   /**
-   * 不传 beatmapId 直接随机选一个
-   * return true when hasSelected instead return false
-   * @param beatmapId {string?}
-   * @return boolean
+   * 初始化时，随机选一张图
    */
-  select (beatmapId) {
-    if (!beatmapId) {
-      // 暂时选第一个，后面随机选
-      this.#beatmaps[0].select()
-      this.#selectedBeatmapItem = this.#beatmaps[0]
-      return false
-
-      // const beatmapIds = Array.from(this.#beatmapItemMap.keys())
-      // const randomId = selectRandomArrayItem(beatmapIds)
-      // const randomBeatmap = this.#beatmapItemMap.get(randomId)
-      // randomBeatmap.select()
-      // this.#beatmapList.scrollTo(randomBeatmap.renderInfo().top)
-      // this.#selectedBeatmapItem = randomBeatmap
-      // return false
-    }
-    const hasSelected = this.#selectedBeatmapItem?.beatmap?.id === beatmapId
-    const beatmapItem = this.#beatmapItemMap.get(beatmapId)
-    this.#selectedBeatmapItem = beatmapItem
-    if (beatmapItem) {
-      !hasSelected && beatmapItem.select()
-      return hasSelected
-    } else {
-      warn('selected beatmap not exist')
-      return false
-    }
+  firstSelect () {
+    const beatmapIds = Array.from(this.#beatmapItemMap.keys())
+    const randomId = selectRandomArrayItem(beatmapIds)
+    const randomBeatmap = this.#beatmapItemMap.get(randomId)
+    randomBeatmap.select()
+    this.#selectedBeatmapItem = randomBeatmap
   }
 
   /**
@@ -106,8 +79,48 @@ export class BeatmapListManager {
     beatmapItem.select()
     this.#selectedBeatmapItem = beatmapItem
     this.#beatmapList.scrollTo((prev) => {
-      return prev + beatmapItem.renderInfo().top - CANVAS.HEIGHT / 2
+      const { top, height } = beatmapItem.renderInfo()
+      return prev + top + height - CANVAS.HEIGHT / 2
     })
+  }
+
+  /**
+   * @param callback {() => void}
+   */
+  open (callback) {
+    const items = this.beatmapList.scrollItems()
+    // 临时用这个值代替，确保能大于每一项的宽度
+    const targetX = CANVAS.WIDTH / 2
+    this.#beatmapList.cancelTransitions()
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const translateX = item.translateX
+      item.cancelTransitions()
+      this.#beatmapList.createTransition(translateX, translateX + targetX, 500, 'easeOut', (value) => {
+        item.translateX = value
+      })
+    }
+    setTimeout(() => {
+      callback()
+    }, 810)
+  }
+
+  /**
+   * @param callback {() => void}
+   */
+  back (callback) {
+    const items = this.beatmapList.scrollItems()
+    this.#beatmapList.cancelTransitions()
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const translateX = item.translateX
+      this.#beatmapList.createTransition(translateX, 0, 500, 'easeOut', (value) => {
+        item.translateX = value
+      })
+    }
+    setTimeout(() => {
+      callback()
+    }, 810)
   }
 
   /**

@@ -15,12 +15,15 @@ export class JudgementManager {
   #od = DEFAULT_OD
 
   /**
-   * @type {import('./JudgementEffect').JudgementEffect[]}
+   * @type {JudgementEffect[]}
    */
   #activeEffects = []
+  /**
+   * @return {JudgementEffect[]}
+   */
   get activeEffects () { return this.#activeEffects }
 
-  /** @type {import('./JudgementDeviationEffect').JudgementDeviationEffect} */
+  /** @type {JudgementDeviationEffect} */
   #activeDeviations = new JudgementDeviationEffect()
   get activeDeviations () { return  this.#activeDeviations }
 

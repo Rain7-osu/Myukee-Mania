@@ -3,11 +3,11 @@ import { LayoutRenderEngine } from './LayoutRenderEngine'
 import { MainLoadingEffect } from './MainLoadingEffect'
 import { BeatmapListManager } from './BeatmapListManager'
 import { Game } from './Game'
-import { CANVAS } from './Config'
 import { AudioManager } from './AudioManager'
-import { Skin } from './Skin'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { KeyCode } from './KeyCode'
+import { Settings } from './Settings'
+import { BackgroundDarker } from './BackgroundDarker'
 
 /**
  * 主界面管理器
@@ -24,6 +24,8 @@ export class MainManager {
 
   #beatmapListManager = new BeatmapListManager()
 
+  #backgroundDarker = new BackgroundDarker()
+
   /**
    * @type {Image}
    */
@@ -33,31 +35,15 @@ export class MainManager {
 
   #game = Game.create()
 
+  #settings = new Settings()
+
   /**
    * @type {HTMLCanvasElement}
    */
   #canvas
 
-  #listConfig = {
-    itemHeight: Skin.config.main.beatmap.item.base.height,
-    itemSpacing: Skin.config.main.beatmap.item.base.gap,
-    // 惯性滚动相关
-    velocity: 0,
-    isInertiaScrolling: false,
-    lastScrollTime: 0,
-    lastScrollY: 0,
-    friction: 0.95, // 摩擦系数
-    minVelocity: 0.1, // 最小速度阈值
-    maxVelocity: 75, // 最大速度限制
-    scrollY: CANVAS.HEIGHT / 2,
-    maxScrollY: CANVAS.HEIGHT / 2,
-    minScrollY: CANVAS.HEIGHT / 2,
-    wheelEvent: null,
-  }
-
   #autoManager = AudioManager.getInstance()
 
-  #isHoveringItem = false
   /**
    * @type {KeyboardEventManager}
    */
@@ -73,6 +59,17 @@ export class MainManager {
     }
 
     this.#keyboardEventManager = new KeyboardEventManager()
+  }
+
+  /**
+   * @return {Promise<void>}
+   */
+  async start () {
+    const songs = await this.loadSongList()
+    this.#beatmapListManager.init(songs)
+    this.#beatmapListManager.firstSelect()
+    this.run()
+    this.registerEvents()
   }
 
   /**
@@ -96,6 +93,7 @@ export class MainManager {
     this.#game.init(() => {
       this.#play = false
       this.run()
+      this.#backgroundDarker.reset()
     })
     await this.#game.selectMap(beatmap)
     this.#game.start()
@@ -113,20 +111,34 @@ export class MainManager {
    * @private
    */
   run () {
+    this.#beatmapListManager.beatmapList.initScrollItems(this.#beatmapListManager.selectedBeatmapItem)
     this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
-    this.#beatmapListManager.beatmapList.registerEvents(this.#canvas, {
-      onClick: (item) => {
-        if (this.#beatmapListManager.selectedBeatmapItem === item) {
+
+    /**
+     * @param item {BeatmapItem}
+     */
+    const handleClick = (item) => {
+      if (this.#beatmapListManager.selectedBeatmapItem === item) {
+        this.#beatmapListManager.beatmapList.removeEvents()
+        this.#beatmapListManager.open(() => {
           this.play(item.beatmap)
           this.disposeEvents()
-          this.#beatmapListManager.beatmapList.removeEvents()
-        } else {
-          this.#beatmapListManager.selectItem(item)
-          this.playAuto(item.beatmap)
-        }
-      },
-    })
+          setTimeout(() => {
+            this.#backgroundDarker.value = this.#settings.get('backgroundDark')
+          }, 3000)
+        })
+      } else {
+        this.#beatmapListManager.selectItem(item)
+        this.playAuto(item.beatmap)
+      }
+    }
+
     this.loopFrame()
+    this.#beatmapListManager.back(() => {
+      this.#beatmapListManager.beatmapList.registerEvents(this.#canvas, {
+        onClick: handleClick,
+      })
+    })
   }
 
   /**
@@ -135,9 +147,17 @@ export class MainManager {
   registerEvents () {
     this.#keyboardEventManager.registerStageEvent({
       keydownEventList: {
-        [KeyCode.F5]: (e) => {
-          e.preventDefault()
+        [KeyCode.F5]: () => {
           this.#autoManager.pause()
+        },
+        [KeyCode.ENTER]: () => {
+          console.log('enter')
+          this.#beatmapListManager.open(() => {
+            this.play(this.#beatmapListManager.selectedBeatmapItem.beatmap)
+            setTimeout(() => {
+              this.#backgroundDarker.value = this.#settings.get('backgroundDark')
+            }, 2000)
+          })
         },
       },
     })
@@ -148,34 +168,31 @@ export class MainManager {
   }
 
   /**
-   * @return {Promise<void>}
-   */
-  async start () {
-    const songs = await this.loadSongList()
-    this.#beatmapListManager.init(songs)
-    this.#beatmapListManager.select()
-    this.run()
-    this.registerEvents()
-  }
-
-  /**
    * @private
    */
   loopFrame () {
     requestAnimationFrame(() => {
-      if (this.#play) {
-        return
-      }
-      if (this.#loading) {
-        this.renderLoading()
-      }
-
-      this.renderBackground()
-      this.renderBeatmaps()
-      this.#layoutEngine.renderHorizontalLine(720)
-      this.#layoutEngine.renderHorizontalLine(400)
+      this.updateFrame()
+      this.renderFrame()
       this.loopFrame()
     })
+  }
+
+  updateFrame () {
+    this.#backgroundDarker.updateTransition()
+  }
+
+  renderFrame () {
+    this.renderBackground()
+    if (this.#loading) {
+      this.renderLoading()
+    }
+
+    if (this.#play) {
+      this.#game.loopFrame()
+    } else {
+      this.renderBeatmaps()
+    }
   }
 
   /**
@@ -186,6 +203,10 @@ export class MainManager {
     if (selectBeatmap) {
       const image = selectBeatmap.bgImage
       this.#layoutEngine.renderBackgroundImage(image)
+
+      if (this.#play) {
+        this.#layoutEngine.renderShape(this.#backgroundDarker)
+      }
     }
   }
 

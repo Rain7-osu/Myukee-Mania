@@ -76,8 +76,13 @@ export class Skin {
       },
     },
     stage: {
+      board: {
+        bgColor: 'rgba(0, 0, 0, 1)',
+        width: 4 * note.width,
+      },
       border: {
         width: 10,
+        color: '#fff'
       },
       columnStart: CANVAS.WIDTH / 2.0 - note.width * 2 - 10,
       accuracy: {
@@ -133,25 +138,25 @@ export class Skin {
       beatmap: {
         item: {
           select: {
-            gap: 20,
+            gap: 16,
             extra: 200,
-            bgColor: '#e9ecef',
+            bgColor: 'hsla(42, 100%, 96%, 0.5)',
             title: {
               color: '#212529',
             },
           },
           hover: {
             extra: 80,
-            gap: 10,
-            bgColor: '#ffffffcc',
+            gap: 16,
+            bgColor: 'hsla(30, 100%, 75%, 0.5)',
             title: {
               color: '#212529',
             },
           },
           base: {
             height: 160,
-            gap: -20,
-            bgColor: '#1e90ffb3',
+            gap: -16,
+            bgColor: 'hsla(30, 100%, 75%, 0.5)',
             title: {
               color: '#212529',
               font: '32px 微软雅黑',
@@ -162,6 +167,12 @@ export class Skin {
             subtitle: {
               font: 'bold 24px 微软雅黑',
             },
+          },
+          sameGroup: {
+            bgColor: 'hsla(195, 80%, 75%, 0.5)'
+          },
+          neverPlayed: {
+            bgColor: 'hsla(195, 80%, 75%, 0.5)'
           },
           baseLeft: CANVAS.WIDTH / 2 + 200,
           width: CANVAS.WIDTH,

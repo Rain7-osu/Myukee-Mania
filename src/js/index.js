@@ -38,7 +38,13 @@ async function run () {
   container.append(canvas)
   const main = new MainManager(canvas)
   await main.start()
-  // main.init()
 }
 
 bindClick('enter', run)
+
+// 跟踪鼠标移动
+document.addEventListener('mousemove', (e) => {
+  const cursor = document.getElementById('custom-cursor');
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
