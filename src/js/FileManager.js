@@ -4,11 +4,6 @@ export class FileManager {
    */
   #file = null
 
-  /**
-   * @type {HTMLInputElement}
-   */
-  #inputEl = document.createElement('input')
-
   #fileReader = new FileReader()
 
   /**
@@ -29,26 +24,6 @@ export class FileManager {
     const img = new Image()
     img.src = src
     return img
-  }
-
-  /**
-   * @param accept {string}
-   */
-  constructor (accept = 'osu') {
-    this.#inputEl.type = 'file'
-    this.#inputEl.style.display = 'none'
-    this.#inputEl.accept = accept
-    this.#inputEl.multiple = false
-    document.body.append(this.#inputEl)
-
-    const _this = this
-    this.#inputEl.onchange = function (e) {
-      _this.#file = e.target.files[0]
-    }
-  }
-
-  chooseFile() {
-    this.#inputEl.click()
   }
 
   /**
@@ -74,11 +49,5 @@ export class FileManager {
 
   get file() {
     return this.#file
-  }
-
-  destroy() {
-    if (document.body.contains(this.#inputEl)) {
-      document.body.removeChild(this.#inputEl)
-    }
   }
 }

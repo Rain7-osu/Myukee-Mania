@@ -14,14 +14,20 @@ const note = {
 export class Skin {
   static config = {
     fps: {
+      width: 80,
       right: 24,
       bottom: 24,
-      font: 'bold 24px 微软雅黑',
-      fillStyle: '#f00',
-      fontSize: 24,
+      height: 28,
+      radius: 14,
+      font: '微软雅黑',
+      fontWeight: 'normal',
+      fontSize: 16,
+      color: 'rgb(42, 42, 42)',
+      background: 'rgb(91, 255, 0)',
     },
     common: {
       number: {
+        width: 36,
         default: {
           ['default-0']: {
             image: FileManager.loadImage('./skin/default-0.png'),
@@ -78,12 +84,12 @@ export class Skin {
     },
     stage: {
       board: {
-        bgRgba: [0, 0, 0, 1],
+        bgRgba: 'rgba(0, 0, 0, 1)',
         width: 4 * note.width,
       },
       border: {
         width: 10,
-        color: '#fff',
+        color: 'rgba(255, 255, 255, 1)',
       },
       columnStart: CANVAS.WIDTH / 2.0 - note.width * 2 - 10,
       accuracy: {
@@ -128,8 +134,14 @@ export class Skin {
       },
       score: {
         assets: null,
-        right: CANVAS.WIDTH - 10,
+        right: 20,
         top: 10,
+        font: '微软雅黑',
+        fontWeight: 'bold',
+        fontSize: 128,
+        lineHeight: 128,
+        color: '#fff',
+        strokeColor: '#222',
       },
       judgementLine: {
         height: 200,
@@ -141,7 +153,7 @@ export class Skin {
           select: {
             gap: 16,
             extra: 200,
-            bgColor: 'hsla(42, 100%, 96%, 0.5)',
+            bgColor: 'rgba(255,249,235,0.5)',
             title: {
               color: '#212529',
             },
@@ -149,7 +161,7 @@ export class Skin {
           hover: {
             extra: 80,
             gap: 16,
-            bgColor: 'hsla(30, 100%, 75%, 0.5)',
+            bgColor: 'rgba(255,191,128,0.5)',
             title: {
               color: '#212529',
             },
@@ -157,7 +169,7 @@ export class Skin {
           base: {
             height: 160,
             gap: -16,
-            bgColor: 'hsla(30, 100%, 75%, 0.5)',
+            bgColor: 'rgba(255,191,128,0.5)',
             title: {
               color: '#212529',
               font: '32px 微软雅黑',
@@ -170,10 +182,10 @@ export class Skin {
             },
           },
           sameGroup: {
-            bgColor: 'hsla(195, 80%, 75%, 0.5)',
+            bgColor: 'rgba(140, 217, 242, 0.5)',
           },
           neverPlayed: {
-            bgColor: 'hsla(195, 80%, 75%, 0.5)',
+            bgColor: 'rgba(140, 217, 242, 0.5)',
           },
           baseLeft: CANVAS.WIDTH / 2 + 200,
           width: CANVAS.WIDTH,
@@ -191,7 +203,7 @@ export class Skin {
           fontSize: 36,
           radius: 0,
           color: '#fff',
-          background: [100, 220, 100, 0.85],
+          background: 'rgba(100, 220, 100, 0.85)',
         },
         retry: {
           width: 600,
@@ -202,7 +214,8 @@ export class Skin {
           fontSize: 36,
           radius: 0,
           color: '#fff',
-          background: [100, 220, 100, 0.85],
+          background: 'rgba(255, 159, 28, 0.85)',
+          text: 'Retry',
         },
         resume: {
           width: 600,
@@ -213,6 +226,7 @@ export class Skin {
           fontSize: 36,
           radius: 0,
           color: '#fff',
+          background: 'rgba(100, 220, 100, 0.85)',
           text: 'Continue',
         },
         back: {
@@ -225,6 +239,7 @@ export class Skin {
           radius: 0,
           color: '#fff',
           text: 'Back to Menu',
+          background: 'rgba(255, 100, 100, 0.85)',
         },
         fullscreen: {
           width: 600,
@@ -235,10 +250,154 @@ export class Skin {
           fontSize: 36,
           radius: 0,
           color: '#fff',
-          background: [255, 255, 255, 0.85],
+          background: 'rgba(255, 255, 255, 0.85)',
           text: 'Enter Fullscreen',
-        }
-      }
+        },
+      },
+    },
+    rankingBoard: {
+      header: {
+        left: 0,
+        top: 0,
+        width: CANVAS.WIDTH,
+        height: 200,
+        background: 'rgba(0, 0, 0, 0.95)',
+        info: {
+          left: 20,
+          top: 24,
+          title: {
+            color: '#fff',
+            fontSize: 48,
+            font: '微软雅黑',
+            lineHeight: 64,
+          },
+          subtitle: {
+            color: '#fff',
+            fontSize: 36,
+            font: '微软雅黑',
+            lineHeight: 52,
+          },
+          description: {
+            color: '#fff',
+            fontSize: 36,
+            font: '微软雅黑',
+            lineHeight: 52,
+          },
+        },
+        label: {
+          color: '#fff',
+          right: 0,
+          top: 0,
+          fontSize: 160,
+          font: '微软雅黑',
+          lineHeight: 200,
+        },
+      },
+      score: {
+        background: 'rgba(0, 170, 255, 0.6)',
+        left: 40,
+        top: 220,
+        radius: 20,
+        height: 160,
+        width: CANVAS.WIDTH / 2 - 200,
+        value: {
+          left: 400,
+          top: 28,
+        },
+      },
+      results: {
+        top: 400,
+        left: 40,
+        radius: 20,
+        width: CANVAS.WIDTH / 2 - 200,
+        height: CANVAS.HEIGHT / 2 + 100,
+        background: 'rgba(0, 170, 255, 0.6)',
+        judgement: {
+          font: '微软雅黑',
+          fontWeight: 'bold',
+          fontSize: 88,
+          lineHeight: 88,
+          color: '#fff',
+          strokeColor: '#222',
+          itemLeft: 40,
+          itemValueLeft: 256,
+          itemRight: 40,
+          itemTop: 38,
+          itemHeight: 132,
+        },
+        combo: {
+          font: '微软雅黑',
+          fontWeight: 'bold',
+          fontSize: 88,
+          lineHeight: 88,
+          color: '#fff',
+          strokeColor: '#222',
+          top: 596,
+          itemHeight: 132,
+          itemLeft: 80,
+        },
+        accuracy: {
+          font: '微软雅黑',
+          fontWeight: 'bold',
+          fontSize: 88,
+          lineHeight: 88,
+          color: '#fff',
+          strokeColor: '#222',
+          top: 596,
+          itemHeight: 132,
+          itemLeft: (CANVAS.WIDTH / 2 - 200) / 2 + 80,
+        },
+      },
+      ranking: {
+        scale: 2,
+        startScale: 8,
+        right: 10,
+        top: 240,
+      },
+      buttons: {
+        retry: {
+          width: 400,
+          height: 100,
+          gap: 80,
+          left: CANVAS.WIDTH - 400 - 40,
+          top: CANVAS.HEIGHT - 120,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          background: 'rgba(255, 159, 28, 0.6)',
+          hoverBackground: 'rgba(255, 159, 28, 1)',
+          text: 'Retry',
+        },
+        watchReplay: {
+          width: 400,
+          height: 100,
+          gap: 80,
+          left: CANVAS.WIDTH - 400 - 40,
+          top: CANVAS.HEIGHT,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          background: 'rgba(70, 160, 220, 0.6)',
+          hoverBackground: 'rgba(70, 160, 220, 1)',
+          text: 'Watch Replay',
+        },
+        back: {
+          width: 200,
+          height: 100,
+          gap: 80,
+          left: 0,
+          top: CANVAS.HEIGHT - 20,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          background: 'rgba(255, 100, 150, 1)',
+          text: 'Back',
+          hoverWidth: 300,
+        },
+      },
     },
   }
 

@@ -1,27 +1,50 @@
 import { FileManager } from './FileManager'
 
 export class Beatmap {
-  /** @private */
+  /**
+   * @type {string}
+   */
   #artist
-  /** @private */
+  /**
+   * @type {string}
+   */
   #title
-  /** @private */
+  /**
+   * @type {string}
+   */
   #version
-  /** @private */
+  /**
+   * @type {string}
+   */
   #audioFilename
-  /** @private */
+  /**
+   * @type {number}
+   */
   #previewTime
-  /** @private */
+  /**
+   * @type {string}
+   */
   #beatmapId
-  /** @private */
+  /**
+   * @type {string}
+   */
   #creator
-  /** @private */
+  /**
+   * @type {string}
+   */
   #bg
-  /** @private */
+  /**
+   * @type {string}
+   */
   #filename
-  /** @private */
+  /**
+   * @type {number}
+   */
   #starRating
-
+  /**
+   * @type {number}
+   */
+  #length
   /**
    * @type {HTMLImageElement}
    */
@@ -41,12 +64,20 @@ export class Beatmap {
     return this.#image
   }
 
+  get title () {
+    return `${this.#artist} - ${this.#title} [${this.#version}]`
+  }
+
+  get creator () {
+    return this.#creator
+  }
+
   get songName () {
     return this.#title
   }
 
   get description () {
-    return this.#artist + ' // ' + this.#creator
+    return `${this.#artist} // ${this.#creator}`
   }
 
   get difficulty () {
@@ -69,6 +100,10 @@ export class Beatmap {
     return `./beatmaps/${this.#audioFilename}`
   }
 
+  get length () {
+    return this.#length
+  }
+
   /**
    * @return {number}
    */
@@ -87,6 +122,7 @@ export class Beatmap {
    * @param bg {string}
    * @param filename {string}
    * @param starRating {number}
+   * @param length {number}
    */
   constructor ({
     artist,
@@ -99,6 +135,7 @@ export class Beatmap {
     bg,
     filename,
     starRating,
+    length,
   }) {
     this.#artist = artist
     this.#title = title
@@ -110,6 +147,7 @@ export class Beatmap {
     this.#bg = bg
     this.#filename = filename
     this.#starRating = starRating
+    this.#length = length
   }
 
   /**
@@ -130,6 +168,7 @@ export class Beatmap {
       bg: config.Path.Directory + '/' + config.Path.BgName,
       filename: config.Path.Directory + '/' + config.Path.Filename,
       starRating: config.StarRating,
+      length: config.length
     })
   }
 }

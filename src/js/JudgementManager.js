@@ -32,9 +32,23 @@ export class JudgementManager {
    */
   #notes = []
 
-  /** @type {number}  */
   #combo = 0
+  /**
+   * @return {number}
+   */
   get combo () { return this.#combo }
+
+  #maxCombo = 0
+  /**
+   * @return {number}
+   */
+  get maxCombo () {return this.#maxCombo}
+
+  #fullCombo = true
+  /**
+   * @return {boolean}
+   */
+  get fullCombo () {return this.#fullCombo}
 
   /** @type {JudgementRecord} */
   #judgementRecord = {
@@ -45,7 +59,9 @@ export class JudgementManager {
     [JudgementType.MEH]: 0,
     [JudgementType.MISS]: 0,
   }
-
+  /**
+   * @return {JudgementRecord}
+   */
   get judgementRecord () { return this.#judgementRecord }
 
   /**
@@ -56,6 +72,8 @@ export class JudgementManager {
     this.#notes = notes
     this.#od = od || 8
     this.#combo = 0
+    this.#maxCombo = 0
+    this.#fullCombo = true
     this.#activeDeviations.init(od)
   }
 
@@ -63,6 +81,8 @@ export class JudgementManager {
     this.#activeDeviations.reset()
     this.#activeEffects = []
     this.#combo = 0
+    this.#maxCombo = 0
+    this.#fullCombo = true
     this.#od = 8
   }
 
@@ -185,7 +205,7 @@ export class JudgementManager {
 
       if (type === NoteType.TAP && currentTiming - note.offset > maxMehTime) {
         note.hit()
-        this.#combo = 0
+        this.breakCombo()
         // 没有判定时间
         note.judgement = new Judgement(JudgementType.MISS, currentTiming)
         this.#judgementRecord[JudgementType.MISS]++
@@ -208,7 +228,7 @@ export class JudgementManager {
           if (note.judgement.type <= JudgementType.MEH) {
             // 直接灰条
             note.grayed = true
-            this.#combo = 0
+            this.breakCombo()
           }
           this.#judgementRecord[note.judgement.type]++
           const effect = new JudgementEffect(note.judgement)
@@ -219,7 +239,7 @@ export class JudgementManager {
           note.hit()
           note.judgement = new Judgement(JudgementType.MISS, currentTiming)
           note.grayed = true
-          this.#combo = 0
+          this.breakCombo()
           this.#judgementRecord[JudgementType.MISS]++
           const effect = new JudgementEffect(note.judgement)
           this.#activeEffects.push(effect)
@@ -228,7 +248,7 @@ export class JudgementManager {
         else if (currentTiming - note.offset > maxOkTime && !note.isHeld) {
           note.grayed = true
           if (this.#combo > 0) {
-            this.#combo = 0
+            this.breakCombo()
           }
         }
       }
@@ -278,7 +298,7 @@ export class JudgementManager {
         if (type !== JudgementType.MISS && type !== JudgementType.MEH) {
           this.#combo++
         } else {
-          this.#combo = 0
+          this.breakCombo()
         }
         // one hit => one judgement
         break
@@ -329,12 +349,12 @@ export class JudgementManager {
         this.#activeDeviations.push(deviation)
       }
 
-      // 如果松手时间早于尾判最早的 meh 区间，则不判定
+      // 如果松手时间早于尾判最早的 meh 区间，则不判定，但是要灰条加断连
       const mehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
       if (note.end - releaseTiming > mehTime) {
         note.hitTiming = null
         note.grayed = true
-        this.#combo = 0
+        this.breakCombo()
       } else {
         // 开始判定 hitTiming 和 releaseTiming
         note.releaseTiming = releaseTiming
@@ -365,7 +385,7 @@ export class JudgementManager {
           if (note.judgement.type <= JudgementType.MEH) {
             // 直接灰条 + 断连
             note.grayed = true
-            this.#combo = 0
+            this.breakCombo()
           } else {
             this.#combo++
           }
@@ -374,5 +394,14 @@ export class JudgementManager {
       // 一定有一个判定的，所以检查完当前直接不再向下检查
       break
     }
+  }
+
+  /**
+   * @private
+   */
+  breakCombo () {
+    this.#fullCombo = false
+    this.#maxCombo = Math.max(this.#maxCombo, this.#combo)
+    this.#combo = 0
   }
 }

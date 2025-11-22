@@ -1,4 +1,5 @@
 import { JudgementType } from './Judgement'
+import { ScoreEffect } from './ScoreEffect'
 
 const MAX_SCORE = 1_000_000
 
@@ -25,8 +26,18 @@ export class ScoreManager {
    */
   #lastBonus = 100
 
+  #effect = new ScoreEffect()
+  /**
+   * @return {ScoreEffect}
+   */
+  get effect () { return this.#effect }
+
   /** @type {number} */
   #score = 0
+
+  /**
+   * @return {number}
+   */
   get score () { return this.#score }
 
   reset () {
@@ -69,7 +80,7 @@ export class ScoreManager {
     return baseScore + bonusScore
   }
 
-  calcScore () {
+  update () {
     let totalScore = 0
 
     for (let i = 0; i < this.#notes.length; i++) {
@@ -86,5 +97,7 @@ export class ScoreManager {
     }
 
     this.#score = totalScore
+    this.#effect.setScore(totalScore)
+    this.#effect.updateStepTo()
   }
 }

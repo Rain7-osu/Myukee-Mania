@@ -43,6 +43,9 @@ const main = async () => {
               const subItemPath = path.join(itemPath, subItem)
               const fileContent = await readFile(subItemPath, 'utf-8')
               const config = resolveConfig(fileContent)
+              if (!config) {
+                continue
+              }
               config.Path = {
                 Directory: path.basename(itemPath),
                 BgName: config.Events.BgName,
@@ -139,6 +142,7 @@ const resolveConfig = (fileContent) => {
   }
 
   res.StarRating = resolveStarRating(hitObjects)
+  res.Length = hitObjects[hitObjects.length - 1].end
 
   if (!hasMetadata) {
     return null
@@ -180,242 +184,242 @@ const resolveHitObject = (currentLine) => {
  */
 const resolveStarRating = (hitObjects) => {
   // 计算星数的主函数
-  function calculateStarRating() {
-    const hitObjects = parseHitObjects();
+  function calculateStarRating () {
+    const hitObjects = parseHitObjects()
     if (!hitObjects || hitObjects.length === 0) {
-      alert("请提供有效的谱面数据");
-      return;
+      alert('请提供有效的谱面数据')
+      return
     }
 
     // 计算星数
-    const starRating = calculateStarRatingInternal(hitObjects);
+    const starRating = calculateStarRatingInternal(hitObjects)
 
     // 显示结果
-    document.getElementById('starRating').textContent = starRating.toFixed(2);
+    document.getElementById('starRating').textContent = starRating.toFixed(2)
 
     // 更新音符列表和可视化
-    updateNotesTable(hitObjects);
-    updateVisualization(hitObjects);
+    updateNotesTable(hitObjects)
+    updateVisualization(hitObjects)
   }
 
   // 解析输入的谱面数据
-  function parseHitObjects() {
-    const dataText = document.getElementById('hitObjectsData').value;
-    const errorElement = document.getElementById('jsonError');
+  function parseHitObjects () {
+    const dataText = document.getElementById('hitObjectsData').value
+    const errorElement = document.getElementById('jsonError')
 
     try {
-      const data = JSON.parse(dataText);
+      const data = JSON.parse(dataText)
       if (!Array.isArray(data)) {
-        throw new Error("数据必须是数组");
+        throw new Error('数据必须是数组')
       }
 
-      const hitObjects = [];
+      const hitObjects = []
       for (const item of data) {
         if (!item.hasOwnProperty('offset') || !item.hasOwnProperty('end') ||
           !item.hasOwnProperty('type') || !item.hasOwnProperty('col')) {
-          throw new Error("每个音符必须包含offset、end、type和col属性");
+          throw new Error('每个音符必须包含offset、end、type和col属性')
         }
 
         if (item.col < 0 || item.col > 3) {
-          throw new Error("轨道编号(col)必须在0-3之间");
+          throw new Error('轨道编号(col)必须在0-3之间')
         }
 
-        hitObjects.push(new HitObject(item.offset, item.end, item.type, item.col));
+        hitObjects.push(new HitObject(item.offset, item.end, item.type, item.col))
       }
 
-      errorElement.textContent = "";
-      return hitObjects;
+      errorElement.textContent = ''
+      return hitObjects
     } catch (error) {
-      errorElement.textContent = "JSON解析错误: " + error.message;
-      return null;
+      errorElement.textContent = 'JSON解析错误: ' + error.message
+      return null
     }
   }
 
   // 内部计算星数的函数
-  function calculateStarRatingInternal(hitObjects) {
-    if (hitObjects.length === 0) return 0.0;
+  function calculateStarRatingInternal (hitObjects) {
+    if (hitObjects.length === 0) return 0.0
 
     // 1. 按开始时间排序
-    hitObjects.sort((a, b) => a.offset - b.offset);
+    hitObjects.sort((a, b) => a.offset - b.offset)
 
     // 2. 计算每个note的难度
-    calculateNoteStrains(hitObjects);
+    calculateNoteStrains(hitObjects)
 
     // 3. 计算谱面难度
-    const totalDifficulty = calculateOverallDifficulty(hitObjects);
+    const totalDifficulty = calculateOverallDifficulty(hitObjects)
 
     // 4. 转换为星数
-    return totalDifficulty * 0.018;
+    return totalDifficulty * 0.018
   }
 
   // 计算每个note的IndividualStrain和OverallStrain
-  function calculateNoteStrains(hitObjects) {
-    const maxCol = 4; // 4个轨道 (0-3)
+  function calculateNoteStrains (hitObjects) {
+    const maxCol = 4 // 4个轨道 (0-3)
 
     // 初始化状态
-    const heldUntil = new Array(maxCol).fill(0);
-    const individualStrain = new Array(maxCol).fill(0.0);
-    let overallStrain = 1.0;
+    const heldUntil = new Array(maxCol).fill(0)
+    const individualStrain = new Array(maxCol).fill(0.0)
+    let overallStrain = 1.0
 
-    let lastTime = hitObjects[0].offset;
+    let lastTime = hitObjects[0].offset
 
     // 为每个hitObject添加存储计算结果的属性
     for (let i = 0; i < hitObjects.length; i++) {
-      const obj = hitObjects[i];
+      const obj = hitObjects[i]
 
       // 计算时间差（转换为秒）
-      const timeDiff = i > 0 ? (obj.offset - lastTime) / 1000.0 : 0;
+      const timeDiff = i > 0 ? (obj.offset - lastTime) / 1000.0 : 0
 
       // 衰减之前的strain值
       for (let col = 0; col < maxCol; col++) {
-        individualStrain[col] *= decayFactor(0.125, timeDiff);
+        individualStrain[col] *= decayFactor(0.125, timeDiff)
       }
-      overallStrain *= decayFactor(0.3, timeDiff);
+      overallStrain *= decayFactor(0.3, timeDiff)
 
       // 计算HoldFactor
-      const holdFactor = calculateHoldFactor(obj, heldUntil);
+      const holdFactor = calculateHoldFactor(obj, heldUntil)
 
       // 计算HoldAddition
-      const holdAddition = calculateHoldAddition(obj, heldUntil);
+      const holdAddition = calculateHoldAddition(obj, heldUntil)
 
       // 更新当前轨道的IndividualStrain
-      individualStrain[obj.col] += 2.0 * holdFactor;
+      individualStrain[obj.col] += 2.0 * holdFactor
 
       // 更新OverallStrain
-      overallStrain += (holdAddition + 1.0) * holdFactor;
+      overallStrain += (holdAddition + 1.0) * holdFactor
 
       // 更新HeldUntil
-      heldUntil[obj.col] = obj.end;
+      heldUntil[obj.col] = obj.end
 
       // 存储计算结果到对象中
-      obj.individualStrain = [...individualStrain];
-      obj.overallStrain = overallStrain;
-      obj.strainValue = individualStrain.reduce((sum, val) => sum + val, 0) + overallStrain;
+      obj.individualStrain = [...individualStrain]
+      obj.overallStrain = overallStrain
+      obj.strainValue = individualStrain.reduce((sum, val) => sum + val, 0) + overallStrain
 
-      lastTime = obj.offset;
+      lastTime = obj.offset
     }
   }
 
   // 计算HoldFactor
-  function calculateHoldFactor(currentObj, heldUntil) {
+  function calculateHoldFactor (currentObj, heldUntil) {
     for (let i = 0; i < heldUntil.length; i++) {
       if (currentObj.end < heldUntil[i]) {
-        return 1.25;
+        return 1.25
       }
     }
-    return 1.0;
+    return 1.0
   }
 
   // 计算HoldAddition
-  function calculateHoldAddition(currentObj, heldUntil) {
-    let maxEligibleHeldUntil = 0;
+  function calculateHoldAddition (currentObj, heldUntil) {
+    let maxEligibleHeldUntil = 0
 
     // 找到满足条件的最大heldUntil
     for (let i = 0; i < heldUntil.length; i++) {
       if (currentObj.offset < heldUntil[i] &&
         currentObj.end > heldUntil[i] &&
         heldUntil[i] > maxEligibleHeldUntil) {
-        maxEligibleHeldUntil = heldUntil[i];
+        maxEligibleHeldUntil = heldUntil[i]
       }
     }
 
     if (maxEligibleHeldUntil === 0) {
-      return 0.0;
+      return 0.0
     }
 
     // 时间差转换为秒
-    const timeDiff = Math.abs(maxEligibleHeldUntil - currentObj.end) / 1000.0;
+    const timeDiff = Math.abs(maxEligibleHeldUntil - currentObj.end) / 1000.0
 
     // 计算HoldAddition
     try {
-      return 1.0 / (1.0 + Math.exp(24.0 - timeDiff));
+      return 1.0 / (1.0 + Math.exp(24.0 - timeDiff))
     } catch (e) {
-      return 0.0;
+      return 0.0
     }
   }
 
   // 计算衰减因子
-  function decayFactor(base, timeDiff) {
-    return Math.pow(base, timeDiff);
+  function decayFactor (base, timeDiff) {
+    return Math.pow(base, timeDiff)
   }
 
   // 计算谱面总体难度
-  function calculateOverallDifficulty(hitObjects) {
-    if (hitObjects.length === 0) return 0.0;
+  function calculateOverallDifficulty (hitObjects) {
+    if (hitObjects.length === 0) return 0.0
 
     // 确定时间范围
-    const startTime = 0;
-    const endTime = hitObjects[hitObjects.length - 1].offset;
-    const intervalLength = 400; // 400ms间隔
+    const startTime = 0
+    const endTime = hitObjects[hitObjects.length - 1].offset
+    const intervalLength = 400 // 400ms间隔
 
     // 创建时间区间
-    const intervals = [];
-    let currentTime = startTime;
+    const intervals = []
+    let currentTime = startTime
     while (currentTime <= endTime) {
-      intervals.push(currentTime);
-      currentTime += intervalLength;
+      intervals.push(currentTime)
+      currentTime += intervalLength
     }
 
-    const intervalDifficulties = [];
+    const intervalDifficulties = []
 
     // 为每个区间计算难度
     for (let i = 0; i < intervals.length; i++) {
-      const intervalEnd = intervals[i] + intervalLength;
+      const intervalEnd = intervals[i] + intervalLength
 
       // 找到区间开始前的最后一个note
-      let lastNoteBefore = null;
+      let lastNoteBefore = null
       for (let j = hitObjects.length - 1; j >= 0; j--) {
         if (hitObjects[j].offset <= intervals[i]) {
-          lastNoteBefore = hitObjects[j];
-          break;
+          lastNoteBefore = hitObjects[j]
+          break
         }
       }
 
       // 计算默认难度值
-      let defaultDifficulty;
+      let defaultDifficulty
       if (lastNoteBefore === null) {
-        defaultDifficulty = 0.0;
+        defaultDifficulty = 0.0
       } else {
-        const timeDiff = (intervalEnd - lastNoteBefore.offset) / 1000.0;
+        const timeDiff = (intervalEnd - lastNoteBefore.offset) / 1000.0
 
         // 计算轨道难度值
-        let trackDifficulty = 0.0;
+        let trackDifficulty = 0.0
         for (let col = 0; col < 4; col++) {
-          trackDifficulty += lastNoteBefore.individualStrain[col] * decayFactor(0.125, timeDiff);
+          trackDifficulty += lastNoteBefore.individualStrain[col] * decayFactor(0.125, timeDiff)
         }
 
         // 计算总体难度值
-        const overallDifficulty = lastNoteBefore.overallStrain * decayFactor(0.3, timeDiff);
+        const overallDifficulty = lastNoteBefore.overallStrain * decayFactor(0.3, timeDiff)
 
-        defaultDifficulty = trackDifficulty + overallDifficulty;
+        defaultDifficulty = trackDifficulty + overallDifficulty
       }
 
       // 找到区间内的所有note
       const notesInInterval = hitObjects.filter(obj =>
-        intervals[i] <= obj.offset && obj.offset < intervalEnd
-      );
+        intervals[i] <= obj.offset && obj.offset < intervalEnd,
+      )
 
       // 计算区间最终难度值
-      let intervalDifficulty;
+      let intervalDifficulty
       if (notesInInterval.length === 0) {
-        intervalDifficulty = defaultDifficulty;
+        intervalDifficulty = defaultDifficulty
       } else {
-        const maxNoteDifficulty = Math.max(...notesInInterval.map(obj => obj.strainValue));
-        intervalDifficulty = Math.max(defaultDifficulty, maxNoteDifficulty);
+        const maxNoteDifficulty = Math.max(...notesInInterval.map(obj => obj.strainValue))
+        intervalDifficulty = Math.max(defaultDifficulty, maxNoteDifficulty)
       }
 
-      intervalDifficulties.push(intervalDifficulty);
+      intervalDifficulties.push(intervalDifficulty)
     }
 
     // 排序并加权求和
-    intervalDifficulties.sort((a, b) => b - a);
+    intervalDifficulties.sort((a, b) => b - a)
 
-    let totalDifficulty = 0.0;
+    let totalDifficulty = 0.0
     for (let i = 0; i < intervalDifficulties.length; i++) {
-      totalDifficulty += intervalDifficulties[i] * Math.pow(0.95, i);
+      totalDifficulty += intervalDifficulties[i] * Math.pow(0.95, i)
     }
 
-    return totalDifficulty;
+    return totalDifficulty
   }
 
   return calculateStarRatingInternal(hitObjects) / 3.2

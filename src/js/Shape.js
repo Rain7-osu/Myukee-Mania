@@ -80,8 +80,23 @@ export class Shape extends Transition {
    * @param height {number}
    * @param font {string}
    * @param color {string}
+   * @param textAlign {'center' | 'left' | 'right' | 'start' | 'end'}
+   * @param textBaseline {'alphabetic' | 'bottom' | 'hanging' | 'ideographic' | 'middle' | 'top'}
+   * @param stroke {boolean}
    */
-  drawCenteredText ({ context, text, x, y, width, height, font, color }) {
+  drawText ({
+    context,
+    text,
+    x,
+    y,
+    width,
+    height,
+    font,
+    color,
+    textAlign = 'center',
+    stroke,
+    textBaseline = 'middle',
+  }) {
     // 保存当前上下文状态
     context.save()
 
@@ -90,21 +105,31 @@ export class Shape extends Transition {
     context.fillStyle = color
 
     // 设置文本对齐方式为居中
-    context.textAlign = 'center'
-    context.textBaseline = 'middle'
+    context.textAlign = textAlign
+    context.textBaseline = textBaseline
 
     // 计算矩形中心点
-    const centerX = x + width / 2
-    const centerY = y + height / 2
+    let left = x
+    let top = y
+
+    if (textAlign === 'center') {
+      // 计算矩形中心点
+      left = x + width / 2
+      top = y + height / 2
+    }
 
     // 绘制文本
-    context.fillText(text, centerX, centerY)
+    context.fillText(text, left, top)
+    if (stroke) {
+      context.strokeText(text, left, top)
+    }
 
     // 恢复上下文状态
     context.restore()
   }
 
   /**
+   * @protected
    * @param context {CanvasRenderingContext2D}
    * @param x {number}
    * @param y {number}
@@ -115,7 +140,7 @@ export class Shape extends Transition {
    * @param stroke {boolean}
    */
   roundRect ({
-    context: ctx,
+    context,
     x,
     y,
     width,
@@ -136,23 +161,23 @@ export class Shape extends Transition {
       }
     }
 
-    ctx.beginPath()
-    ctx.moveTo(x + radius.tl, y)
-    ctx.lineTo(x + width - radius.tr, y)
-    ctx.quadraticCurveTo(x + width, y, x + width, y + radius.tr)
-    ctx.lineTo(x + width, y + height - radius.br)
-    ctx.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height)
-    ctx.lineTo(x + radius.bl, y + height)
-    ctx.quadraticCurveTo(x, y + height, x, y + height - radius.bl)
-    ctx.lineTo(x, y + radius.tl)
-    ctx.quadraticCurveTo(x, y, x + radius.tl, y)
-    ctx.closePath()
+    context.beginPath()
+    context.moveTo(x + radius.tl, y)
+    context.lineTo(x + width - radius.tr, y)
+    context.quadraticCurveTo(x + width, y, x + width, y + radius.tr)
+    context.lineTo(x + width, y + height - radius.br)
+    context.quadraticCurveTo(x + width, y + height, x + width - radius.br, y + height)
+    context.lineTo(x + radius.bl, y + height)
+    context.quadraticCurveTo(x, y + height, x, y + height - radius.bl)
+    context.lineTo(x, y + radius.tl)
+    context.quadraticCurveTo(x, y, x + radius.tl, y)
+    context.closePath()
 
     if (fill) {
-      ctx.fill()
+      context.fill()
     }
     if (stroke) {
-      ctx.stroke()
+      context.stroke()
     }
   }
 

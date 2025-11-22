@@ -103,7 +103,7 @@ export class BeatmapListManager {
       })
     }
 
-    this.#beatmapList.createTransition(0, 0, 600, 'easeOut', () => {}, () => {
+    this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => {
       callback()
     })
   }
@@ -121,7 +121,7 @@ export class BeatmapListManager {
         item.translateX = value
       })
     }
-    this.#beatmapList.createTransition(0, 0, 600, 'easeOut', () => {}, () => {
+    this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => {
       callback()
     })
   }

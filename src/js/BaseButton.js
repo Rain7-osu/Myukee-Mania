@@ -1,5 +1,6 @@
 import { Shape } from './Shape'
 import { MouseEventManager } from './MouseEventManager'
+import { rgba } from './utils'
 
 /**
  * @typedef {Object} ButtonStyle
@@ -12,8 +13,8 @@ import { MouseEventManager } from './MouseEventManager'
  * @property {number} fontSize
  * @property {string} color
  * @property {number} radius
- * @property {[number, number, number, number]} background
- * @property {[number, number, number, number]?} hoverBackground
+ * @property {string} background
+ * @property {string?} hoverBackground
  * @property {number?} hoverScale
  */
 
@@ -33,7 +34,7 @@ export class BaseButton extends Shape {
   #currentScale
 
   /**
-   * @type {[number, number, number, number]}
+   * @type {string}
    */
   #currentBackground
 
@@ -67,7 +68,7 @@ export class BaseButton extends Shape {
    * @private
    */
   rgba () {
-    const [r, g, b, a] = this.#currentBackground
+    const [r, g, b, a] = rgba.toValues(this.#currentBackground)
     return `rgba(${r}, ${g}, ${b}, ${a})`
   }
 
@@ -98,7 +99,7 @@ export class BaseButton extends Shape {
     })
 
     const fontSize = initialFontSize * this.#currentScale / 100
-    this.drawCenteredText({
+    this.drawText({
       context,
       text,
       x,
@@ -107,24 +108,25 @@ export class BaseButton extends Shape {
       height,
       font: `${fontSize}px ${font}`,
       color,
+      stroke: false,
     })
   }
 
   hover () {
     this.#hovered = true
     this.cancelTransitions()
-    const { hoverBackground, hoverScale, background } = this.#style
+    const { hoverBackground, hoverScale } = this.#style
     if (hoverBackground) {
-      const [rh, gh, bh, ah] = hoverBackground
-      const [r, g, b, a] = background
+      const [rh, gh, bh, ah] = rgba.toValues(hoverBackground)
+      const [r, g, b, a] = rgba.toValues(this.#currentBackground)
       this.createTransition(0, 100, 100, 'easeOut', (value) => {
         const progress = value / 100
-        this.#currentBackground = [
+        this.#currentBackground = rgba.format([
           r + (rh - r) * progress,
           g + (gh - g) * progress,
           b + (bh - b) * progress,
           a + (ah - a) * progress,
-        ]
+        ])
       })
     }
     if (hoverScale) {
@@ -137,16 +139,16 @@ export class BaseButton extends Shape {
     this.cancelTransitions()
     const { hoverBackground, hoverScale, background } = this.#style
     if (hoverBackground) {
-      const [rh, gh, bh, ah] = hoverBackground
-      const [r, g, b, a] = background
+      const [rh, gh, bh, ah] = rgba.toValues(this.#currentBackground)
+      const [r, g, b, a] = rgba.toValues(background)
       this.createTransition(0, 100, 100, 'easeOut', (value) => {
         const progress = value / 100
-        this.#currentBackground = [
+        this.#currentBackground = rgba.format([
           rh - (rh - r) * progress,
           gh - (gh - g) * progress,
           bh - (bh - b) * progress,
           ah - (ah - a) * progress,
-        ]
+        ])
       })
     }
     if (hoverScale) {
@@ -168,7 +170,7 @@ export class BaseButton extends Shape {
 
   /**
    * @param eventMap {{
-   *   onClick: Function
+   *   onClick?: Function
    * }}
    */
   initEvents (eventMap) {
@@ -178,7 +180,9 @@ export class BaseButton extends Shape {
       mousemoveEvents: [
         (e) => {
           if (this.isMouseIn(e)) {
-            this.hover()
+            if (!this.#hovered) {
+              this.hover()
+            }
           } else if (this.#hovered) {
             this.hoverOut()
           }
@@ -188,7 +192,7 @@ export class BaseButton extends Shape {
       clickEvents: [
         (e) => {
           if (this.isMouseIn(e)) {
-            onClick()
+            onClick?.()
           }
         },
       ],

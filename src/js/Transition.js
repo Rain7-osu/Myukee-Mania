@@ -12,6 +12,16 @@
  * (value: number) => void,
  * () => void?
  * ]} TransitionConfig
+ *
+ * @typedef {[
+ *   {
+ *     endValue: number;
+ *     step: number;
+ *     currentValue: number;
+ *   },
+ *   (value: number) => void,
+ *   () =>void?,
+ * ]} StepToConfig
  */
 
 export class Transition {
@@ -22,12 +32,17 @@ export class Transition {
   #updates = []
 
   /**
+   * @type {StepToConfig[]}
+   */
+  #stepTos = []
+
+  /**
    * @public
    * @param startValue {number}
    * @param endValue {number}
    * @param duration {number}
    * @param type {TransitionType}
-   * @param updateFn {(delta: number) => void}
+   * @param updateFn {(value: number) => void}
    * @param endFn {() => void?}
    */
   createTransition (startValue, endValue, duration, type, updateFn, endFn) {
@@ -73,7 +88,7 @@ export class Transition {
     }
 
     this.#updates.forEach((update) => {
-      const [{ start, end, startValue, endValue, type }, updateFn, endFn] = update
+      const [{ start, end, startValue, endValue, type }, updateFn] = update
       /** @type {TransitionFunc} */
       let transformer
       switch (type) {
@@ -89,10 +104,65 @@ export class Transition {
 
       const value = transformer(startValue, endValue, start, end, current)
       updateFn(value)
-      if (value >= endValue) {
-        endFn?.()
-      }
     })
+  }
+
+  /**
+   * 创建一个每一帧都更新 step 数量的更新器
+   * @param startValue {number}
+   * @param endValue {number}
+   * @param step {number}
+   * @param updateFn {(value: number) => void}
+   * @param endFn {() => void?}
+   */
+  createStepTo (startValue, endValue, step, updateFn, endFn) {
+    this.#stepTos.push([
+      {
+        endValue,
+        currentValue: startValue,
+        step,
+      },
+      updateFn,
+      endFn,
+    ])
+
+    return () => {
+      this.#stepTos = this.#stepTos.filter((stepTo) => stepTo[1] !== updateFn)
+    }
+  }
+
+  updateStepTo () {
+    this.#stepTos = this.#stepTos.filter(stepTo => {
+      const [{ endValue, step, currentValue }, updateFn, endFn] = stepTo
+      if (currentValue + step >= endValue) {
+        updateFn(endValue)
+        endFn?.()
+        return false
+      }
+      return true
+    })
+
+    if (!this.#stepTos.length) {
+      return
+    }
+
+    this.#stepTos.forEach(stepTo => {
+      const [config, updateFn] = stepTo
+      const { step } = config
+      config.currentValue += step
+      updateFn(config.currentValue)
+    })
+  }
+
+  /**
+   * @param transformers {Array<(value: number) => void>?}
+   */
+  cancelStepTos (transformers) {
+    if (!transformers) {
+      this.#stepTos = []
+      return
+    }
+    this.#stepTos = this.#stepTos.filter(stepTo => !transformers.includes(stepTo[1]))
   }
 
   /**

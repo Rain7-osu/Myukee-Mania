@@ -2,6 +2,8 @@ export class AccuracyManager {
   /** @type {Note[]} */
   #notes
 
+  #acc = 1.0
+
   /**
    * @param notes {Note[]}
    */
@@ -9,6 +11,10 @@ export class AccuracyManager {
     this.#notes = notes
   }
 
+  /**
+   * @private
+   * @return {number}
+   */
   calcAcc () {
     if (this.#notes.length === 0) {
       return 1.0
@@ -30,5 +36,16 @@ export class AccuracyManager {
     }
 
     return acc / hitCount
+  }
+
+  update () {
+    this.#acc = this.calcAcc()
+  }
+
+  /**
+   * @return {number}
+   */
+  get acc () {
+    return this.#acc
   }
 }

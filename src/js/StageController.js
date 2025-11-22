@@ -7,7 +7,6 @@ import { SectionLine } from './SectionLine'
 import { ComboEffect } from './ComboEffect'
 import { JudgementManager } from './JudgementManager'
 import { KeyCode } from './KeyCode'
-import { ScoreEffect } from './ScoreEffect'
 import { ScoreManager } from './ScoreManager'
 import { JudgementRecordEffect } from './JudgementRecordEffect'
 import { ProgressPercentEffect } from './ProgressEffect'
@@ -15,12 +14,17 @@ import { AccuracyEffect } from './AccuracyEffect'
 import { AccuracyManager } from './AccuracyManager'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { StageBoard } from './StageBoard'
-import { RankEffect } from './RankEffect'
+import { RankingEffect } from './RankingEffect'
 import { JudgementLineEffect } from './JudgementLineEffect'
 import { FrameSnapshot } from './FrameSnapshot'
+import { AudioManager } from './AudioManager'
+import { FileManager } from './FileManager'
+import { MapResolver } from './MapResolver'
 
 /**
- * @callback QuitCallback
+ * @callback Callback
+ * @callback FinishCallback
+ * @param rankingResult {RankingResult}
  */
 
 export class StageController {
@@ -30,12 +34,12 @@ export class StageController {
   #renderEngine
 
   /**
-   * @type {PlayMap}
+   * @type {PlayMap | null}
    */
   #playingMap
 
   /**
-   * @type {AudioManager}
+   * @type {AudioManager | null}
    */
   #playingAudio
 
@@ -76,6 +80,11 @@ export class StageController {
   #frameTimeList = []
 
   /**
+   * @type {Beatmap}
+   */
+  #beatmap
+
+  /**
    * @type {KeyboardEventManager}
    */
   #keyboardEventManager
@@ -113,6 +122,12 @@ export class StageController {
    */
   #isPlaying = false
   /**
+   * 是否结束
+   * @type {boolean}
+   */
+  #finished = false
+
+  /**
    * @type {boolean}
    */
   #isQuit = false
@@ -121,9 +136,13 @@ export class StageController {
   #speedChangeEffect = null
 
   /**
-   * @type {QuitCallback}
+   * @type {Callback}
    */
   #quitCallback
+  /**
+   * @type {FinishCallback}
+   */
+  #finishCallback
 
   /**
    * @type {HTMLCanvasElement}
@@ -160,18 +179,23 @@ export class StageController {
   }
 
   /**
-   * @param map {PlayMap}
-   * @param audio {AudioManager}
+   * @param beatmap {Beatmap}
    * @return void
    */
-  init (map, audio) {
-    this.#playingMap = map
+  async init (beatmap) {
+    this.reset()
+    this.#beatmap = beatmap
+    const mapFile = await FileManager.loadMapFile(beatmap.filename)
+    const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
+    const audio = new AudioManager()
+    await audio.load(beatmap.audioFile)
+    this.#playingMap = currentMap
     this.#playingAudio = audio
     this.initSectionLines()
-    this.#judgementManager.init(this.#playingMap.notes, this.#playingMap.overallDifficulty)
-    this.#scoreManager.init(this.#playingMap.notes)
-    this.#accuracyManager.init(this.#playingMap.notes)
-    this.reset()
+    const { notes, overallDifficulty } = this.#playingMap
+    this.#judgementManager.init(notes, overallDifficulty)
+    this.#scoreManager.init(notes)
+    this.#accuracyManager.init(notes)
   }
 
   initSectionLines () {
@@ -202,11 +226,11 @@ export class StageController {
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
     this.#frameTimeList = []
+    this.#playingMap?.reset()
     this.#judgementManager.reset()
-    this.#playingMap.reset()
     this.#scoreManager.reset()
     this.#hitEffects.reset()
-    this.#playingAudio.abort()
+    this.#playingAudio?.abort()
     this.#keyboardEventManager.removeEvents()
   }
 
@@ -266,18 +290,6 @@ export class StageController {
     }, {})
 
     const optionKeyEvents = {
-      [KeyCode.F1]: (e) => {
-        e.preventDefault()
-        if (this.#isPaused) {
-          this.resume()
-        } else {
-          this.pause()
-        }
-      },
-      [KeyCode.F2]: (e) => {
-        e.preventDefault()
-        this.quit()
-      },
       [KeyCode.F4]: (e) => {
         e.preventDefault()
         this.increaseSpeed()
@@ -305,7 +317,7 @@ export class StageController {
   }
 
   /**
-   * @param quitCallback {QuitCallback}
+   * @param quitCallback {Callback}
    */
   afterQuit (quitCallback) {
     this.#quitCallback = quitCallback
@@ -318,14 +330,40 @@ export class StageController {
   }
 
   /**
+   * @param finishCallback {FinishCallback}
+   */
+  afterFinish (finishCallback) {
+    this.#finishCallback = finishCallback
+  }
+
+  finish () {
+    this.#finished = false
+    this.reset()
+    /**
+     * @type {RankingResult}
+     */
+    const results = {
+      accuracy: this.#accuracyManager.acc,
+      maxCombo: this.#judgementManager.maxCombo,
+      judgementRecord: this.#judgementManager.judgementRecord,
+      fullCombo: this.#judgementManager.fullCombo,
+      finishTime: new Date().getTime(),
+      score: this.#scoreManager.score,
+      beatmap: this.#beatmap,
+    }
+    this.#finishCallback(results)
+  }
+
+  /**
    * @return void
    */
   start () {
     this.#isPlaying = true
+    this.#finished = false
     this.#startTime = performance.now() + DEFAULT_DELAY_TIME
     this.playAudio(false)
     this.registerStageEvent()
-    this.#stageBoard.init()
+    this.#stageBoard.show()
   }
 
   /** @type {number | null} */
@@ -343,7 +381,6 @@ export class StageController {
     } else {
       this.#isPaused = true
       this.#lastPausedTime = performance.now()
-      console.log('lastPausedTime', this.#lastPausedTime)
       this.#playingAudio.pause()
       this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
     }
@@ -359,7 +396,6 @@ export class StageController {
       this.#frameSnapshot = null
       const now = performance.now()
       const currentPausedTime = now - this.#lastPausedTime
-      console.log('currentPauseTime', currentPausedTime)
       this.#totalPauseTime += currentPausedTime
       this.playAudio(true)
 
@@ -369,6 +405,7 @@ export class StageController {
   }
 
   retry () {
+    this.#stageBoard.hide()
     this.#frameSnapshot = null
     this.#playingAudio.abort()
     this.reset()
@@ -407,6 +444,17 @@ export class StageController {
   }
 
   updateFrame () {
+    if (this.#isPlaying && this.#playingMap.length < this.getGameTiming()) {
+      this.#finished = true
+      this.#isPaused = false
+      this.#stageBoard.hide()
+
+      if (this.#playingMap.length < this.getGameTiming() + 3) {
+        this.finish()
+        return
+      }
+    }
+
     const now = performance.now()
     if (this.#isPlaying) {
       const timing = this.getGameTiming()
@@ -414,12 +462,8 @@ export class StageController {
       if (!this.#isPaused) {
         this.#renderEngine.setTiming(timing)
         this.#judgementManager.update(timing)
-        this.#scoreManager.calcScore()
-
-        if (timing > this.#playingAudio.duration + 3000) {
-          this.#isPlaying = false
-          this.#isPaused = false
-        }
+        this.#scoreManager.update()
+        this.#accuracyManager.update()
       }
     }
 
@@ -453,9 +497,9 @@ export class StageController {
   }
 
   renderAccuracyEffect () {
-    const acc = this.#accuracyManager.calcAcc()
+    const acc = this.#accuracyManager.acc
     this.#renderEngine.renderShape(new AccuracyEffect(acc))
-    this.#renderEngine.renderShape(new RankEffect(acc))
+    this.#renderEngine.renderShape(new RankingEffect(acc))
   }
 
   renderProgressEffect () {
@@ -470,7 +514,7 @@ export class StageController {
   }
 
   renderScoreEffect () {
-    this.#renderEngine.renderShape(new ScoreEffect(this.#scoreManager.score))
+    this.#renderEngine.renderShape(this.#scoreManager.effect)
   }
 
   renderJudgementEffects () {
@@ -489,7 +533,7 @@ export class StageController {
   }
 
   renderNotes () {
-    this.#playingMap.notes.forEach((note) => {
+    this.#playingMap?.notes.forEach((note) => {
       this.#renderEngine.renderOffsetShape(note)
     })
   }
@@ -530,14 +574,6 @@ export class StageController {
     }
     this.#renderEngine.speed--
     this.#speedChangeEffect = new SpeedChangeEffect(this.#renderEngine.speed, performance.now())
-  }
-
-  get playingMap () {
-    return this.#playingMap
-  }
-
-  get audio () {
-    return this.#playingAudio
   }
 
   get frameSnapshot () {

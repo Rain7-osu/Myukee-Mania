@@ -38,12 +38,14 @@ export class MapResolver {
     const notes = resolver.resolveNotes()
     const timingList = resolver.resolveTiming()
     const { overallDifficulty, hpDrainRate } = resolver.resolveDifficulty()
+    const length = notes[notes.length - 1].end
 
     return new PlayMap({
       notes,
       timingList,
       overallDifficulty,
       hpDrainRate,
+      length,
     })
   }
 

@@ -21,6 +21,7 @@ async function run () {
   await enterFullscreen()
   const main = new MainController(canvas)
   await main.start()
+  $('enter').style.display = 'none'
 }
 
 bindClick('enter', run)

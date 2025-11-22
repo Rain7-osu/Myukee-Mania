@@ -36,8 +36,12 @@ export class PauseMenu extends Shape {
     super()
 
     const {
-      width, height, font, left, gap, fontSize, radius, color,
-    } = Skin.config.pauseMenu.buttons.base
+      base: { width, height, font, left, gap, fontSize, radius, color },
+      resume,
+      retry,
+      back,
+      fullscreen,
+    } = Skin.config.pauseMenu.buttons
 
     let offsetY = (CANVAS.HEIGHT - 4 * height - 3 * gap) / 2
     this.#resumeButton = new BaseButton(container, {
@@ -49,8 +53,8 @@ export class PauseMenu extends Shape {
       fontSize,
       radius,
       color,
-      background: [100, 220, 100, 0.85],
-      text: 'Continue',
+      background: resume.background,
+      text: resume.text,
     })
     offsetY += gap + height
     this.#retryButton = new BaseButton(container, {
@@ -62,8 +66,8 @@ export class PauseMenu extends Shape {
       fontSize,
       radius,
       color,
-      background: [255, 159, 28, 0.85],
-      text: 'Retry',
+      background: retry.background,
+      text: retry.text,
     })
     offsetY += gap + height
     this.#backButton = new BaseButton(container, {
@@ -75,8 +79,8 @@ export class PauseMenu extends Shape {
       fontSize,
       radius,
       color,
-      background: [255, 100, 100, 0.85],
-      text: 'Back to Menu',
+      background: back.background,
+      text: back.text,
     })
     offsetY += gap + height
     this.#fullscreenButton = new BaseButton(container, {
@@ -88,8 +92,8 @@ export class PauseMenu extends Shape {
       fontSize,
       radius,
       color,
-      background: [255, 255, 255, 0.85],
-      text: 'Enter Fullscreen',
+      background: fullscreen.background,
+      text: fullscreen.text,
     })
   }
 
@@ -159,7 +163,7 @@ export class PauseMenu extends Shape {
     if (isFullscreen()) {
       this.#fullscreenButton.setStyle({ text: 'Exit Fullscreen' })
     } else {
-      this.#fullscreenButton.setStyle({ text: 'Enter Fullscreen'})
+      this.#fullscreenButton.setStyle({ text: 'Enter Fullscreen' })
     }
 
     this.#fullscreenButton.render(context)

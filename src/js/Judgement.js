@@ -1,3 +1,7 @@
+/**
+ * @readonly
+ * @enum {number}
+ */
 export const JudgementType = {
   PERFECT: 320,
   GREAT: 300,
@@ -7,6 +11,9 @@ export const JudgementType = {
   MISS: 0,
 }
 
+/**
+ * @type {JudgementType[]}
+ */
 export const JudgementAreaList = [
   JudgementType.PERFECT,
   JudgementType.GREAT,
@@ -17,7 +24,7 @@ export const JudgementAreaList = [
 ]
 
 /**
- * @type {{[JudgementType]: (function(od: number): number)}}
+ * @type {Record<JudgementType, (function(od: number): number)>}
  */
 export const JudgementAreaCalculators = {
   [JudgementType.PERFECT]: () => 16.0,

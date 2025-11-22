@@ -6,7 +6,7 @@ import { warn } from './dev'
 
 const loadImage = FileManager.loadImage
 
-const JudgementConfig = {
+export const JudgementAssets = {
   [JudgementType.PERFECT]: {
     image: loadImage('./skin/mania-hit300g-0.png'),
     image2: loadImage('./skin/mania-hit300g-1.png'),
@@ -84,7 +84,7 @@ export class JudgementEffect extends Shape {
   }
 
   render (context) {
-    const config = JudgementConfig[this.#judgement.type]
+    const config = JudgementAssets[this.#judgement.type]
     const { judgement: { top }, note: { width: NOTE_WIDTH }, columnStart } = Skin.config.stage
 
     let width = config.width * this.#scale

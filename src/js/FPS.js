@@ -15,12 +15,32 @@ export class FPS extends Shape {
   }
 
   render (context) {
-    const { right, bottom, fillStyle, font, fontSize } = Skin.config.fps
-    const text = `FPS:${this.#value}`
-    context.font = font
-    context.fillStyle = fillStyle
-    const textMetrics = context.measureText(text)
-    const width = textMetrics.width
-    context.fillText(text, CANVAS.WIDTH - right, CANVAS.HEIGHT -bottom, width)
+    const { right, bottom, color, font, fontSize, background, fontWeight, height, radius, width } = Skin.config.fps
+    const x = CANVAS.WIDTH - right - width
+    const y = CANVAS.HEIGHT - height - bottom
+
+    context.fillStyle = background
+    this.roundRect({
+      context,
+      x,
+      y,
+      width,
+      height,
+      radius: height / 2,
+      fill: true,
+      stroke: false,
+    })
+
+    const text = `${this.#value}FPS`
+    this.drawText({
+      context,
+      x,
+      y: y + 2,
+      width,
+      height,
+      font: `${fontWeight} ${fontSize}px ${font}`,
+      color,
+      text,
+    })
   }
 }

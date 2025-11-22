@@ -14,6 +14,13 @@ const formatPercentage = value => {
 }
 
 export class AccuracyEffect extends Shape {
+  /**
+   * @param acc {number}
+   */
+  static format(acc) {
+    return formatPercentage(acc)
+  }
+
   /** @type {number} */
   #acc
 

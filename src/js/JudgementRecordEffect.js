@@ -4,6 +4,10 @@ import { CANVAS } from './Config'
 const RESULT_WIDTH = 100
 const RESULT_TOP = 200
 
+/**
+ * @typedef {Record<JudgementType, number>} JudgementRecord
+ */
+
 export class JudgementRecordEffect extends Shape {
   /** @type {JudgementRecord} */
   #record

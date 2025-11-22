@@ -15,6 +15,7 @@ import { Cursor } from './Cursor'
 import { enterFullscreen, exitFullscreen, isFullscreen, listenFullscreenChange } from './dom'
 import { PauseMenu } from './PauseMenu'
 import { BackgroundEffect } from './BackgroundEffect'
+import { RankingBoard } from './RankingBoard'
 
 /**
  * 主界面管理器
@@ -27,15 +28,16 @@ export class MainController {
 
   #loadingEffect = new MainLoadingEffect()
 
-  #loading = false
-
-  #paused = false
-
   #beatmapListManager = new BeatmapListManager()
 
   #backgroundDarker = new BackgroundDarker()
 
   #backgroundEffect = new BackgroundEffect()
+
+  /**
+   * @type {RankingBoard}
+   */
+  #rankingBoard
 
   /**
    * @type {PauseMenu}
@@ -47,7 +49,10 @@ export class MainController {
    */
   #stageController
 
+  #loading = false
   #playing = false
+  #paused = false
+  #showResults = false
 
   #settings = new Settings()
 
@@ -90,19 +95,8 @@ export class MainController {
     this.#mouseEventManager = new MouseEventManager(canvas)
     this.#stageController = new StageController(canvas)
     this.#pauseMenu = new PauseMenu(canvas)
+    this.#rankingBoard = new RankingBoard(canvas)
     this.#cursor = new Cursor()
-  }
-
-  /**
-   * @param beatmap {Beatmap}
-   * @return {Promise<void>}
-   */
-  async loadPlayMap (beatmap) {
-    const mapFile = await FileManager.loadMapFile(beatmap.filename)
-    const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
-    const audio = new AudioManager()
-    await audio.load(beatmap.audioFile)
-    this.#stageController.init(currentMap, audio)
   }
 
   /**
@@ -135,14 +129,19 @@ export class MainController {
    * @return {Promise<void>}
    */
   async play (beatmap) {
-    this.#playing = true
     this.#stageController.afterQuit(() => {
       this.#playing = false
       this.run()
       this.#backgroundDarker.reset()
     })
-    await this.loadPlayMap(beatmap)
+    this.#stageController.afterFinish((rankingResults) => {
+      this.finish(rankingResults)
+    })
+    await this.#stageController.init(beatmap)
     this.#stageController.start()
+    this.#playing = true
+    this.#showResults = false
+    this.#paused = false
     this.#cursor.hide()
   }
 
@@ -153,8 +152,8 @@ export class MainController {
   preparePlay (beatmap) {
     this.#beatmapListManager.beatmapList.removeEvents()
     this.#autoManager.abort()
-    this.#beatmapListManager.open(() => {
-      this.play(beatmap)
+    this.#beatmapListManager.open(async () => {
+      await this.play(beatmap)
       this.removeEvents()
       this.#backgroundDarker.value = this.#settings.get('backgroundDark')
     })
@@ -204,7 +203,8 @@ export class MainController {
   registerKeyboardEvents () {
     this.#keyboardEventManager.registerEvents({
       keydownEventList: {
-        [KeyCode.ENTER]: async () => {
+        [KeyCode.ENTER]: async (e) => {
+          e.preventDefault()
           if (!document.fullscreenElement) {
             await enterFullscreen()
           }
@@ -294,7 +294,30 @@ export class MainController {
     })
   }
 
+  /**
+   * @param rankingResults {RankingResult}
+   */
+  finish (rankingResults) {
+    this.#playing = false
+    this.#showResults = true
+    this.#rankingBoard.setResult(rankingResults)
+    this.#cursor.show()
+    this.#backgroundDarker.reset()
+    this.#rankingBoard.registerEvents({
+      onRetry: async () => {
+        await this.retry()
+      },
+      onBack: async () => {
+        await this.backMain()
+      },
+      onWatchReplay: async () => {
+        alert('Not implements')
+      },
+    })
+  }
+
   async backMain () {
+    this.#showResults = false
     this.#playing = false
     this.#paused = false
     await enterFullscreen()
@@ -310,7 +333,9 @@ export class MainController {
   }
 
   async retry () {
+    this.#playing = true
     this.#paused = false
+    this.#showResults = false
     await enterFullscreen()
     this.#stageController.retry()
     this.#pauseMenu.removeEvents()
@@ -337,11 +362,13 @@ export class MainController {
     this.#backgroundEffect.updateTransition(now)
     this.#backgroundDarker.updateTransition(now)
     this.#pauseMenu.updateTransition(now)
+    this.#rankingBoard.update(now)
   }
 
   renderFrame () {
     this.#layoutEngine.clearBackground()
     this.renderBackground()
+
     if (this.#loading) {
       this.renderLoading()
     }
@@ -352,9 +379,17 @@ export class MainController {
         this.renderFrameSnapshot()
         this.renderPauseMenu()
       }
+    } else if (this.#showResults) {
+      this.renderResultsBoard()
     } else {
       this.renderBeatmaps()
     }
+
+    // this.#layoutEngine.renderGridLine()
+  }
+
+  renderResultsBoard () {
+    this.#layoutEngine.renderShape(this.#rankingBoard)
   }
 
   renderFrameSnapshot () {
