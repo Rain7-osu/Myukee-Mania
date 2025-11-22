@@ -155,7 +155,7 @@ export class ScrollList extends Shape {
   }
 
   /**
-   * @private
+   * @public
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
@@ -190,7 +190,7 @@ export class ScrollList extends Shape {
   #mouseMoveTimer = -1
 
   /**
-   * @private
+   * @public
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
@@ -245,6 +245,7 @@ export class ScrollList extends Shape {
   }
 
   /**
+   * @public
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
@@ -297,6 +298,7 @@ export class ScrollList extends Shape {
   }
 
   /**
+   * @public
    * @param canvas {HTMLCanvasElement}
    * @param eventMaps {{
    *   onClick: (item: T) => void;

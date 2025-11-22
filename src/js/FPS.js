@@ -1,12 +1,13 @@
 import { Shape } from './Shape'
 import { Skin } from './Skin'
+import { CANVAS } from './Config'
 
 export class FPS extends Shape {
-  /** @type {number} */
+  /** @type {string} */
   #value
 
   /**
-   * @param value {number}
+   * @param value {string}
    */
   constructor (value) {
     super()
@@ -14,11 +15,12 @@ export class FPS extends Shape {
   }
 
   render (context) {
-    const { right, bottom, fillStyle, font } = Skin.config.fps
+    const { right, bottom, fillStyle, font, fontSize } = Skin.config.fps
     const text = `FPS:${this.#value}`
     context.font = font
     context.fillStyle = fillStyle
     const textMetrics = context.measureText(text)
-    context.fillText(text, right - textMetrics.width, bottom, textMetrics.width)
+    const width = textMetrics.width
+    context.fillText(text, CANVAS.WIDTH - right, CANVAS.HEIGHT -bottom, width)
   }
 }

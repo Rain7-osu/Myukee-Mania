@@ -1,3 +1,7 @@
+* {
+  cursor: none !important;
+}
+
 html, body {
   padding: 0;
   margin: 0;
@@ -54,7 +58,8 @@ html, body {
   pointer-events: none;
   z-index: 9999;
   transform: translate(-50%, -50%) scale(1);
-  transition: transform 0.1s ease;
+  opacity: 1;
+  transition: transform 0.1s ease, opacity 2s ease-in-out;
 }
 
 .cursor-layer {

@@ -17,17 +17,17 @@ import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { StageBoard } from './StageBoard'
 import { RankEffect } from './RankEffect'
 import { JudgementLineEffect } from './JudgementLineEffect'
+import { FrameSnapshot } from './FrameSnapshot'
+
+/**
+ * @callback QuitCallback
+ */
 
 export class StageController {
   /**
    * @type {RenderEngine}
    */
   #renderEngine
-
-  /**
-   * @type {number}
-   */
-  #requestAnimationFrameHandle
 
   /**
    * @type {PlayMap}
@@ -121,20 +121,25 @@ export class StageController {
   #speedChangeEffect = null
 
   /**
-   * @type {(() => void) | undefined}
+   * @type {QuitCallback}
    */
   #quitCallback
 
-  set afterQuit (quitCallback) {
-    this.#quitCallback = quitCallback
-  }
+  /**
+   * @type {HTMLCanvasElement}
+   */
+  #canvas
+  /**
+   * @type {FrameSnapshot | null}
+   */
+  #frameSnapshot = null
 
   /**
    * @constructor
-   * @param root {string} canvas node name
+   * @param canvas {HTMLCanvasElement} canvas node name
    */
-  constructor (root) {
-    const canvas = document.getElementById(root)
+  constructor (canvas) {
+    this.#canvas = canvas
     this.#renderEngine = new RenderEngine(canvas)
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#hitEffects = new HitEffectManager()
@@ -192,12 +197,17 @@ export class StageController {
    */
   reset () {
     this.#isPaused = false
+    this.#frameSnapshot = null
     this.#startTime = 0
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
     this.#frameTimeList = []
     this.#judgementManager.reset()
-    this.#playingMap.notes.forEach((item) => item.reset())
+    this.#playingMap.reset()
+    this.#scoreManager.reset()
+    this.#hitEffects.reset()
+    this.#playingAudio.abort()
+    this.#keyboardEventManager.removeEvents()
   }
 
   /**
@@ -208,26 +218,29 @@ export class StageController {
     if (flag) {
       this.#playingAudio.play()
     } else {
+      // setTimeout 会与帧不同步，要优化
       setTimeout(() => {
-        this.#playingAudio.play()
+        this.#playingAudio.resume()
       }, DEFAULT_DELAY_TIME)
     }
   }
 
   registerStageEvent () {
+    /** @type {KeyCode[]} */
     const hitObjectKeys = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K]
-    const getTiming = () => this.getGameTiming()
 
-    // { d: func, f: func, j: func, k: func}
     const hitObjectsUpEvents = hitObjectKeys.reduce((acc, key) => {
       return {
         ...acc,
         [key]: () => {
+          if (this.#isPaused || !this.#isPlaying) {
+            return
+          }
           if (this.#keyStatus[key]) {
             this.#hitEffects.releaseKey(key)
-            const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
+            const col = hitObjectKeys.indexOf(key)
             if (col >= 0 && this.#isPlaying && !this.#isPaused) {
-              this.#judgementManager.checkRelease(getTiming(), col)
+              this.#judgementManager.checkRelease(this.getGameTiming(), col)
             }
             this.#keyStatus[key] = false
           }
@@ -239,10 +252,13 @@ export class StageController {
       return {
         ...acc,
         [key]: () => {
+          if (this.#isPaused || !this.#isPlaying) {
+            return
+          }
           this.#hitEffects.pressKey(key)
           const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
           if (col >= 0 && this.#isPlaying && !this.#isPaused) {
-            this.#judgementManager.checkHit(getTiming(), col)
+            this.#judgementManager.checkHit(this.getGameTiming(), col)
             this.#keyStatus[key] = true
           }
         },
@@ -250,22 +266,33 @@ export class StageController {
     }, {})
 
     const optionKeyEvents = {
-      [KeyCode.F1]: () => {
+      [KeyCode.F1]: (e) => {
+        e.preventDefault()
         if (this.#isPaused) {
           this.resume()
         } else {
           this.pause()
         }
       },
-      [KeyCode.F2]: () => {
+      [KeyCode.F2]: (e) => {
+        e.preventDefault()
         this.quit()
       },
-      [KeyCode.F4]: () => this.increaseSpeed(),
-      [KeyCode.F3]: () => this.decreaseSpeed(),
-      [KeyCode.TILED]: () => this.retry(),
+      [KeyCode.F4]: (e) => {
+        e.preventDefault()
+        this.increaseSpeed()
+      },
+      [KeyCode.F3]: (e) => {
+        e.preventDefault()
+        this.decreaseSpeed()
+      },
+      [KeyCode.TILED]: (e) => {
+        e.preventDefault()
+        this.retry()
+      },
     }
 
-    this.#keyboardEventManager.registerStageEvent({
+    this.#keyboardEventManager.registerEvents({
       keypressEventList: [],
       keyupEventList: {
         ...hitObjectsUpEvents,
@@ -277,11 +304,17 @@ export class StageController {
     })
   }
 
+  /**
+   * @param quitCallback {QuitCallback}
+   */
+  afterQuit (quitCallback) {
+    this.#quitCallback = quitCallback
+  }
+
   quit () {
     this.#isQuit = true
-    this.#quitCallback?.()
-    this.audio.abort()
-    this.#keyboardEventManager.removeStageEvent()
+    this.reset()
+    this.#quitCallback()
   }
 
   /**
@@ -292,6 +325,7 @@ export class StageController {
     this.#startTime = performance.now() + DEFAULT_DELAY_TIME
     this.playAudio(false)
     this.registerStageEvent()
+    this.#stageBoard.init()
   }
 
   /** @type {number | null} */
@@ -301,6 +335,7 @@ export class StageController {
    * @return void
    */
   pause () {
+    this.#keyboardEventManager.removeEvents()
     // 有 resumeTimer，说明是暂停状态下，点了继续，但是还没开始继续下落，在 DELAY 状态，此时则不取消暂停状态，继续暂停就行
     if (this.#resumeTimer !== null) {
       clearTimeout(this.#resumeTimer)
@@ -308,7 +343,9 @@ export class StageController {
     } else {
       this.#isPaused = true
       this.#lastPausedTime = performance.now()
+      console.log('lastPausedTime', this.#lastPausedTime)
       this.#playingAudio.pause()
+      this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
     }
   }
 
@@ -317,9 +354,12 @@ export class StageController {
    */
   resume () {
     this.#resumeTimer = setTimeout(() => {
+      this.registerStageEvent()
       this.#isPaused = false
+      this.#frameSnapshot = null
       const now = performance.now()
       const currentPausedTime = now - this.#lastPausedTime
+      console.log('currentPauseTime', currentPausedTime)
       this.#totalPauseTime += currentPausedTime
       this.playAudio(true)
 
@@ -329,6 +369,7 @@ export class StageController {
   }
 
   retry () {
+    this.#frameSnapshot = null
     this.#playingAudio.abort()
     this.reset()
     this.start()
@@ -355,6 +396,7 @@ export class StageController {
   }
 
   loopFrame () {
+    // Quit 之后，下一帧重置状态，直接就退出 loopFrame 了
     if (this.#isQuit) {
       this.#isQuit = false
       return
@@ -365,6 +407,7 @@ export class StageController {
   }
 
   updateFrame () {
+    const now = performance.now()
     if (this.#isPlaying) {
       const timing = this.getGameTiming()
 
@@ -387,9 +430,11 @@ export class StageController {
         this.#speedChangeEffect = null
       }
     }
+
+    this.#stageBoard.updateTransition(now)
   }
 
-  renderJudgementLine() {
+  renderJudgementLine () {
     this.#renderEngine.renderShape(this.#judgementLineEffect)
   }
 
@@ -493,6 +538,10 @@ export class StageController {
 
   get audio () {
     return this.#playingAudio
+  }
+
+  get frameSnapshot () {
+    return this.#frameSnapshot
   }
 }
 

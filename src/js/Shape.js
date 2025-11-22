@@ -73,12 +73,45 @@ export class Shape extends Transition {
 
   /**
    * @param context {CanvasRenderingContext2D}
+   * @param text {string}
+   * @param x {number}
+   * @param y  {number}
+   * @param width {number}
+   * @param height {number}
+   * @param font {string}
+   * @param color {string}
+   */
+  drawCenteredText ({ context, text, x, y, width, height, font, color }) {
+    // 保存当前上下文状态
+    context.save()
+
+    // 设置字体和颜色
+    context.font = font
+    context.fillStyle = color
+
+    // 设置文本对齐方式为居中
+    context.textAlign = 'center'
+    context.textBaseline = 'middle'
+
+    // 计算矩形中心点
+    const centerX = x + width / 2
+    const centerY = y + height / 2
+
+    // 绘制文本
+    context.fillText(text, centerX, centerY)
+
+    // 恢复上下文状态
+    context.restore()
+  }
+
+  /**
+   * @param context {CanvasRenderingContext2D}
    * @param x {number}
    * @param y {number}
    * @param width {number}
    * @param height {number}
    * @param radius {number | object}
-   * @param fill {string}
+   * @param fill {boolean}
    * @param stroke {boolean}
    */
   roundRect ({
@@ -134,42 +167,42 @@ export class Shape extends Transition {
    * @param strokeColor {string}
    * @param strokeWidth {number}
    */
-  drawStar({
+  drawStar ({
     context: ctx,
-    cx, cy, outerRadius, innerRadius, rotation, fillColor, strokeColor, strokeWidth
+    cx, cy, outerRadius, innerRadius, rotation, fillColor, strokeColor, strokeWidth,
   }) {
     // 开始绘制路径
-    ctx.beginPath();
+    ctx.beginPath()
 
     // 计算五角星的10个顶点（5个外顶点和5个内顶点）
     for (let i = 0; i < 10; i++) {
       // 计算当前角度（弧度）
-      const angle = rotation * Math.PI / 180 + i * Math.PI / 5;
+      const angle = rotation * Math.PI / 180 + i * Math.PI / 5
       // 交替使用外半径和内半径
-      const radius = i % 2 === 0 ? outerRadius : innerRadius;
+      const radius = i % 2 === 0 ? outerRadius : innerRadius
       // 计算顶点坐标
-      const x = cx + radius * Math.cos(angle);
-      const y = cy + radius * Math.sin(angle);
+      const x = cx + radius * Math.cos(angle)
+      const y = cy + radius * Math.sin(angle)
 
       // 如果是第一个点，移动到该点，否则画线到该点
       if (i === 0) {
-        ctx.moveTo(x, y);
+        ctx.moveTo(x, y)
       } else {
-        ctx.lineTo(x, y);
+        ctx.lineTo(x, y)
       }
     }
 
     // 闭合路径
-    ctx.closePath();
+    ctx.closePath()
 
     // 设置填充样式并填充
-    ctx.fillStyle = fillColor;
-    ctx.fill();
+    ctx.fillStyle = fillColor
+    ctx.fill()
 
     // 设置描边样式并描边
-    ctx.lineWidth = strokeWidth;
-    ctx.strokeStyle = strokeColor;
-    ctx.stroke();
+    ctx.lineWidth = strokeWidth
+    ctx.strokeStyle = strokeColor
+    ctx.stroke()
   }
 }
 

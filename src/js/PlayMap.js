@@ -45,15 +45,31 @@ export class PlayMap {
     return this.#notes
   }
 
+  /**
+   * @return {TimingList}
+   */
   get timingList () {
     return this.#timingList
   }
 
+  /**
+   * @return {number}
+   */
   get overallDifficulty () {
     return this.#overallDifficulty
   }
 
+  /**
+   * @return {number}
+   */
   get hpDrainRate () {
     return this.#hpDrainRate
+  }
+
+  reset () {
+    this.#notes.forEach((item) => item.reset())
+    this.#timingList = []
+    this.#overallDifficulty = 0
+    this.#hpDrainRate = 0
   }
 }

@@ -26,6 +26,10 @@ export class JudgementDeviationEffect extends Shape {
    */
   #config
 
+  reset () {
+    this.#activeDeviations = []
+  }
+
   /**
    * 初始化偏差条配置
    * @param od {number}
@@ -81,7 +85,7 @@ export class JudgementDeviationEffect extends Shape {
   /**
    * @param currentTiming {number}
    */
-  update(currentTiming) {
+  update (currentTiming) {
     // 更新偏差条的状态
     for (const deviation of this.#activeDeviations) {
       deviation.update(currentTiming)
@@ -99,14 +103,14 @@ export class JudgementDeviationEffect extends Shape {
   /**
    * @param deviation {import('./JudgementDeviation').JudgementDeviation}
    */
-  push(deviation) {
+  push (deviation) {
     if (!this.#activeDeviations) {
       this.#activeDeviations = []
     }
     this.#activeDeviations.push(deviation)
   }
 
-  clear() {
+  clear () {
     this.#activeDeviations = []
   }
 }

@@ -29,10 +29,17 @@ export class ScoreManager {
   #score = 0
   get score () { return this.#score }
 
+  reset () {
+    this.#notes = []
+    this.#baseEveryNoteScore = 0
+    this.#lastBonus = 100
+    this.#score = 0
+  }
+
   /**
    * @param notes {Note[]}
    */
-  init(notes) {
+  init (notes) {
     this.#notes = notes
     const TOTAL_NOTES = this.#notes.length
     this.#baseEveryNoteScore = MAX_SCORE * 0.5 / TOTAL_NOTES
@@ -43,7 +50,7 @@ export class ScoreManager {
    * @private
    * @param note {Note}
    */
-  calcEachNoteScore(note) {
+  calcEachNoteScore (note) {
     if (!note.isHit) {
       return 0
     }
@@ -62,7 +69,7 @@ export class ScoreManager {
     return baseScore + bonusScore
   }
 
-  calcScore() {
+  calcScore () {
     let totalScore = 0
 
     for (let i = 0; i < this.#notes.length; i++) {

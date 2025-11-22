@@ -1,16 +1,6 @@
 import { CANVAS, setCanvasSize } from './Config'
-import { MainManager } from './MainManager'
-
-/**
- * @param id {string}
- */
-function $ (id) {
-  return document.getElementById(id)
-}
-
-function bindClick (btnId, handler) {
-  $(btnId).addEventListener('click', handler)
-}
+import { MainController } from './MainController'
+import { $, bindClick, enterFullscreen } from './dom'
 
 function createStageCanvas (id = 'stage') {
   const canvas = document.createElement('canvas')
@@ -20,23 +10,16 @@ function createStageCanvas (id = 'stage') {
   return canvas
 }
 
-function fullscreen () {
+async function run () {
   setCanvasSize({
     WIDTH: window.screen.width,
     HEIGHT: window.screen.height,
   })
-
-  $('root').requestFullscreen({
-    navigationUI: 'hide',
-  })
-}
-
-async function run () {
-  fullscreen()
   const canvas = createStageCanvas('stage')
   const container = $('stage-container')
   container.append(canvas)
-  const main = new MainManager(canvas)
+  await enterFullscreen()
+  const main = new MainController(canvas)
   await main.start()
 }
 
@@ -44,7 +27,7 @@ bindClick('enter', run)
 
 // 跟踪鼠标移动
 document.addEventListener('mousemove', (e) => {
-  const cursor = document.getElementById('custom-cursor');
-  cursor.style.left = e.clientX + 'px';
-  cursor.style.top = e.clientY + 'px';
-});
+  const cursor = $('custom-cursor')
+  cursor.style.left = e.clientX + 'px'
+  cursor.style.top = e.clientY + 'px'
+})

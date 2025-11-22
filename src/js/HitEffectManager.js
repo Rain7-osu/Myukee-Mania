@@ -40,6 +40,11 @@ export class HitEffectManager extends Shape {
     }
   }
 
+  reset() {
+    this.#effectList = []
+    this.#activeEffectList = []
+  }
+
   /**
    * @param effect {HitEffect}
    */

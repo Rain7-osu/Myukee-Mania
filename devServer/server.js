@@ -108,7 +108,7 @@ function serveFile (res, filePath, contentType) {
 
     let headers = { 'Content-Type': contentType }
 
-    if (contentType === 'audio/mp3' || contentType === 'image/png') {
+    if (contentType === 'audio/mp3' || contentType === 'image/png' || contentType === 'audio/ogg') {
       const stat = fs.statSync(filePath)
       headers['Content-Length'] = stat.size
     }
@@ -137,6 +137,7 @@ function getContentType (filePath) {
     '.txt': 'text/plain',
     '.map': 'application/json',
     '.mp3': 'audio/mp3',
+    '.ogg': 'audio/ogg',
   }
   return types[ext] || 'text/plain'
 }

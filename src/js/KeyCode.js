@@ -1,3 +1,7 @@
+/**
+ * @readonly
+ * @enum {string}
+ */
 export const KeyCode = {
   D: 'd',
   F: 'f',
@@ -11,4 +15,6 @@ export const KeyCode = {
   F1: 'f1', // pause
   F5: 'f5', // - pause music
   ENTER: 'enter',
+  UP: 'up',
+  DOWN: 'down',
 }

@@ -14,10 +14,11 @@ const note = {
 export class Skin {
   static config = {
     fps: {
-      right: CANVAS.WIDTH - 10,
-      bottom: CANVAS.HEIGHT - 24,
+      right: 24,
+      bottom: 24,
       font: 'bold 24px 微软雅黑',
       fillStyle: '#f00',
+      fontSize: 24,
     },
     common: {
       number: {
@@ -77,12 +78,12 @@ export class Skin {
     },
     stage: {
       board: {
-        bgColor: 'rgba(0, 0, 0, 1)',
+        bgRgba: [0, 0, 0, 1],
         width: 4 * note.width,
       },
       border: {
         width: 10,
-        color: '#fff'
+        color: '#fff',
       },
       columnStart: CANVAS.WIDTH / 2.0 - note.width * 2 - 10,
       accuracy: {
@@ -169,15 +170,75 @@ export class Skin {
             },
           },
           sameGroup: {
-            bgColor: 'hsla(195, 80%, 75%, 0.5)'
+            bgColor: 'hsla(195, 80%, 75%, 0.5)',
           },
           neverPlayed: {
-            bgColor: 'hsla(195, 80%, 75%, 0.5)'
+            bgColor: 'hsla(195, 80%, 75%, 0.5)',
           },
           baseLeft: CANVAS.WIDTH / 2 + 200,
           width: CANVAS.WIDTH,
         },
       },
+    },
+    pauseMenu: {
+      buttons: {
+        base: {
+          width: 600,
+          height: 100,
+          gap: 80,
+          left: (CANVAS.WIDTH - 600) / 2,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          background: [100, 220, 100, 0.85],
+        },
+        retry: {
+          width: 600,
+          height: 100,
+          gap: 80,
+          left: (CANVAS.WIDTH - 600) / 2,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          background: [100, 220, 100, 0.85],
+        },
+        resume: {
+          width: 600,
+          height: 100,
+          gap: 80,
+          left: (CANVAS.WIDTH - 600) / 2,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          text: 'Continue',
+        },
+        back: {
+          width: 600,
+          height: 100,
+          gap: 80,
+          left: (CANVAS.WIDTH - 600) / 2,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          text: 'Back to Menu',
+        },
+        fullscreen: {
+          width: 600,
+          height: 100,
+          gap: 80,
+          left: (CANVAS.WIDTH - 600) / 2,
+          font: '微软雅黑',
+          fontSize: 36,
+          radius: 0,
+          color: '#fff',
+          background: [255, 255, 255, 0.85],
+          text: 'Enter Fullscreen',
+        }
+      }
     },
   }
 

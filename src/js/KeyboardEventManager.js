@@ -5,15 +5,15 @@
 
 export class KeyboardEventManager {
   /**
-   * @type {Record<string, KeyboardEventHandler>}
+   * @type {Record<KeyCode, KeyboardEventHandler>}
    */
   #keydownEventList = {}
   /**
-   * @type {Record<string, KeyboardEventHandler>}
+   * @type {Record<KeyCode, KeyboardEventHandler>}
    */
   #keyupEventList = {}
   /**
-   * @type {Record<string, KeyboardEventHandler>}
+   * @type {Record<KeyCode, KeyboardEventHandler>}
    */
   #keypressEventList = {}
 
@@ -21,9 +21,6 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeydownEventHandler = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-
     const key = e.key.toLowerCase()
     // console.log(`press key: ${key}`)
     if (this.#keydownEventList[key]) {
@@ -36,9 +33,6 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeyupEventHandler = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-
     const key = e.key.toLowerCase()
     if (this.#keyupEventList[key]) {
       this.#keyupEventList[key](e)
@@ -50,9 +44,6 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeypressEventHandler = (e) => {
-    e.preventDefault()
-    e.stopPropagation()
-
     const key = e.key.toLowerCase()
     if (this.#keypressEventList[key]) {
       this.#keypressEventList[key](e)
@@ -62,11 +53,11 @@ export class KeyboardEventManager {
   }
 
   /**
-   * @param keydownEventList {Record<string, KeyboardEventHandler>}
-   * @param keyupEventList {Record<string, KeyboardEventHandler>}
-   * @param keypressEventList {Record<string, KeyboardEventHandler>}
+   * @param keydownEventList {Record<KeyCode, KeyboardEventHandler>}
+   * @param keyupEventList {Record<KeyCode, KeyboardEventHandler>}
+   * @param keypressEventList {Record<KeyCode, KeyboardEventHandler>}
    */
-  registerStageEvent ({
+  registerEvents ({
     keydownEventList = {},
     keyupEventList = {},
     keypressEventList = {},
@@ -80,7 +71,7 @@ export class KeyboardEventManager {
     document.addEventListener('keypress', this.#invokeKeypressEventHandler)
   }
 
-  removeStageEvent () {
+  removeEvents () {
     document.removeEventListener('keydown', this.#invokeKeydownEventHandler)
     document.removeEventListener('keyup', this.#invokeKeyupEventHandler)
     document.removeEventListener('keypress', this.#invokeKeypressEventHandler)

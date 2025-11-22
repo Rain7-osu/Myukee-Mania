@@ -25,7 +25,7 @@ export class JudgementManager {
 
   /** @type {JudgementDeviationEffect} */
   #activeDeviations = new JudgementDeviationEffect()
-  get activeDeviations () { return  this.#activeDeviations }
+  get activeDeviations () { return this.#activeDeviations }
 
   /**
    * @type {Note[]}
@@ -55,7 +55,15 @@ export class JudgementManager {
   init (notes, od) {
     this.#notes = notes
     this.#od = od || 8
+    this.#combo = 0
     this.#activeDeviations.init(od)
+  }
+
+  reset () {
+    this.#activeDeviations.reset()
+    this.#activeEffects = []
+    this.#combo = 0
+    this.#od = 8
   }
 
   /**
@@ -366,10 +374,5 @@ export class JudgementManager {
       // 一定有一个判定的，所以检查完当前直接不再向下检查
       break
     }
-  }
-
-  reset () {
-    this.#activeEffects = []
-    this.#combo = 0
   }
 }

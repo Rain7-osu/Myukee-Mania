@@ -1,34 +1,16 @@
 export class AudioManager {
-  static #el = document.createElement('audio')
-  static #container = document.getElementById('audio-control')
-  static #instance = new AudioManager()
-
-  static getInstance () {
-    return AudioManager.#instance
-  }
-
+  /**
+   * @type {HTMLAudioElement}
+   */
+  #audio
   /**
    * the length of the audio
    * @type {number} Units/millisecond
    */
   #duration = 0
 
-  #playingFilename = ''
-
-  /**
-   * @param file {File?}
-   */
-  constructor (file) {
-    if (!file) {
-      return
-    }
-    AudioManager.#el.id = 'audio'
-    const urlObj = URL.createObjectURL(file)
-    AudioManager.#el.addEventListener('load', () => {
-      this.#duration = AudioManager.#el.duration * 1000
-      URL.revokeObjectURL(urlObj)
-    })
-    AudioManager.#el.src = urlObj
+  constructor () {
+    this.#audio = new Audio()
   }
 
   /**
@@ -39,23 +21,22 @@ export class AudioManager {
    */
   load (filename, startTime) {
     return new Promise((resolve) => {
-      AudioManager.#el.src = filename
+      this.#audio.src = filename
       if (startTime) {
-        AudioManager.#el.currentTime = startTime / 100.0
+        this.#audio.currentTime = startTime / 100.0
       }
-      AudioManager.#el.controls = true
-      AudioManager.#el.autoplay = false
+      this.#audio.controls = true
+      this.#audio.autoplay = false
 
       const onLoad = () => {
-        if (AudioManager.#el.duration) {
-          this.#duration = AudioManager.#el.duration * 1000
-          AudioManager.#el.removeEventListener('loadedmetadata', onLoad)
-          this.#playingFilename = filename
+        if (this.#audio.duration) {
+          this.#duration = this.#audio.duration * 1000
+          this.#audio.removeEventListener('loadedmetadata', onLoad)
           resolve()
         }
       }
 
-      AudioManager.#el.addEventListener('loadedmetadata', onLoad)
+      this.#audio.addEventListener('loadedmetadata', onLoad)
     })
   }
 
@@ -63,24 +44,24 @@ export class AudioManager {
    * @param time {number}
    */
   setCurrentTime (time) {
-    AudioManager.#el.currentTime = time
+    this.#audio.currentTime = time
   }
 
   async play () {
-    await AudioManager.#el.play()
+    await this.#audio.play()
   }
 
   abort () {
-    AudioManager.#el.pause()
-    AudioManager.#el.currentTime = 0
+    this.#audio.pause()
+    this.#audio.currentTime = 0
   }
 
   pause () {
-    if (AudioManager.#el.paused) {
-      this.play()
-    } else {
-      AudioManager.#el.pause()
-    }
+    this.#audio.pause()
+  }
+
+  async resume () {
+    await this.#audio.play()
   }
 
   get duration () {
