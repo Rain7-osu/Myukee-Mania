@@ -62,6 +62,7 @@ export class BeatmapListManager {
 
   /**
    * 初始化时，随机选一张图
+   * @return BeatmapItem
    */
   firstSelect () {
     const beatmapIds = Array.from(this.#beatmapItemMap.keys())
@@ -69,6 +70,7 @@ export class BeatmapListManager {
     const randomBeatmap = this.#beatmapItemMap.get(randomId)
     randomBeatmap.select()
     this.#selectedBeatmapItem = randomBeatmap
+    return randomBeatmap
   }
 
   /**
@@ -100,9 +102,10 @@ export class BeatmapListManager {
         item.translateX = value
       })
     }
-    setTimeout(() => {
+
+    this.#beatmapList.createTransition(0, 0, 600, 'easeOut', () => {}, () => {
       callback()
-    }, 810)
+    })
   }
 
   /**
@@ -118,9 +121,9 @@ export class BeatmapListManager {
         item.translateX = value
       })
     }
-    setTimeout(() => {
+    this.#beatmapList.createTransition(0, 0, 600, 'easeOut', () => {}, () => {
       callback()
-    }, 810)
+    })
   }
 
   /**

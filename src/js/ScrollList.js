@@ -489,22 +489,24 @@ export class ScrollList extends Shape {
     }
   }
 
-  render (context) {
-    const now = performance.now()
-    // 后续判断 transitionEnd
-    this.updateTransition(now)
-
+  /**
+   * @param now {number}
+   */
+  updateTransition (now) {
     if (!this.#status.isWheeling) {
       this.inertiaScroll()
     }
-
+    super.updateTransition(now)
     if (this.#lastScrollY !== this.#scrollY) {
       this.scrollRefreshItems()
       this.#lastScrollY = this.#scrollY
     }
-
     const scrollItems = this.scrollItems()
     scrollItems.forEach((item) => item.updateTransition(now))
+  }
+
+  render (context) {
+    const scrollItems = this.scrollItems()
     scrollItems.forEach((item, index) => item.render(context))
   }
 

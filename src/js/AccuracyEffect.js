@@ -23,7 +23,7 @@ export class AccuracyEffect extends Shape {
    */
   constructor (acc) {
     super()
-    this.#acc = acc || 1
+    this.#acc = acc ?? 1
   }
 
   render (context) {

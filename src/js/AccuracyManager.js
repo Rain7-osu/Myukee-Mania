@@ -19,7 +19,7 @@ export class AccuracyManager {
     for (let i = 0; i < this.#notes.length; i++) {
       const note = this.#notes[i]
 
-      if (note.isHit) {
+      if (note.judgement) {
         acc += note.judgement.accuracy
         hitCount++
       }

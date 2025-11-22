@@ -14,6 +14,7 @@ import { MouseEventManager } from './MouseEventManager'
 import { Cursor } from './Cursor'
 import { enterFullscreen, exitFullscreen, isFullscreen, listenFullscreenChange } from './dom'
 import { PauseMenu } from './PauseMenu'
+import { BackgroundEffect } from './BackgroundEffect'
 
 /**
  * 主界面管理器
@@ -33,6 +34,8 @@ export class MainController {
   #beatmapListManager = new BeatmapListManager()
 
   #backgroundDarker = new BackgroundDarker()
+
+  #backgroundEffect = new BackgroundEffect()
 
   /**
    * @type {PauseMenu}
@@ -94,7 +97,7 @@ export class MainController {
    * @param beatmap {Beatmap}
    * @return {Promise<void>}
    */
-  async selectMap (beatmap) {
+  async loadPlayMap (beatmap) {
     const mapFile = await FileManager.loadMapFile(beatmap.filename)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     const audio = new AudioManager()
@@ -109,7 +112,8 @@ export class MainController {
   async start () {
     const songs = await this.loadSongList()
     this.#beatmapListManager.init(songs)
-    this.#beatmapListManager.firstSelect()
+    const selectItem = this.#beatmapListManager.firstSelect()
+    this.#backgroundEffect.setImage(selectItem.beatmap.bgImage)
     this.run()
     this.registerEvents()
   }
@@ -137,17 +141,9 @@ export class MainController {
       this.run()
       this.#backgroundDarker.reset()
     })
-    await this.selectMap(beatmap)
+    await this.loadPlayMap(beatmap)
     this.#stageController.start()
     this.#cursor.hide()
-  }
-
-  /**
-   * @private
-   * @return {Promise<any[]>}
-   */
-  async loadSongList () {
-    return await fetch('./beatmaps.json').then(res => res.json())
   }
 
   /**
@@ -162,6 +158,15 @@ export class MainController {
       this.removeEvents()
       this.#backgroundDarker.value = this.#settings.get('backgroundDark')
     })
+  }
+
+  /**
+   * @param beatmapItem {BeatmapItem}
+   */
+  selectBeatmapItem (beatmapItem) {
+    this.#beatmapListManager.selectItem(beatmapItem)
+    this.#backgroundEffect.setImage(beatmapItem.beatmap.bgImage)
+    this.playAuto(beatmapItem.beatmap)
   }
 
   /**
@@ -181,8 +186,7 @@ export class MainController {
         this.removeEvents()
         this.preparePlay(item.beatmap)
       } else {
-        this.#beatmapListManager.selectItem(item)
-        this.playAuto(item.beatmap)
+        this.selectBeatmapItem(item)
       }
     }
 
@@ -207,13 +211,13 @@ export class MainController {
           if (!this.#playing) {
             this.preparePlay(this.#beatmapListManager.selectedBeatmapItem.beatmap)
           } else if (this.#playing && this.#paused) {
-            this.resume()
+            await this.resume()
           }
         },
-        [KeyCode.ESCAPE]: () => {
+        [KeyCode.ESCAPE]: async () => {
           if (this.#playing) {
             if (this.#paused) {
-              this.resume()
+              await this.resume()
             } else {
               this.pause()
             }
@@ -329,11 +333,14 @@ export class MainController {
 
   updateFrame () {
     const now = performance.now()
+    this.#beatmapListManager.beatmapList.updateTransition(now)
+    this.#backgroundEffect.updateTransition(now)
     this.#backgroundDarker.updateTransition(now)
     this.#pauseMenu.updateTransition(now)
   }
 
   renderFrame () {
+    this.#layoutEngine.clearBackground()
     this.renderBackground()
     if (this.#loading) {
       this.renderLoading()
@@ -365,14 +372,10 @@ export class MainController {
    * @private
    */
   renderBackground () {
-    const selectBeatmap = this.#beatmapListManager.selectedBeatmapItem.beatmap
-    if (selectBeatmap) {
-      const image = selectBeatmap.bgImage
-      this.#layoutEngine.renderBackgroundImage(image)
+    this.#layoutEngine.renderShape(this.#backgroundEffect)
 
-      if (this.#playing) {
-        this.#layoutEngine.renderShape(this.#backgroundDarker)
-      }
+    if (this.#playing) {
+      this.#layoutEngine.renderShape(this.#backgroundDarker)
     }
   }
 
@@ -388,5 +391,13 @@ export class MainController {
    */
   renderBeatmaps () {
     this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
+  }
+
+  /**
+   * @private
+   * @return {Promise<any[]>}
+   */
+  async loadSongList () {
+    return await fetch('./beatmaps.json').then(res => res.json())
   }
 }
