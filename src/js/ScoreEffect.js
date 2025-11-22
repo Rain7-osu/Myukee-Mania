@@ -6,13 +6,24 @@ export class ScoreEffect extends Shape {
   #score = 0
 
   #targetScore = 0
+  /**
+   * @type {string}
+   */
+  #textAlign = 'left'
 
   reset () {
     this.#score = 0
     this.#targetScore = 0
   }
 
-  #left = 0
+  /**
+   * @type {number | null}
+   */
+  #right = null
+  /**
+   * @type  {number | null}
+   */
+  #left = null
 
   #top = 0
 
@@ -35,11 +46,13 @@ export class ScoreEffect extends Shape {
       this.#top = style.top
       this.#width = style.width
       this.#height = style.height
+      this.#textAlign = 'left'
     } else {
-      const width = Skin.config.common.number.width
-      const { top, right } = Skin.config.stage.score
-      this.#left = CANVAS.WIDTH - right - width * 8
+      const { top, right, lineHeight, textAlign } = Skin.config.stage.score
+      this.#left = CANVAS.WIDTH - right
       this.#top = top
+      this.#height = lineHeight
+      this.#textAlign = textAlign
     }
   }
 
@@ -90,7 +103,7 @@ export class ScoreEffect extends Shape {
       font: `${fontWeight} ${fontSize}px ${font}`,
       color,
       strokeColor,
-      textAlign: 'left',
+      textAlign: this.#textAlign,
       textBaseline: 'top',
       stroke: true,
     })

@@ -47,7 +47,7 @@ export class BaseButton extends Shape {
   constructor (container, style) {
     super()
     this.setStyle(style)
-    this.#mouseEventHandler = new MouseEventManager(container)
+    this.#mouseEventHandler = new MouseEventManager(container, 'button')
   }
 
   /**
@@ -173,7 +173,7 @@ export class BaseButton extends Shape {
    *   onClick?: Function
    * }}
    */
-  initEvents (eventMap) {
+  registerEvents (eventMap) {
     const { onClick } = eventMap
 
     this.#mouseEventHandler.registerEvents({

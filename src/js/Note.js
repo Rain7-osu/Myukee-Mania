@@ -31,6 +31,9 @@ export class Note extends OffsetShape {
   #judgement = null
   set judgement (value) { this.#judgement = value }
 
+  /**
+   * @return {Judgement|null}
+   */
   get judgement () { return this.#judgement }
 
   /** @type {number} */
@@ -41,14 +44,26 @@ export class Note extends OffsetShape {
 
   /** @type {number} */
   #bonus = 100
+  /**
+   * @return {number}
+   */
   get bonus () { return this.#bonus }
 
+  /**
+   * @param value {number}
+   */
   set bonus (value) { this.#bonus = value }
 
   /** @type {boolean} */
   #isHeld = false
+  /**
+   * @return {boolean}
+   */
   get isHeld () { return this.#isHeld }
 
+  /**
+   * @param value {boolean}
+   */
   set isHeld (value) { this.#isHeld = value }
 
   /** @type {boolean} */
@@ -56,20 +71,38 @@ export class Note extends OffsetShape {
 
   /** @type {number | null} */
   #hitTiming = null
+  /**
+   * @return {number|null}
+   */
   get hitTiming () { return this.#hitTiming }
 
+  /**
+   * @param value {number}
+   */
   set hitTiming (value) { this.#hitTiming = value }
 
   /** @type {number | null} */
   #releaseTiming = null
+  /**
+   * @return {number|null}
+   */
   get releaseTiming () { return this.#releaseTiming }
 
+  /**
+   * @param value {number}
+   */
   set releaseTiming (value) { this.#releaseTiming = value }
 
   /** @type {boolean} */
   #grayed = false
+  /**
+   * @param value {boolean}
+   */
   set grayed (value) { this.#grayed = value }
 
+  /**
+   * @return {boolean}
+   */
   get grayed () { return this.#grayed }
 
   /**

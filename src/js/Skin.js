@@ -100,7 +100,7 @@ export class Skin {
         textAlign: 'right',
       },
       ranking: {
-        right: 360,
+        right: 340,
         top: 94,
         scale: 1.44,
       },
@@ -138,10 +138,11 @@ export class Skin {
         top: 10,
         font: '微软雅黑',
         fontWeight: 'bold',
-        fontSize: 128,
-        lineHeight: 128,
+        fontSize: 96,
+        lineHeight: 96,
         color: '#fff',
         strokeColor: '#222',
+        textAlign: 'right',
       },
       judgementLine: {
         height: 200,

@@ -29,6 +29,24 @@ export class PauseMenu extends Shape {
 
   #backgroundColor = 'rgba(0, 0, 0, .85)'
 
+  #showRetry = true
+  /**
+   * @param show {boolean}
+   */
+  set showRetry (show) { this.#showRetry = show}
+
+  #showResume = true
+  /**
+   * @param show {boolean}
+   */
+  set showResume (show) { this.#showResume = show}
+
+  #showBack = true
+  /**
+   * @param show {boolean}
+   */
+  set showBack (show) { this.#showBack = show}
+
   /**
    * @param container {HTMLElement}
    */
@@ -98,10 +116,10 @@ export class PauseMenu extends Shape {
   }
 
   /**
-   * @param onResume {() => void}
-   * @param onRetry  {() => void}
-   * @param onBack {() => void}
-   * @param onFullscreenChange {() => void}
+   * @param onResume {Function?}
+   * @param onRetry  {Function?}
+   * @param onBack {Function?}
+   * @param onFullscreenChange {Function?}
    */
   registerEvents ({
     onResume,
@@ -109,10 +127,10 @@ export class PauseMenu extends Shape {
     onBack,
     onFullscreenChange,
   }) {
-    this.#resumeButton.initEvents({ onClick: onResume })
-    this.#retryButton.initEvents({ onClick: onRetry })
-    this.#backButton.initEvents({ onClick: onBack })
-    this.#fullscreenButton.initEvents({ onClick: onFullscreenChange })
+    this.#showResume && this.#resumeButton.registerEvents({ onClick: onResume })
+    this.#showRetry && this.#retryButton.registerEvents({ onClick: onRetry })
+    this.#showBack && this.#backButton.registerEvents({ onClick: onBack })
+    this.#fullscreenButton.registerEvents({ onClick: onFullscreenChange })
 
     this.#keyboardEventManager.registerEvents({
       keydownEventList: {
@@ -129,8 +147,14 @@ export class PauseMenu extends Shape {
     })
   }
 
-  init () {
+  show () {
     this.createTransition(0, 100, 800, 'easeOut', (value) => {
+      this.#alpha = value / 100
+    })
+  }
+
+  hide () {
+    this.createTransition(100, 0, 600, 'easeOut', (value) => {
       this.#alpha = value / 100
     })
   }
@@ -156,9 +180,9 @@ export class PauseMenu extends Shape {
 
     context.fillStyle = this.#backgroundColor
     context.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
-    this.#resumeButton.render(context)
-    this.#retryButton.render(context)
-    this.#backButton.render(context)
+    this.#showResume && this.#resumeButton.render(context)
+    this.#showRetry && this.#retryButton.render(context)
+    this.#showBack && this.#backButton.render(context)
 
     if (isFullscreen()) {
       this.#fullscreenButton.setStyle({ text: 'Exit Fullscreen' })

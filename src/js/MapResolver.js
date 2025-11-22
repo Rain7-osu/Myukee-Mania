@@ -152,18 +152,20 @@ export class MapResolver {
     const hitObject = hitObjectStr.split(',')
     const [col, ___, offset, _, __, endStr] = hitObject
     const [end] = endStr.split(':')
-    const endValue = +end
+    let endValue = +end
 
     let type = NoteType.TAP
     if (endValue > 20) {
       type = NoteType.HOLD
+    } else {
+      endValue = +offset
     }
 
     return {
       type,
       col: convertNumberToNodeCol(col),
       offset: +offset,
-      end: +endValue,
+      end: endValue,
     }
   }
 }

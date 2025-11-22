@@ -12,8 +12,11 @@ export class BeatmapList extends ScrollList {
    */
   #beatmapItems = []
 
-  constructor () {
-    super({
+  /**
+   * @param container {HTMLElement}
+   */
+  constructor (container) {
+    super(container, {
       // 惯性滚动相关
       friction: 0.98, // 摩擦系数
       minVelocity: 0.1, // 最小速度阈值

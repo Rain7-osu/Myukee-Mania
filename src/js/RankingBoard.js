@@ -122,6 +122,7 @@ export class RankingBoard extends Shape {
       font: back.font,
       fontSize: back.fontSize,
       hoverScale: 100,
+      radius: 0,
     })
   }
 
@@ -156,9 +157,9 @@ export class RankingBoard extends Shape {
     onWatchReplay,
     onBack,
   }) {
-    this.#retryButton.initEvents({ onClick: onRetry })
-    this.#watchReplayButton.initEvents({ onClick: onWatchReplay })
-    this.#backButton.initEvents({ onClick: onBack })
+    this.#retryButton.registerEvents({ onClick: onRetry })
+    this.#watchReplayButton.registerEvents({ onClick: onWatchReplay })
+    this.#backButton.registerEvents({ onClick: onBack })
   }
 
   removeEvents () {

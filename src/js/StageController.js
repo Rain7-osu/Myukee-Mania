@@ -132,6 +132,21 @@ export class StageController {
    */
   #isQuit = false
 
+  /**
+   * 是否真正开始，默认开始有一定的延迟，如果在这个时间段按暂停，会直接退到主屏幕
+   * @type {boolean}
+   */
+  #realStarted = false
+  /**
+   * @type {null | number}
+   */
+  #delayStartTimer = null
+
+  /**
+   * @return {boolean}
+   */
+  get realStarted () { return this.#realStarted }
+
   /** @type {SpeedChangeEffect} */
   #speedChangeEffect = null
 
@@ -222,6 +237,7 @@ export class StageController {
   reset () {
     this.#isPaused = false
     this.#frameSnapshot = null
+    this.#realStarted = false
     this.#startTime = 0
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
@@ -238,13 +254,14 @@ export class StageController {
    * @param flag {boolean} true: run in resume
    * @return void
    */
-  playAudio (flag) {
+  async playAudio (flag) {
     if (flag) {
-      this.#playingAudio.play()
+      await this.#playingAudio.resume()
     } else {
       // setTimeout 会与帧不同步，要优化
-      setTimeout(() => {
-        this.#playingAudio.resume()
+      this.#delayStartTimer = setTimeout(() => {
+        this.#realStarted = true
+        this.#playingAudio.play()
       }, DEFAULT_DELAY_TIME)
     }
   }
@@ -324,9 +341,11 @@ export class StageController {
   }
 
   quit () {
+    this.#delayStartTimer && clearTimeout(this.#delayStartTimer)
     this.#isQuit = true
+    this.#playingAudio?.abort()
     this.reset()
-    this.#quitCallback()
+    this.#quitCallback?.()
   }
 
   /**
@@ -338,7 +357,6 @@ export class StageController {
 
   finish () {
     this.#finished = false
-    this.reset()
     /**
      * @type {RankingResult}
      */
@@ -351,7 +369,9 @@ export class StageController {
       score: this.#scoreManager.score,
       beatmap: this.#beatmap,
     }
+
     this.#finishCallback(results)
+    this.reset()
   }
 
   /**
@@ -418,7 +438,7 @@ export class StageController {
       this.renderFps()
       this.renderStageBoard()
       this.renderScoreEffect()
-      this.renderJudgementResultEffect()
+      // this.renderJudgementResultEffect()
       this.renderProgressEffect()
       this.renderAccuracyEffect()
       this.renderSectionLine()

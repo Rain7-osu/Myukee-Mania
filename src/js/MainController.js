@@ -8,8 +8,6 @@ import { KeyCode } from './KeyCode'
 import { Settings } from './Settings'
 import { BackgroundDarker } from './BackgroundDarker'
 import { StageController } from './StageController'
-import { FileManager } from './FileManager'
-import { MapResolver } from './MapResolver'
 import { MouseEventManager } from './MouseEventManager'
 import { Cursor } from './Cursor'
 import { enterFullscreen, exitFullscreen, isFullscreen, listenFullscreenChange } from './dom'
@@ -82,6 +80,11 @@ export class MainController {
   #cursor
 
   /**
+   * @type {boolean}
+   */
+  #interrupt = false
+
+  /**
    * @param canvas {HTMLCanvasElement}
    */
   constructor (canvas) {
@@ -92,10 +95,11 @@ export class MainController {
 
     this.#autoManager = new AudioManager()
     this.#keyboardEventManager = new KeyboardEventManager()
-    this.#mouseEventManager = new MouseEventManager(canvas)
+    this.#mouseEventManager = new MouseEventManager(canvas, 'main')
     this.#stageController = new StageController(canvas)
     this.#pauseMenu = new PauseMenu(canvas)
     this.#rankingBoard = new RankingBoard(canvas)
+    this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#cursor = new Cursor()
   }
 
@@ -110,6 +114,29 @@ export class MainController {
     this.#backgroundEffect.setImage(selectItem.beatmap.bgImage)
     this.run()
     this.registerEvents()
+
+    listenFullscreenChange((fullscreen) => {
+      if (!fullscreen) {
+        if (this.#playing) {
+          if (!this.#stageController.realStarted) {
+            // 没有真正开始，则直接退出到主屏幕
+            this.interrupt()
+            this.#stageController.quit()
+            return
+          }
+
+          if (!this.#paused) {
+            this.pause()
+          } else {
+            // has pause
+          }
+        } else {
+          if (!this.#interrupt) {
+            this.interrupt()
+          }
+        }
+      }
+    })
   }
 
   /**
@@ -118,6 +145,12 @@ export class MainController {
    * @return {Promise<void>}
    */
   async playAuto (beatmap) {
+    if (this.#autoManager.filename === beatmap.audioFile) {
+      if (!this.#autoManager.playing) {
+        await this.#autoManager.play()
+      }
+      return
+    }
     this.#autoManager.abort()
     await this.#autoManager.load(beatmap.audioFile, beatmap.previewTime)
     await this.#autoManager.play()
@@ -152,30 +185,35 @@ export class MainController {
   preparePlay (beatmap) {
     this.#beatmapListManager.beatmapList.removeEvents()
     this.#autoManager.abort()
+    this.#autoManager.abort()
     this.#beatmapListManager.open(async () => {
-      await this.play(beatmap)
-      this.removeEvents()
-      this.#backgroundDarker.value = this.#settings.get('backgroundDark')
+      if (!this.#interrupt) {
+        await this.play(beatmap)
+        this.removeEvents()
+        this.#backgroundDarker.value = this.#settings.get('backgroundDark')
+      } else {
+        this.#playing = false
+        this.#beatmapListManager.back()
+      }
     })
   }
 
   /**
    * @param beatmapItem {BeatmapItem}
    */
-  selectBeatmapItem (beatmapItem) {
+  async selectBeatmapItem (beatmapItem) {
     this.#beatmapListManager.selectItem(beatmapItem)
     this.#backgroundEffect.setImage(beatmapItem.beatmap.bgImage)
-    this.playAuto(beatmapItem.beatmap)
+    await this.playAuto(beatmapItem.beatmap)
   }
 
   /**
    * 启动的主函数
    * @private
    */
-  run () {
+  async run () {
     this.#cursor.show()
     this.#beatmapListManager.beatmapList.initScrollItems(this.#beatmapListManager.selectedBeatmapItem)
-    this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
 
     /**
      * @param item {BeatmapItem}
@@ -190,13 +228,14 @@ export class MainController {
     }
 
     this.loopFrame()
-    this.#autoManager.setCurrentTime(this.#beatmapListManager.selectedBeatmapItem.beatmap.previewTime)
-    this.#autoManager.play()
+    await this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
     this.#beatmapListManager.back(() => {
-      this.registerEvents()
-      this.#beatmapListManager.beatmapList.registerEvents(this.#canvas, {
-        onClick: handleClick,
-      })
+      if (!this.#interrupt) {
+        this.registerEvents()
+        this.#beatmapListManager.beatmapList.registerEvents({
+          onClick: handleClick,
+        })
+      }
     })
   }
 
@@ -227,7 +266,7 @@ export class MainController {
     })
   }
 
-  registerGlobalEvents () {
+  registerMouseEvents () {
     let cursorTimer = -1
     this.#mouseEventManager.registerEvents({
       mousemoveEvents: [
@@ -252,11 +291,29 @@ export class MainController {
       clickEvents: [],
       wheelEvents: [],
     })
+  }
 
-    listenFullscreenChange((fullscreen) => {
-      if (!fullscreen && this.#playing && !this.#paused) {
-        this.pause()
-      }
+  interrupt () {
+    this.#interrupt = true
+    this.#pauseMenu.showBack = false
+    this.#pauseMenu.showRetry = false
+    this.#pauseMenu.showResume = false
+    this.#pauseMenu.show()
+    this.#beatmapListManager.beatmapList.removeEvents()
+    this.#keyboardEventManager.removeEvents()
+    this.#mouseEventManager.removeEvents()
+    this.#pauseMenu.registerEvents({
+      onFullscreenChange: async () => {
+        if (isFullscreen()) {
+          await exitFullscreen()
+        } else {
+          await enterFullscreen()
+          this.#interrupt = false
+          this.registerEvents()
+          this.#pauseMenu.hide()
+          this.run()
+        }
+      },
     })
   }
 
@@ -265,7 +322,7 @@ export class MainController {
    */
   registerEvents () {
     this.registerKeyboardEvents()
-    this.registerGlobalEvents()
+    this.registerMouseEvents()
   }
 
   pause () {
@@ -273,7 +330,10 @@ export class MainController {
     this.#stageController.pause()
     this.#cursor.show()
     this.registerKeyboardEvents()
-    this.#pauseMenu.init()
+    this.#pauseMenu.showResume = true
+    this.#pauseMenu.showBack = true
+    this.#pauseMenu.showRetry = true
+    this.#pauseMenu.show()
     this.#pauseMenu.registerEvents({
       onResume: async () => {
         await this.resume()
@@ -311,7 +371,7 @@ export class MainController {
         await this.backMain()
       },
       onWatchReplay: async () => {
-        alert('Not implements')
+        console.log('Not implements')
       },
     })
   }
@@ -321,6 +381,7 @@ export class MainController {
     this.#playing = false
     this.#paused = false
     await enterFullscreen()
+    this.#pauseMenu.hide()
     this.#stageController.quit()
     this.#pauseMenu.removeEvents()
   }
@@ -328,6 +389,7 @@ export class MainController {
   async resume () {
     this.#paused = false
     await enterFullscreen()
+    this.#pauseMenu.hide()
     this.#stageController.resume()
     this.#pauseMenu.removeEvents()
   }
@@ -337,6 +399,7 @@ export class MainController {
     this.#paused = false
     this.#showResults = false
     await enterFullscreen()
+    this.#pauseMenu.hide()
     this.#stageController.retry()
     this.#pauseMenu.removeEvents()
   }
@@ -369,9 +432,9 @@ export class MainController {
     this.#layoutEngine.clearBackground()
     this.renderBackground()
 
-    if (this.#loading) {
-      this.renderLoading()
-    }
+    // if (this.#loading) {
+    //   this.renderLoading()
+    // }
 
     if (this.#playing) {
       this.#stageController.loopFrame()
@@ -383,6 +446,10 @@ export class MainController {
       this.renderResultsBoard()
     } else {
       this.renderBeatmaps()
+    }
+
+    if (this.#interrupt) {
+      this.renderPauseMenu()
     }
 
     // this.#layoutEngine.renderGridLine()

@@ -24,10 +24,17 @@ const DURATION = 800
  */
 export class ScrollList extends Shape {
   /**
+   * @type {HTMLElement}
+   */
+  #container
+
+  /**
+   * @param container {HTMLElement}
    * @param listConfig {Partial<ListConfig>}
    */
-  constructor (listConfig) {
+  constructor (container, listConfig) {
     super()
+    this.#container = container
     this.#listConfig = {
       friction: 0.95, // 摩擦系数
       minVelocity: 1, // 最小速度阈值
@@ -299,24 +306,24 @@ export class ScrollList extends Shape {
 
   /**
    * @public
-   * @param canvas {HTMLCanvasElement}
    * @param eventMaps {{
    *   onClick: (item: T) => void;
    * }}
    */
-  registerEvents (canvas, eventMaps) {
+  registerEvents (eventMaps) {
     if (this.#hasRegistered) {
       return this.#removeEventsHandler
     }
 
+    const container = this.#container
     this.#eventMaps = eventMaps
 
     const handleMouseWheel = this.handleMouseWheel.bind(this)
     const handleMouseMove = this.handleMouseMove.bind(this)
     const handleClick = this.handleClick.bind(this)
-    canvas.addEventListener('wheel', handleMouseWheel)
-    canvas.addEventListener('mousemove', handleMouseMove)
-    canvas.addEventListener('click', handleClick)
+    container.addEventListener('wheel', handleMouseWheel)
+    container.addEventListener('mousemove', handleMouseMove)
+    container.addEventListener('click', handleClick)
 
     const listenWheelEnd = (e) => {
       clearTimeout(this.#wheelTimeout)
@@ -326,14 +333,14 @@ export class ScrollList extends Shape {
       }, 100)
     }
 
-    canvas.addEventListener('wheel', listenWheelEnd)
+    container.addEventListener('wheel', listenWheelEnd)
 
     this.#hasRegistered = true
     this.#removeEventsHandler = () => {
-      canvas.removeEventListener('wheel', handleMouseWheel)
-      canvas.removeEventListener('mousemove', handleMouseMove)
-      canvas.removeEventListener('click', handleClick)
-      canvas.removeEventListener('wheel', listenWheelEnd)
+      container.removeEventListener('wheel', handleMouseWheel)
+      container.removeEventListener('mousemove', handleMouseMove)
+      container.removeEventListener('click', handleClick)
+      container.removeEventListener('wheel', listenWheelEnd)
       clearTimeout(this.#wheelTimeout)
     }
   }

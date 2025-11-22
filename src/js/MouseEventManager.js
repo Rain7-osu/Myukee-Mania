@@ -2,7 +2,6 @@
  * @callback MouseEventHandler
  * @param {MouseEvent} e
  */
-import { $ } from './dom'
 
 export class MouseEventManager {
   /**
@@ -23,11 +22,17 @@ export class MouseEventManager {
    */
   #container
 
+  #hasRegistered = false
+
+  #source = 'global'
+
   /**
    * @param container {HTMLElement}
+   * @param source {string}
    */
-  constructor (container) {
+  constructor (container, source) {
     this.#container = container
+    this.#source = source
   }
 
   /**
@@ -57,25 +62,31 @@ export class MouseEventManager {
    * @param clickEvents {MouseEventHandler[]}
    * @param wheelEvents {MouseEventHandler[]}
    */
-  registerEvents({
+  registerEvents ({
     mousemoveEvents = [],
     clickEvents = [],
-    wheelEvents = []
+    wheelEvents = [],
   }) {
     this.#clickEvents = clickEvents
     this.#mousemoveEvents = mousemoveEvents
     this.#wheelEvents = wheelEvents
 
-    const container = this.#container
-    container.addEventListener('click', this.#invokeClickEventHandler)
-    container.addEventListener('wheel', this.#invokeWheelEventHandler)
-    container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
+    if (!this.#hasRegistered) {
+      const container = this.#container
+      container.addEventListener('click', this.#invokeClickEventHandler)
+      container.addEventListener('wheel', this.#invokeWheelEventHandler)
+      container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
+      this.#hasRegistered = true
+    }
   }
 
-  removeEvents() {
-    const container = this.#container
-    container.addEventListener('click', this.#invokeClickEventHandler)
-    container.addEventListener('wheel', this.#invokeWheelEventHandler)
-    container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
+  removeEvents () {
+    if (this.#hasRegistered) {
+      const container = this.#container
+      container.addEventListener('click', this.#invokeClickEventHandler)
+      container.addEventListener('wheel', this.#invokeWheelEventHandler)
+      container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
+      this.#hasRegistered = false
+    }
   }
 }

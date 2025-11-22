@@ -19,7 +19,14 @@ export class BeatmapListManager {
   /**
    * @type {BeatmapList}
    */
-  #beatmapList = new BeatmapList()
+  #beatmapList
+
+  /**
+   * @param container  {HTMLElement}
+   */
+  constructor (container) {
+    this.#beatmapList = new BeatmapList(container)
+  }
 
   /**
    * @private
@@ -87,7 +94,7 @@ export class BeatmapListManager {
   }
 
   /**
-   * @param callback {() => void}
+   * @param callback {Function}
    */
   open (callback) {
     const items = this.beatmapList.scrollItems()
@@ -104,12 +111,12 @@ export class BeatmapListManager {
     }
 
     this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => {
-      callback()
+      callback?.()
     })
   }
 
   /**
-   * @param callback {() => void}
+   * @param callback {Function?}
    */
   back (callback) {
     const items = this.beatmapList.scrollItems()
@@ -122,7 +129,7 @@ export class BeatmapListManager {
       })
     }
     this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => {
-      callback()
+      callback?.()
     })
   }
 

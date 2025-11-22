@@ -59,7 +59,7 @@ export class RankingEffect extends Shape {
    */
   #style
 
-  #renderScale = 1
+  #renderScale = 1.44
 
   /**
    * @type {RankType}
@@ -96,7 +96,6 @@ export class RankingEffect extends Shape {
     super()
     this.#size = size
     this.#style = style || Skin.config.stage.ranking
-
     this.#type = RankingEffect.calcRankingType(acc)
   }
 

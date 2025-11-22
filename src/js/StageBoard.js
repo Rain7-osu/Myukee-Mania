@@ -1,5 +1,5 @@
 import { Shape } from './Shape'
-import { CANVAS } from './Config'
+import { CANVAS, DEFAULT_DELAY_TIME } from './Config'
 import { Skin } from './Skin'
 import { rgba } from './utils'
 
@@ -17,7 +17,7 @@ export class StageBoard extends Shape {
     const { board: { bgRgba }, border: { color } } = Skin.config.stage
     const [r, g, b, a] = rgba.toValues(bgRgba)
     const [cr, cg, cb, ca] = rgba.toValues(color)
-    this.createTransition(0, 100, 1000, 'easeOut', (value) => {
+    this.createTransition(0, 100, DEFAULT_DELAY_TIME, 'easeOut', (value) => {
       this.#bgRgba = rgba.format([r, g, b, a * value / 100])
       this.#borderRgba = rgba.format([cr, cg, cb, ca * value / 100])
     })
@@ -27,7 +27,7 @@ export class StageBoard extends Shape {
     const { board: { bgRgba }, border: { color } } = Skin.config.stage
     const [r, g, b, a] = rgba.toValues(bgRgba)
     const [cr, cg, cb, ca] = rgba.toValues(color)
-    this.createTransition(100, 0, 1000, 'easeOut', (value) => {
+    this.createTransition(100, 0, DEFAULT_DELAY_TIME, 'easeOut', (value) => {
       this.#bgRgba = rgba.format([r, g, b, a * value / 100])
       this.#borderRgba = rgba.format([cr, cg, cb, ca * value / 100])
     })

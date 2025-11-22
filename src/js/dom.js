@@ -1,4 +1,12 @@
 /**
+ * @param time {number}
+ * @return {Promise<void>}
+ */
+async function sleep(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+/**
  * @param id {string}
  * @return {HTMLElement}
  */
@@ -14,10 +22,12 @@ export function bindClick (btnId, handler) {
   $(btnId).addEventListener('click', handler)
 }
 
-export function enterFullscreen () {
-  return document.documentElement.requestFullscreen({
-    navigationUI: 'hide',
-  })
+export async function enterFullscreen () {
+  if (!isFullscreen()) {
+    await document.documentElement.requestFullscreen({
+      navigationUI: 'hide',
+    })
+  }
 }
 
 export function exitFullscreen () {
@@ -32,7 +42,8 @@ export function isFullscreen () {
  * @param eventHandler {function (fullscreen: boolean): void}
  */
 export function listenFullscreenChange (eventHandler) {
-  const listener = () => {
+  const listener = (e) => {
+    e.stopPropagation()
     eventHandler(isFullscreen())
   }
   document.addEventListener('fullscreenchange', listener)

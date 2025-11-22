@@ -40,9 +40,13 @@ export class ScoreManager {
    */
   get score () { return this.#score }
 
-  reset () {
+  constructor () {
     this.#notes = []
-    this.#baseEveryNoteScore = 0
+  }
+
+  reset () {
+    const TOTAL_NOTES = this.#notes.length
+    this.#baseEveryNoteScore = MAX_SCORE * 0.5 / TOTAL_NOTES
     this.#lastBonus = 100
     this.#score = 0
   }
@@ -67,9 +71,12 @@ export class ScoreManager {
     }
 
     const judgement = note.judgement
+
     if (!judgement) {
       return 0
     }
+
+    console.log('calc?')
 
     const baseScore = this.#baseEveryNoteScore * (judgement.hitValue / JudgementType.PERFECT)
     const bonus = clamp(this.#lastBonus + judgement.hitBonus - judgement.hitPunishment)
@@ -95,6 +102,9 @@ export class ScoreManager {
         this.#lastBonus = note.bonus
       }
     }
+
+    console.log(this.#notes[0].isHit)
+    console.log(this.calcEachNoteScore(this.#notes[0]))
 
     this.#score = totalScore
     this.#effect.setScore(totalScore)
