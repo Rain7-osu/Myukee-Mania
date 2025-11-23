@@ -1,5 +1,4 @@
 import { Shape } from './Shape'
-import { CANVAS } from './Config'
 import { Skin } from './Skin'
 
 export class ComboEffect extends Shape {
@@ -17,27 +16,22 @@ export class ComboEffect extends Shape {
     }
 
     const {
-      columnStart,
-      note: { width: NOTE_WIDTH },
-      combo: { top: TOP, assets },
+      columnCenter,
+      combo: { top: TOP, font, fontSize, lineHeight, color },
     } = Skin.config.stage
 
-    const numberResource = assets || Skin.config.common.number.default
-
-    const imageList = String(this.#value)
-      .split('')
-      .map((name) => `default-${name}`)
-
-    const width = imageList.reduce((previousValue, currentValue) => {
-      return previousValue + (numberResource[currentValue]?.width || 0)
-    }, 0)
-
-    let x = columnStart + (4 * NOTE_WIDTH - width) / 2.0
-
-    imageList.forEach((name) => {
-      const config = numberResource[name]
-      context.drawImage(config.image, x, TOP - config.height / 2, config.width, config.height)
-      x += config.width
+    this.drawText({
+      context,
+      text: this.#value,
+      x: columnCenter,
+      y: TOP,
+      width: 0,
+      height: lineHeight,
+      textAlign: 'center',
+      textBaseline: 'middle',
+      font: `${fontSize}px ${font}`,
+      stroke: false,
+      color,
     })
   }
 }

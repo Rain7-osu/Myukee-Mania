@@ -1,6 +1,7 @@
 import { convertNumberToNodeCol, NoteType } from './NoteType'
 import { Note } from './Note'
 import { PlayMap } from './PlayMap'
+import { uniqNotes } from './utils'
 
 const LINE_WRAP_CHAR = '\r\n'
 const GROUP_NAME_MATCH = /\[(\w+)]/
@@ -35,17 +36,13 @@ export class MapResolver {
     const resolver = new MapResolver(text)
     resolver.splitLine()
     resolver.splitByGroup()
-    const notes = resolver.resolveNotes()
+    const { OverallDifficulty, HPDrainRate, CircleSize } = resolver.resolveDifficulty()
+    const notes = uniqNotes(resolver.resolveNotes(CircleSize))
     const timingList = resolver.resolveTiming()
-    const { overallDifficulty, hpDrainRate } = resolver.resolveDifficulty()
     const length = notes[notes.length - 1].end
 
     return new PlayMap({
-      notes,
-      timingList,
-      overallDifficulty,
-      hpDrainRate,
-      length,
+      notes, timingList, overallDifficulty: OverallDifficulty, hpDrainRate: HPDrainRate, length, keys: CircleSize,
     })
   }
 
@@ -83,20 +80,17 @@ export class MapResolver {
 
     difficultyGroup.forEach((line) => {
       const [name, value] = line.split(':')
-      if (name === 'OverallDifficulty') {
-        result.overallDifficulty = Number(value)
-      } else if (name === 'HPDrainRate') {
-        result.hpDrainRate = Number(value)
-      }
+      result[name] = +value
     })
 
     return result
   }
 
   /**
+   * @param {number} circleSize
    * @return {Note[]}
    */
-  resolveNotes () {
+  resolveNotes (circleSize) {
     /**
      * @type {Note[]}
      */
@@ -107,13 +101,14 @@ export class MapResolver {
     }
 
     for (let i = 0; i < hitObjects.length; i++) {
+      const hitObject = this.resolveHitObject(hitObjects[i], circleSize)
+      if (!hitObject) {
+        continue
+      }
       const {
-        type,
-        col,
-        offset,
-        end,
-      } = this.resolveHitObject(hitObjects[i])
-      const note = new Note(col, type, offset, end)
+        type, col, offset, end,
+      } = hitObject
+      const note = new Note(col, type, offset, end, circleSize)
       notes.push(note)
     }
     return notes.sort((a, b) => a.offset - b.offset)
@@ -135,8 +130,7 @@ export class MapResolver {
 
       if (beatLen > 0) {
         timingList.push({
-          offset: Number(offset),
-          beatLen: Number(beatLen),
+          offset: Number(offset), beatLen: Number(beatLen),
         })
       }
     }
@@ -145,10 +139,11 @@ export class MapResolver {
   }
 
   /**
-   * @param hitObjectStr
-   * @return {{ col: NoteCol, offset: number, end: number, type: NoteType }}
+   * @param hitObjectStr {string}
+   * @param circleSize {number}
+   * @return {{ col: number, offset: number, end: number, type: NoteType } | null}
    */
-  resolveHitObject (hitObjectStr) {
+  resolveHitObject (hitObjectStr, circleSize) {
     const hitObject = hitObjectStr.split(',')
     const [col, ___, offset, _, __, endStr] = hitObject
     const [end] = endStr.split(':')
@@ -161,11 +156,14 @@ export class MapResolver {
       endValue = +offset
     }
 
+    const colV = convertNumberToNodeCol(col, circleSize)
+
+    if (colV < 0) {
+      return null
+    }
+
     return {
-      type,
-      col: convertNumberToNodeCol(col),
-      offset: +offset,
-      end: endValue,
+      type, col: colV, offset: +offset, end: endValue,
     }
   }
 }

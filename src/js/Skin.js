@@ -1,15 +1,10 @@
 import { CANVAS } from './Config'
 import { FileManager } from './FileManager'
 
-const note = {
-  width: 150,
-  height: 50,
-  gap: 2,
-  color: {
-    white: '#ffffff',
-    blue: '#00dbff',
-  },
-}
+const YELLOW_NOTE = '#fed336'
+const BLUE_NOTE = '#00dbff'
+const WHITE_NOTE = '#ffffff'
+const RED_NOTE = '#ff0000'
 
 export class Skin {
   static config = {
@@ -19,7 +14,7 @@ export class Skin {
       bottom: 24,
       height: 28,
       radius: 14,
-      font: 'Torus',
+      font: '微软雅黑',
       fontWeight: 'normal',
       fontSize: 16,
       color: 'rgb(42, 42, 42)',
@@ -85,17 +80,16 @@ export class Skin {
     stage: {
       board: {
         background: 'rgba(0, 0, 0, 1)',
-        width: 4 * note.width,
       },
       border: {
         width: 10,
         color: 'rgba(255, 255, 255, 1)',
       },
-      columnStart: CANVAS.WIDTH / 2.0 - note.width * 2 - 10,
+      columnCenter: CANVAS.WIDTH / 2.0,
       accuracy: {
         x: CANVAS.WIDTH - 10,
         y: 140,
-        font: 'bold 56px Torus',
+        font: 'bold 56px 微软雅黑',
         color: '#fff',
         textAlign: 'right',
       },
@@ -108,6 +102,10 @@ export class Skin {
         assets: null,
         height: 1,
         top: CANVAS.HEIGHT / 1.5,
+        font: '微软雅黑',
+        fontSize: 128,
+        lineHeight: 128,
+        color: 'rgba(255, 255, 255, 1)'
       },
       judgement: {
         top: CANVAS.HEIGHT / 3,
@@ -120,7 +118,6 @@ export class Skin {
           fadeTime: 1000,
         },
       },
-      note,
       sectionLine: {
         color: 'rgba(255, 255, 255, 0.8)',
         height: 0,
@@ -130,13 +127,13 @@ export class Skin {
           rise: 25,
           fall: 10,
         },
-        height: Math.min(CANVAS.HEIGHT / 2, 540),
+        height: Math.min(CANVAS.HEIGHT / 2, 720),
       },
       score: {
         assets: null,
         right: 20,
         top: 10,
-        font: 'Torus',
+        font: '微软雅黑',
         fontWeight: 'bold',
         fontSize: 96,
         lineHeight: 96,
@@ -146,6 +143,123 @@ export class Skin {
       },
       judgementLine: {
         height: 200,
+      },
+      keys: {
+        keys4: {
+          note: {
+            width: 150,
+            height: 50,
+            gap: 2,
+            color: {
+              0: WHITE_NOTE,
+              1: BLUE_NOTE,
+              2: BLUE_NOTE,
+              3: WHITE_NOTE,
+            },
+          },
+          hitEffect: {
+            0: 'red',
+            1: 'blue',
+            2: 'blue',
+            3: 'red',
+          },
+        },
+        keys5: {
+          note: {
+            width: 150,
+            height: 50,
+            gap: 2,
+            color: {
+              0: WHITE_NOTE,
+              1: BLUE_NOTE,
+              2: YELLOW_NOTE,
+              3: BLUE_NOTE,
+              4: WHITE_NOTE,
+            },
+          },
+          hitEffect: {
+            0: 'red',
+            1: 'blue',
+            2: 'yellow',
+            3: 'blue',
+            4: 'red',
+          },
+        },
+        keys6: {
+          note: {
+            width: 150,
+            height: 50,
+            gap: 2,
+            color: {
+              0: WHITE_NOTE,
+              1: BLUE_NOTE,
+              2: WHITE_NOTE,
+              3: WHITE_NOTE,
+              4: BLUE_NOTE,
+              5: WHITE_NOTE,
+            },
+          },
+          hitEffect: {
+            0: 'red',
+            1: 'blue',
+            2: 'red',
+            3: 'red',
+            4: 'blue',
+            5: 'red',
+          },
+        },
+        keys7: {
+          note: {
+            width: 150,
+            height: 50,
+            gap: 2,
+            color: {
+              0: WHITE_NOTE,
+              1: BLUE_NOTE,
+              2: WHITE_NOTE,
+              3: YELLOW_NOTE,
+              4: WHITE_NOTE,
+              5: BLUE_NOTE,
+              6: WHITE_NOTE,
+            },
+          },
+          hitEffect: {
+            0: 'red',
+            1: 'blue',
+            2: 'red',
+            3: 'yellow',
+            4: 'red',
+            5: 'blue',
+            6: 'red',
+          },
+        },
+        keys8: {
+          note: {
+            width: 150,
+            height: 50,
+            gap: 2,
+            color: {
+              0: WHITE_NOTE,
+              1: BLUE_NOTE,
+              2: WHITE_NOTE,
+              3: YELLOW_NOTE,
+              4: WHITE_NOTE,
+              5: BLUE_NOTE,
+              6: WHITE_NOTE,
+              7: RED_NOTE,
+            },
+          },
+          hitEffect: {
+            0: 'red',
+            1: 'blue',
+            2: 'red',
+            3: 'yellow',
+            4: 'red',
+            5: 'blue',
+            6: 'red',
+            7: 'red',
+          },
+        },
       },
     },
     main: {
@@ -173,13 +287,13 @@ export class Skin {
             bgColor: 'rgba(255,191,128,0.5)',
             title: {
               color: '#212529',
-              font: '32px Torus',
+              font: '32px 微软雅黑',
             },
             description: {
-              font: '20px Torus',
+              font: '20px 微软雅黑',
             },
             subtitle: {
-              font: 'bold 24px Torus',
+              font: 'bold 24px 微软雅黑',
             },
           },
           sameGroup: {
@@ -192,7 +306,8 @@ export class Skin {
           width: CANVAS.WIDTH,
         },
       },
-    },
+    }
+    ,
     pauseMenu: {
       buttons: {
         base: {
@@ -200,7 +315,7 @@ export class Skin {
           height: 100,
           gap: 80,
           left: (CANVAS.WIDTH - 600) / 2,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -211,7 +326,7 @@ export class Skin {
           height: 100,
           gap: 80,
           left: (CANVAS.WIDTH - 600) / 2,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -223,7 +338,7 @@ export class Skin {
           height: 100,
           gap: 80,
           left: (CANVAS.WIDTH - 600) / 2,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -235,7 +350,7 @@ export class Skin {
           height: 100,
           gap: 80,
           left: (CANVAS.WIDTH - 600) / 2,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -247,7 +362,7 @@ export class Skin {
           height: 100,
           gap: 80,
           left: (CANVAS.WIDTH - 600) / 2,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -255,7 +370,8 @@ export class Skin {
           text: 'Enter Fullscreen',
         },
       },
-    },
+    }
+    ,
     rankingBoard: {
       header: {
         left: 0,
@@ -269,19 +385,19 @@ export class Skin {
           title: {
             color: '#fff',
             fontSize: 48,
-            font: 'Torus',
+            font: '微软雅黑',
             lineHeight: 64,
           },
           subtitle: {
             color: '#fff',
             fontSize: 36,
-            font: 'Torus',
+            font: '微软雅黑',
             lineHeight: 52,
           },
           description: {
             color: '#fff',
             fontSize: 36,
-            font: 'Torus',
+            font: '微软雅黑',
             lineHeight: 52,
           },
         },
@@ -290,7 +406,7 @@ export class Skin {
           right: 0,
           top: 0,
           fontSize: 160,
-          font: 'Torus',
+          font: '微软雅黑',
           lineHeight: 200,
         },
       },
@@ -314,7 +430,7 @@ export class Skin {
         height: CANVAS.HEIGHT / 2 + 100,
         background: 'rgba(0, 170, 255, 0.6)',
         judgement: {
-          font: 'Torus',
+          font: '微软雅黑',
           fontWeight: 'bold',
           fontSize: 88,
           lineHeight: 88,
@@ -327,7 +443,7 @@ export class Skin {
           itemHeight: 132,
         },
         combo: {
-          font: 'Torus',
+          font: '微软雅黑',
           fontWeight: 'bold',
           fontSize: 88,
           lineHeight: 88,
@@ -338,7 +454,7 @@ export class Skin {
           itemLeft: 80,
         },
         accuracy: {
-          font: 'Torus',
+          font: '微软雅黑',
           fontWeight: 'bold',
           fontSize: 88,
           lineHeight: 88,
@@ -362,7 +478,7 @@ export class Skin {
           gap: 80,
           left: CANVAS.WIDTH - 400 - 40,
           top: CANVAS.HEIGHT - 120,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -376,7 +492,7 @@ export class Skin {
           gap: 80,
           left: CANVAS.WIDTH - 400 - 40,
           top: CANVAS.HEIGHT,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -390,7 +506,7 @@ export class Skin {
           gap: 80,
           left: 0,
           top: CANVAS.HEIGHT - 20,
-          font: 'Torus',
+          font: '微软雅黑',
           fontSize: 36,
           radius: 0,
           color: '#fff',
@@ -399,7 +515,8 @@ export class Skin {
           hoverWidth: 300,
         },
       },
-    },
+    }
+    ,
   }
 
   static loadConfig (config) {

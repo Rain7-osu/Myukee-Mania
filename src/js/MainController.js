@@ -16,6 +16,7 @@ import { BackgroundEffect } from './BackgroundEffect'
 import { RankingBoard } from './RankingBoard'
 import { MainHeader } from './MainHeader'
 import { FlashLightEffect } from './FlashLightEffect'
+import { CANVAS } from './Config'
 
 /**
  * 主界面管理器
@@ -121,11 +122,11 @@ export class MainController {
     const songs = await this.loadSongList()
     this.#beatmapListManager.init(songs)
     const selectItem = this.#beatmapListManager.firstSelect()
-    this.#mainHeader.setBeatmap(selectItem.beatmap)
-    this.#backgroundEffect.setImage(selectItem.beatmap.bgImage)
-    this.run().then(() => {
-      // run
-    })
+    await Promise.all([
+      this.#mainHeader.setBeatmap(selectItem.beatmap),
+      this.#backgroundEffect.setImage(selectItem.beatmap.bgImage),
+      this.run(),
+    ])
     this.registerEvents()
 
     listenFullscreenChange((fullscreen) => {
@@ -183,7 +184,7 @@ export class MainController {
     this.#stageController.afterFinish((rankingResults) => {
       this.finish(rankingResults)
     })
-    await this.#stageController.init(beatmap)
+    await this.#stageController.init(beatmap, this.#settings)
     this.#stageController.start()
     this.#playing = true
     this.#showResults = false
@@ -380,15 +381,15 @@ export class MainController {
 
   async fadeIn () {
     this.#backgroundFading = true
-    await this.#backgroundDarker.setValue(100, 600)
-    await this.#backgroundDarker.setValue(0, 800)
+    await this.#backgroundDarker.setValue(100, 200)
+    await this.#backgroundDarker.setValue(0, 300)
     this.#backgroundFading = false
   }
 
   async fadeOut () {
     this.#backgroundFading = true
-    await this.#backgroundDarker.setValue(0, 600)
-    await this.#backgroundDarker.setValue(100, 800)
+    await this.#backgroundDarker.setValue(0, 200)
+    await this.#backgroundDarker.setValue(100, 300)
     this.#backgroundFading = false
   }
 
@@ -502,8 +503,6 @@ export class MainController {
     }
 
     this.#layoutEngine.renderShape(this.#flashLightEffect)
-
-    // this.#layoutEngine.renderGridLine()
   }
 
   renderHeader () {

@@ -42,7 +42,7 @@ export class JudgementManager {
   /**
    * @return {number}
    */
-  get maxCombo () {return this.#maxCombo}
+  get maxCombo () {return this.#maxCombo || this.#combo}
 
   #fullCombo = true
   /**
@@ -75,6 +75,14 @@ export class JudgementManager {
     this.#maxCombo = 0
     this.#fullCombo = true
     this.#activeDeviations.init(od)
+    this.#judgementRecord = {
+      [JudgementType.PERFECT]: 0,
+      [JudgementType.GREAT]: 0,
+      [JudgementType.GOOD]: 0,
+      [JudgementType.OK]: 0,
+      [JudgementType.MEH]: 0,
+      [JudgementType.MISS]: 0,
+    }
   }
 
   reset () {
@@ -83,7 +91,14 @@ export class JudgementManager {
     this.#combo = 0
     this.#maxCombo = 0
     this.#fullCombo = true
-    this.#od = 8
+    this.#judgementRecord = {
+      [JudgementType.PERFECT]: 0,
+      [JudgementType.GREAT]: 0,
+      [JudgementType.GOOD]: 0,
+      [JudgementType.OK]: 0,
+      [JudgementType.MEH]: 0,
+      [JudgementType.MISS]: 0,
+    }
   }
 
   /**
@@ -220,8 +235,7 @@ export class JudgementManager {
           if (!note.judgement) {
             // 默认直接判定为 meh，但是理论上不应该走到这里，进去的判定一定是在判定表中的
             warn('JudgementManager: createJudgementByRelease returned null, defaulting to meh', {
-              note,
-              currentTiming,
+              note, currentTiming,
             })
             note.judgement = new Judgement(JudgementType.MEH, currentTiming, note.hitTiming, currentTiming)
           }
@@ -280,8 +294,7 @@ export class JudgementManager {
         note.judgement = this.createJudgementByHit(note.offset, hitTiming)
         if (!note.judgement) {
           warn('JudgementManager: createJudgementByHit returned null, skipping hit', {
-            note,
-            hitTiming,
+            note, hitTiming,
           })
           // 理论上这里不可能是 null，因为前面已经判断过了，所以默认走 MISS
           note.judgement = new Judgement(JudgementType.MISS, hitTiming, hitTiming)
@@ -306,8 +319,7 @@ export class JudgementManager {
         if (isHeld) {
           // 理论上这里不可能存在这个 note 被按下去了，在 held 状态不重置的情况下又被按一次
           warn('JudgementManager: note is already held, skipping hit', {
-            note,
-            hitTiming,
+            note, hitTiming,
           })
           continue
         }
@@ -362,8 +374,7 @@ export class JudgementManager {
         // 理论上这里不可能存在 releaseTiming - note.end > mehTime 的情况（在到了 miss 区间还没松手），因为在 update 的时候已经判断过了
         if (releaseTiming - note.end > mehTime) {
           warn('JudgementManager: releaseTiming is too late', {
-            note,
-            releaseTiming,
+            note, releaseTiming,
           })
           note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
           this.#activeEffects.push(new JudgementEffect(note.judgement))
@@ -375,8 +386,7 @@ export class JudgementManager {
           if (!note.judgement) {
             // 理论上不存在这里为 null 的情况，因为前面已经判断过了在 meh 区间松开的情况
             warn('JudgementManager: createJudgementByRelease returned null, skipping release', {
-              note,
-              releaseTiming,
+              note, releaseTiming,
             })
             note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
           }

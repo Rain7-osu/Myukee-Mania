@@ -16,6 +16,13 @@ export class Note extends OffsetShape {
    * @type {number}
    */
   #col
+  /**
+   * @type {number}
+   */
+  #keys
+
+  get keys () { return this.#keys}
+
   get col () { return this.#col }
 
   /**
@@ -78,7 +85,7 @@ export class Note extends OffsetShape {
   get hitTiming () { return this.#hitTiming }
 
   /**
-   * @param value {number}
+   * @param value {number | null}
    */
   set hitTiming (value) { this.#hitTiming = value }
 
@@ -111,21 +118,24 @@ export class Note extends OffsetShape {
    * @param col {number}
    * @param type {NoteType}
    * @param offset {number}
-   * @param [end] {number}
+   * @param end {number}
+   * @param keys {number}
    */
-  constructor (col, type, offset, end) {
+  constructor (col, type, offset, end, keys) {
     super(offset, end)
     this.#col = col
     this.#type = type
+    this.#keys = keys
     const {
-      color: { blue, white },
-    } = Skin.config.stage.note
-    if (col === 0 || col === 3) {
-      this.#color = blue
-    } else {
-      this.#color = white
-    }
+      color,
+    } = Skin.config.stage.keys[`keys${keys}`].note
+    this.#color = color[col]
   }
+
+  /**
+   * @param keys {number}
+   */
+  set keys (keys) { this.#keys = keys}
 
   /**
    * 当前 note 已被打击处理过，无需再处理
@@ -144,32 +154,34 @@ export class Note extends OffsetShape {
   }
 
   render (context, offsetY, endY) {
+    const { columnCenter, keys } = Skin.config.stage
     const {
       note: {
         width: NOTE_WIDTH,
         height: NOTE_HEIGHT,
         gap: NOTE_GAP,
       },
-      columnStart,
-    } = Skin.config.stage
+    } = keys[`keys${this.#keys}`]
+    const halfWidth = this.#keys * NOTE_WIDTH / 2
+    const columnStart = columnCenter - halfWidth
     context.fillStyle = this.#color
+    const LEFT = this.#col * NOTE_WIDTH + (this.#col + 1) * NOTE_GAP / 2 + columnStart
 
     if (this.#type === NoteType.TAP) {
-      if (offsetY > 0) {
+      if (offsetY > 0 && !this.#isHit) {
         // y - NOTE_HEIGHT: judgement on the bottom of note
-        context.fillRect(this.#col * NOTE_WIDTH + NOTE_GAP / 2 + columnStart, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
+        context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
     } else if (this.#type === NoteType.HOLD) {
-      const height = offsetY - endY
-      if (this.#grayed) {
-        // add 50 alpha
-        context.fillStyle = this.#color + '50'
-      }
       if (offsetY > 0) {
-        context.fillRect(this.#col * NOTE_WIDTH + columnStart, endY, NOTE_WIDTH - 2, height)
+        const height = offsetY - endY
+        if (this.#grayed) {
+          // add 50 alpha
+          context.fillStyle = this.#color + '50'
+        }
+
+        context.fillRect(LEFT, endY, NOTE_WIDTH - NOTE_GAP, height)
       }
     }
   }
 }
-
-const log = createLimitLog(2)

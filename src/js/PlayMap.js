@@ -10,12 +10,14 @@ export class PlayMap {
    * @param overallDifficulty {number}
    * @param hpDrainRate {number}
    * @param length {number}
+   * @param keys {number}
    */
   constructor ({
     notes,
     timingList,
     overallDifficulty,
     hpDrainRate,
+    keys,
     length,
   }) {
     this.#notes = notes
@@ -23,7 +25,11 @@ export class PlayMap {
     this.#overallDifficulty = overallDifficulty
     this.#hpDrainRate = hpDrainRate
     this.#length = length
+    this.#keys = keys
   }
+
+  /** @type {number} */
+  #keys
 
   /** @type {number} */
   #overallDifficulty
@@ -75,6 +81,8 @@ export class PlayMap {
   get length () {
     return this.#length
   }
+
+  get keys () { return this.#keys}
 
   reset () {
     this.#notes.forEach((item) => item.reset())

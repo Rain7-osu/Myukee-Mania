@@ -2,8 +2,18 @@ import { OffsetShape } from './Shape'
 import { Skin } from './Skin'
 
 export class SectionLine extends OffsetShape {
-  constructor (offset) {
+  /**
+   * @type {number}
+   */
+  #width
+
+  /**
+   * @param offset {number}
+   * @param width {number}
+   */
+  constructor (offset, width) {
     super(offset)
+    this.#width = width
   }
 
   render (context, offsetY, endY) {
@@ -11,12 +21,12 @@ export class SectionLine extends OffsetShape {
       return
     }
 
-    const { note: { width: NOTE_WIDTH }, sectionLine: { color, height }, columnStart } = Skin.config.stage
+    const { sectionLine: { color, height }, columnCenter } = Skin.config.stage
 
     if (height <= 0) {
       return
     }
     context.fillStyle = color
-    context.fillRect(columnStart, offsetY, NOTE_WIDTH * 4, height)
+    context.fillRect(columnCenter - this.#width / 2, offsetY, this.#width, height)
   }
 }

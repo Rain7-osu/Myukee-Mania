@@ -15,12 +15,12 @@ import { AccuracyManager } from './AccuracyManager'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { StageBoard } from './StageBoard'
 import { RankingEffect } from './RankingEffect'
-import { JudgementLineEffect } from './JudgementLineEffect'
 import { FrameSnapshot } from './FrameSnapshot'
 import { AudioManager } from './AudioManager'
 import { FileManager } from './FileManager'
 import { MapResolver } from './MapResolver'
-import { createLimitLog } from './dev'
+import { Settings } from './Settings'
+import { Skin } from './Skin'
 
 /**
  * @callback Callback
@@ -29,6 +29,10 @@ import { createLimitLog } from './dev'
  */
 
 export class StageController {
+  /**
+   * @type {Settings}
+   */
+  #settings
   /**
    * @type {RenderEngine}
    */
@@ -114,9 +118,6 @@ export class StageController {
   /** @type {StageBoard} */
   #stageBoard
 
-  /** @type {JudgementLineEffect} */
-  #judgementLineEffect
-
   /**
    * 是否在一局游戏中
    * @type {boolean}
@@ -169,6 +170,8 @@ export class StageController {
    */
   #frameSnapshot = null
 
+  #stageWidth = 0
+
   /**
    * @constructor
    * @param canvas {HTMLCanvasElement} canvas node name
@@ -182,7 +185,6 @@ export class StageController {
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
     this.#stageBoard = new StageBoard()
-    this.#judgementLineEffect = new JudgementLineEffect()
   }
 
   /**
@@ -196,19 +198,27 @@ export class StageController {
 
   /**
    * @param beatmap {Beatmap}
+   * @param settings {Settings}
    * @return void
    */
-  async init (beatmap) {
+  async init (beatmap, settings) {
+    const { keys } = Skin.config.stage
+
+    this.#settings = settings
     this.reset()
     this.#beatmap = beatmap
     const mapFile = await FileManager.loadMapFile(beatmap.filename)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     const audio = new AudioManager()
+    const { keys: keysCount, notes, overallDifficulty } = currentMap
+    const { note: { width } } = keys[`keys${keysCount}`]
+    this.#stageBoard.keys = keysCount
+    this.#hitEffects.keys = keysCount
+    this.#stageWidth = keysCount * width
     await audio.load(beatmap.audioFile)
     this.#playingMap = currentMap
     this.#playingAudio = audio
     this.initSectionLines()
-    const { notes, overallDifficulty } = this.#playingMap
     this.#judgementManager.init(notes, overallDifficulty)
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
@@ -246,7 +256,6 @@ export class StageController {
     this.#playingMap?.reset()
     this.#judgementManager.reset()
     this.#scoreManager.reset()
-    this.#hitEffects.reset()
     this.#playingAudio?.abort()
     this.#keyboardEventManager.removeEvents()
   }
@@ -268,8 +277,11 @@ export class StageController {
   }
 
   registerStageEvent () {
+    /** @type {Record<number, KeyCode>} */
+    const keyBinds = this.#settings.get('maniaKeyBinds')[`keys${this.#playingMap.keys}`]
+
     /** @type {KeyCode[]} */
-    const hitObjectKeys = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K]
+    const hitObjectKeys = Object.values(keyBinds)
 
     const hitObjectsUpEvents = hitObjectKeys.reduce((acc, key) => {
       return {
@@ -279,8 +291,8 @@ export class StageController {
             return
           }
           if (this.#keyStatus[key]) {
-            this.#hitEffects.releaseKey(key)
             const col = hitObjectKeys.indexOf(key)
+            this.#hitEffects.releaseKey(col)
             if (col >= 0 && this.#isPlaying && !this.#isPaused) {
               this.#judgementManager.checkRelease(this.getGameTiming(), col)
             }
@@ -297,8 +309,8 @@ export class StageController {
           if (this.#isPaused || !this.#isPlaying) {
             return
           }
-          this.#hitEffects.pressKey(key)
-          const col = [KeyCode.D, KeyCode.F, KeyCode.J, KeyCode.K].indexOf(key)
+          const col = hitObjectKeys.indexOf(key)
+          this.#hitEffects.pressKey(col)
           if (col >= 0 && this.#isPlaying && !this.#isPaused) {
             this.#judgementManager.checkHit(this.getGameTiming(), col)
             this.#keyStatus[key] = true
@@ -438,18 +450,18 @@ export class StageController {
     if (this.#isPlaying) {
       this.renderFps()
       this.renderStageBoard()
-      this.renderScoreEffect()
-      // this.renderJudgementResultEffect()
-      this.renderProgressEffect()
-      this.renderAccuracyEffect()
-      this.renderSectionLine()
-      this.renderNotes()
-      this.renderHitEffects()
-      this.renderJudgementEffects()
-      this.renderComboEffect()
-      this.renderJudgementLine()
+      if (!this.#finished) {
+        this.renderScoreEffect()
+        this.renderProgressEffect()
+        this.renderAccuracyEffect()
+        this.renderSectionLine()
+        this.renderNotes()
+        this.renderHitEffects()
+        this.renderJudgementEffects()
+        this.renderComboEffect()
+        this.renderJudgementDeviations()
+      }
       this.renderSpeedChangeEffects()
-      this.renderJudgementDeviations()
     }
   }
 
@@ -465,14 +477,15 @@ export class StageController {
   }
 
   updateFrame () {
-    if (this.#isPlaying && this.#playingMap.length < this.getGameTiming() || __FORCE_FINISH__) {
-      this.#finished = true
+    const gameTiming = this.getGameTiming()
+    if (this.#isPlaying && this.#playingMap.length < gameTiming || __FORCE_FINISH__) {
       this.#isPaused = false
-      if (this.#stageBoard.visible) {
+      if (this.#stageBoard.visible && this.#playingMap.length < gameTiming - 1200) {
+        this.#finished = true
         this.#stageBoard.hide()
       }
 
-      if (this.#playingMap.length < this.getGameTiming() - 3000 || __FORCE_FINISH__) {
+      if (this.#playingMap.length < gameTiming - 2000 || __FORCE_FINISH__) {
         this.finish()
         return
       }
@@ -480,14 +493,16 @@ export class StageController {
 
     const now = performance.now()
     if (this.#isPlaying) {
-      const timing = this.getGameTiming()
+      const timing = gameTiming
 
       if (!this.#isPaused) {
         this.#renderEngine.setTiming(timing)
         this.#judgementManager.update(timing)
-        this.#scoreManager.update()
+
+        this.#scoreManager.update(now)
         this.#accuracyManager.update()
       }
+      this.#hitEffects.updateTransition(now)
     }
 
     if (this.#speedChangeEffect) {
@@ -499,10 +514,6 @@ export class StageController {
     }
 
     this.#stageBoard.updateTransition(now)
-  }
-
-  renderJudgementLine () {
-    this.#renderEngine.renderShape(this.#judgementLineEffect)
   }
 
   renderJudgementDeviations () {
@@ -563,7 +574,7 @@ export class StageController {
 
   renderSectionLine () {
     this.#sectionLines.forEach((offset) => {
-      this.#renderEngine.renderOffsetShape(new SectionLine(offset))
+      this.#renderEngine.renderOffsetShape(new SectionLine(offset, this.#stageWidth))
     })
   }
 
@@ -603,5 +614,3 @@ export class StageController {
     return this.#frameSnapshot
   }
 }
-
-const log = createLimitLog(2, 1000)

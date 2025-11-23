@@ -85,7 +85,10 @@ export class ScoreManager {
     return baseScore + bonusScore
   }
 
-  update () {
+  /**
+   * @param time {number}
+   */
+  update (time) {
     let totalScore = 0
 
     for (let i = 0; i < this.#notes.length; i++) {
@@ -103,6 +106,6 @@ export class ScoreManager {
 
     this.#score = totalScore
     this.#effect.setScore(totalScore)
-    this.#effect.updateStepTo()
+    this.#effect.updateStepTo(time)
   }
 }

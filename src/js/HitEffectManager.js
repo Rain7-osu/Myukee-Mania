@@ -1,92 +1,63 @@
 import { Shape } from './Shape'
 import { KeyCode } from './KeyCode'
 import { HitEffect } from './HitEffect'
+import { Skin } from './Skin'
 
 export class HitEffectManager extends Shape {
   /**
    * @type {HitEffect[]}
    */
-  #effectList = []
+  #activeEffectList = []
+
+  #keys = 4
 
   /**
-   * @type {Record<KeyCode, HitEffect | null>}
+   * @param keys {number}
    */
-  #activeEffectList = {
-    [KeyCode.D]: null,
-    [KeyCode.F]: null,
-    [KeyCode.J]: null,
-    [KeyCode.K]: null,
+  set keys (keys) {
+    this.#keys = keys
+    for (let i = 0; i < keys; i++) {
+      this.#activeEffectList[i] = new HitEffect(i, this.getEffectColor(i), this.getEffectStyle(i))
+    }
   }
 
   /**
    * @param context {CanvasRenderingContext2D}
    */
   render (context) {
-    for (let i = 0; i < this.#effectList.length; i++) {
-      const effect = this.#effectList[i]
-      const isAlive = effect.update()
-
-      if (isAlive) {
-        effect.render(context)
-      } else {
-        this.#effectList.splice(i, 1)
-        const keys = Object.keys(this.#activeEffectList)
-        keys.forEach((key) => {
-          if (this.#activeEffectList[key] === effect) {
-            this.#activeEffectList[key] = null
-          }
-        })
-      }
-    }
+    this.#activeEffectList.forEach(effect => effect.render(context))
   }
 
-  reset() {
-    this.#effectList = []
-    this.#activeEffectList = []
+  getEffectColor (col) {
+    const effectSkin = Skin.config.stage.keys[`keys${this.#keys}`].hitEffect
+    return effectSkin[col]
+  }
+
+  getEffectStyle (col) {
+    const { width } = Skin.config.stage.keys[`keys${this.#keys}`].note
+    const center = Skin.config.stage.columnCenter
+    const x = Math.floor(center - width * this.#keys / 2) + col * width
+    return { x, width }
+  }
+
+  updateTransition (time) {
+    super.updateTransition(time)
+    this.#activeEffectList.forEach(effect => effect.updateTransition(time))
   }
 
   /**
-   * @param effect {HitEffect}
-   */
-  push (effect) {
-    this.#effectList.push(effect)
-  }
-
-  /**
-   * @param key {string}
-   * @return {boolean}
-   */
-  isValidKey(key) {
-    return Object.values(KeyCode).includes(key.toLowerCase())
-  }
-
-  /**
-   * @param key {KeyCode}
+   * @param col {number}
    * @return void
    */
-  pressKey(key) {
-    if (!this.isValidKey(key)) {
-      return;
-    }
-    if (this.#activeEffectList[key]) {
-      this.#activeEffectList[key].press()
-    } else {
-      const effect = new HitEffect(key)
-      this.#activeEffectList[key] = effect
-      this.#effectList.push(effect)
-    }
+  pressKey (col) {
+    this.#activeEffectList[col].push()
   }
 
   /**
-   * @param key {KeyCode}
+   * @param col {number}
    * @return void
    */
-  releaseKey(key) {
-    if (!this.isValidKey(key)) {
-      return;
-    }
-    if (this.#activeEffectList[key]) {
-      this.#activeEffectList[key].release()
-    }
+  releaseKey (col) {
+    this.#activeEffectList[col].shift()
   }
 }

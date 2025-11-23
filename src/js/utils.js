@@ -77,3 +77,17 @@ export const rgba = {
   },
 }
 
+/**
+ * @param notes {Note[]}
+ */
+export function uniqNotes (notes) {
+  const map = new Map()
+  return notes.filter(item => {
+    if (map.get(`${item.col}-${item.offset}`)) {
+      return false
+    }
+    map.set(`${item.col}-${item.offset}`, true)
+    return true
+  })
+}
+

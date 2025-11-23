@@ -11,38 +11,26 @@ export const JudgementAssets = {
     image: loadImage('./skin/mania-hit300g-0.png'),
     image2: loadImage('./skin/mania-hit300g-1.png'),
     priority: 0,
-    width: 188,
-    height: 91,
   },
   [JudgementType.GREAT]: {
     image: loadImage('./skin/mania-hit300.png'),
     priority: 1,
-    width: 226,
-    height: 131,
   },
   [JudgementType.GOOD]: {
     image: loadImage('./skin/mania-hit200.png'),
     priority: 2,
-    width: 207,
-    height: 120,
   },
   [JudgementType.OK]: {
     image: loadImage('./skin/mania-hit100.png'),
     priority: 3,
-    width: 182,
-    height: 116,
   },
   [JudgementType.MEH]: {
     image: loadImage('./skin/mania-hit50.png'),
     priority: 4,
-    width: 142,
-    height: 113,
   },
   [JudgementType.MISS]: {
     image: loadImage('./skin/mania-hit0.png'),
     priority: 5,
-    width: 270.5,
-    height: 148.5,
   },
 }
 
@@ -85,12 +73,12 @@ export class JudgementEffect extends Shape {
 
   render (context) {
     const config = JudgementAssets[this.#judgement.type]
-    const { judgement: { top }, note: { width: NOTE_WIDTH }, columnStart } = Skin.config.stage
+    const { judgement: { top }, columnCenter } = Skin.config.stage
 
-    let width = config.width * this.#scale
-    let height = config.height * this.#scale
-    const x = (4 * NOTE_WIDTH - width) / 2 + columnStart
-    const y = top - height / 2
+    const image = this.#phase === 'enlarging' ? config.image : config.image2 || config.image
+
+    let width = image.width * this.#scale
+    let height = image.height * this.#scale
 
     if (width >= config.width * this.#maxScale || height >= config.height * this.#maxScale) {
       warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`)
@@ -98,7 +86,8 @@ export class JudgementEffect extends Shape {
       height = config.height * this.#maxScale
     }
 
-    const image = this.#phase === 'enlarging' ? config.image : config.image2 || config.image
+    const x = columnCenter - width / 2
+    const y = top - height / 2
 
     context.save()
     context.globalAlpha = this.#alpha

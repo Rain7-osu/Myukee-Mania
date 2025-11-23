@@ -38,12 +38,12 @@ export class LayoutRenderEngine extends RenderEngine {
 
   renderVerticalLine (x) {
     this.context.fillStyle = 'red'
-    this.context.fillRect(x, 0, 2, CANVAS.HEIGHT)
+    this.context.fillRect(x - 1, 0, 2, CANVAS.HEIGHT)
   }
 
   renderHorizontalLine (y) {
     this.context.fillStyle = 'red'
-    this.context.fillRect(0, y, CANVAS.WIDTH, 2)
+    this.context.fillRect(0, y - 1, CANVAS.WIDTH, 2)
   }
 
   renderGridLine () {

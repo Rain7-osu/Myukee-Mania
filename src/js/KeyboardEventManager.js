@@ -21,8 +21,9 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeydownEventHandler = (e) => {
-    const key = e.key.toLowerCase()
-    // console.log(`press key: ${key}`)
+    e.preventDefault()
+    const key = e.code
+
     if (this.#keydownEventList[key]) {
       this.#keydownEventList[key](e)
     } else {
@@ -33,7 +34,8 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeyupEventHandler = (e) => {
-    const key = e.key.toLowerCase()
+    e.preventDefault()
+    const key = e.code
     if (this.#keyupEventList[key]) {
       this.#keyupEventList[key](e)
     } else {
@@ -44,7 +46,8 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeypressEventHandler = (e) => {
-    const key = e.key.toLowerCase()
+    e.preventDefault()
+    const key = e.code
     if (this.#keypressEventList[key]) {
       this.#keypressEventList[key](e)
     } else {

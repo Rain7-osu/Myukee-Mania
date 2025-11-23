@@ -120,7 +120,7 @@ export class ScoreEffect extends Shape {
     const numList = numbers.map((name) => `default-${name}`)
     numList.forEach((name) => {
       const config = NumberImageConfig[name]
-      context.drawImage(config.image, offsetLeft, this.#top, config.width, config.height)
+      context.drawImage(config.image, offsetLeft, this.#top, config.width, config.y)
       offsetLeft += width
     })
   }

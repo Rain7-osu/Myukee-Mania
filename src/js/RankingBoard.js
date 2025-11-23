@@ -147,7 +147,7 @@ export class RankingBoard extends Shape {
     const { accuracy, score } = this.#rankingResult
     await Promise.all([
       this.#scoreEffect.setScore(score, score / 200),
-      this.#rankingEffect.setAccuracy(accuracy)
+      this.#rankingEffect.setAccuracy(accuracy),
     ])
   }
 
@@ -355,7 +355,8 @@ export class RankingBoard extends Shape {
       const renderJudgement = (offsetX, offsetY, type) => {
 
         const value = judgementRecord[type] + 'x'
-        const { image, width, height } = JudgementAssets[type]
+        const { image } = JudgementAssets[type]
+        const { width, height } = image
 
         context.drawImage(image, offsetX + (itemValueLeft - itemLeft - width) / 2, offsetY + (itemHeight - height) / 2, width, height)
         context.fillStyle = color

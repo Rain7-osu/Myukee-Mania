@@ -3,18 +3,21 @@
  * @enum {string}
  */
 export const KeyCode = {
-  D: 'd',
-  F: 'f',
-  J: 'j',
-  K: 'k',
-  ESCAPE: 'escape',
-  TILED: '`', // retry
-  F4: 'f4', // speed ++
-  F3: 'f3', // speed --
-  F2: 'f2', // quit
-  F1: 'f1', // pause
-  F5: 'f5', // - pause music
-  ENTER: 'enter',
-  UP: 'up',
-  DOWN: 'down',
+  S: 'KeyS',
+  D: 'KeyD',
+  F: 'KeyF',
+  SPACE: 'Space',
+  J: 'KeyJ',
+  K: 'KeyK',
+  L: 'KeyL',
+  ESCAPE: 'Escape',
+  TILED: 'Backquote', // retry
+  F4: 'F4', // speed ++
+  F3: 'F3', // speed --
+  F2: 'F2', // quit
+  F1: 'F1', // pause
+  F5: 'F5', // - pause music
+  ENTER: 'Enter',
+  ARROW_UP: 'ArrowUp',
+  ARROW_DOWN: 'ArrowDown',
 }

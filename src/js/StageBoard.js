@@ -2,6 +2,7 @@ import { Shape } from './Shape'
 import { CANVAS, DEFAULT_DELAY_TIME } from './Config'
 import { Skin } from './Skin'
 import { rgba } from './utils'
+import { JudgementLineEffect } from './JudgementLineEffect'
 
 export class StageBoard extends Shape {
   /**
@@ -15,11 +16,31 @@ export class StageBoard extends Shape {
 
   #visible = false
 
+  #judgementLine = new JudgementLineEffect()
+
+  #keys = 4
+
+  #width = 600
+
+  #columnStart = 0
+
   constructor () {
     super()
     const { board: { background }, border: { color } } = Skin.config.stage
     this.#background = background
     this.#borderColor = color
+  }
+
+  /**
+   * @param k {number}
+   */
+  set keys (k) {
+    this.#keys = k
+    const { keys, columnCenter } = Skin.config.stage
+    const { note: { width } } = keys[`keys${this.#keys}`]
+    this.#width = width * this.#keys
+    this.#columnStart = columnCenter - width * k / 2
+    this.#judgementLine.left = this.#columnStart
   }
 
   get visible () { return this.#visible }
@@ -53,12 +74,10 @@ export class StageBoard extends Shape {
   }
 
   render (context) {
-    const {
-      board: { width },
-      columnStart,
-      border: { width: borderWidth },
-    } = Skin.config.stage
+    const { border: { width: borderWidth } } = Skin.config.stage
+    const columnStart = this.#columnStart
 
+    const width = this.#width
     // render bg
     context.fillStyle = this.#background
     context.fillRect(columnStart, 0, width, CANVAS.HEIGHT)
@@ -67,5 +86,7 @@ export class StageBoard extends Shape {
     context.fillStyle = this.#borderColor
     context.fillRect(columnStart + width, 0, borderWidth, CANVAS.HEIGHT)
     context.fillRect(columnStart - borderWidth, 0, borderWidth, CANVAS.HEIGHT)
+
+    this.#judgementLine.render(context)
   }
 }

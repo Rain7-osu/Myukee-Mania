@@ -225,8 +225,6 @@ export class Transition {
     if (current <= start) return startValue
     if (current >= end) return endValue
 
-    console.log('inner')
-
     // 斜率
     const k = (endValue - startValue) / (end - start)
     return +(k * (current - start) + startValue).toFixed(2)
