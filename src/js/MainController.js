@@ -15,6 +15,7 @@ import { PauseMenu } from './PauseMenu'
 import { BackgroundEffect } from './BackgroundEffect'
 import { RankingBoard } from './RankingBoard'
 import { MainHeader } from './MainHeader'
+import { FlashLightEffect } from './FlashLightEffect'
 
 /**
  * 主界面管理器
@@ -32,6 +33,8 @@ export class MainController {
   #backgroundDarker = new BackgroundDarker()
 
   #backgroundEffect = new BackgroundEffect()
+
+  #flashLightEffect = new FlashLightEffect()
 
   #mainHeader = new MainHeader()
 
@@ -218,9 +221,12 @@ export class MainController {
    */
   async selectBeatmapItem (beatmapItem) {
     this.#beatmapListManager.selectItem(beatmapItem)
-    this.#mainHeader.setBeatmap(beatmapItem.beatmap)
-    this.#backgroundEffect.setImage(beatmapItem.beatmap.bgImage)
-    await this.playAuto(beatmapItem.beatmap)
+    await Promise.all([
+      this.#mainHeader.setBeatmap(beatmapItem.beatmap),
+      this.#flashLightEffect.flash(),
+      this.#backgroundEffect.setImage(beatmapItem.beatmap.bgImage),
+      this.playAuto(beatmapItem.beatmap),
+    ])
   }
 
   /**
@@ -464,6 +470,7 @@ export class MainController {
     this.#beatmapListManager.beatmapList.updateTransition(now)
     this.#backgroundEffect.updateTransition(now)
     this.#backgroundDarker.updateTransition(now)
+    this.#flashLightEffect.updateTransition(now)
     this.#pauseMenu.updateTransition(now)
     this.#mainHeader.updateTransition(now)
     this.#rankingBoard.update(now)
@@ -493,6 +500,8 @@ export class MainController {
     if (this.#interrupt) {
       this.renderPauseMenu()
     }
+
+    this.#layoutEngine.renderShape(this.#flashLightEffect)
 
     // this.#layoutEngine.renderGridLine()
   }

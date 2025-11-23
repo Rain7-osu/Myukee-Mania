@@ -20,7 +20,7 @@ export class BackgroundEffect extends Shape {
   /**
    * @param image {HTMLImageElement}
    */
-  setImage (image) {
+  async setImage (image) {
     if (!this.#lastImage) {
       this.#lastImage = image
     } else {
@@ -28,11 +28,8 @@ export class BackgroundEffect extends Shape {
     }
     this.#currentImage = image
     this.cancelTransitions()
-    this.createTransition(0, 100, 300, 'easeOut', (value) => {
-      this.#alpha = value
-    }, () => {
-      this.#lastImage = this.#currentImage
-    })
+    await this.createTransitionPromisify(0, 100, 300, 'easeOut', (value) => this.#alpha = value)
+    this.#lastImage = this.#currentImage
   }
 
   render (context) {

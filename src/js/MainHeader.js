@@ -1,9 +1,14 @@
 import { Shape } from './Shape'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
+import { rgba } from './utils'
+
+const TRANSITION_DURATION = 200
+const RIGHT_HEIGHT = 160
+const LEFT_HEIGHT = RIGHT_HEIGHT + 100
 
 const RENDER_CONFIG = {
-  color: '#fff',
+  color: 'rgba(255, 255, 255, 1)',
   top: 20,
   left: 20,
   title: {
@@ -38,6 +43,8 @@ const RENDER_CONFIG = {
   },
 }
 
+const LEFT_MASK_TOP = RENDER_CONFIG.title.lineHeight
+
 export class MainHeader extends Shape {
   /**
    * @type {Beatmap}
@@ -55,6 +62,12 @@ export class MainHeader extends Shape {
   #headerSnapshot = null
 
   #translateY = 0
+
+  #leftMaskTop = LEFT_MASK_TOP
+
+  #textAlpha = 100
+
+  #switchingBeatmap = false
 
   async hide () {
     if (this.#translateY === -260) {
@@ -78,26 +91,43 @@ export class MainHeader extends Shape {
   /**
    * @param beatmap {Beatmap}
    */
-  setBeatmap (beatmap) {
-    this.#beatmap = beatmap
+  async setBeatmap (beatmap) {
     this.#headerSnapshot = null
+    this.#switchingBeatmap = true
+    this.#textAlpha = 0
+    this.cancelTransitions()
+    this.#beatmap = beatmap
+    this.#leftMaskTop = LEFT_MASK_TOP
+    await Promise.all([
+      this.createTransitionPromisify(this.#leftMaskTop, LEFT_HEIGHT, TRANSITION_DURATION, 'linear', (value) => this.#leftMaskTop = value),
+      this.createTransitionPromisify(this.#textAlpha, 100, TRANSITION_DURATION, 'linear', (value) => this.#textAlpha = value),
+    ])
+    this.#switchingBeatmap = false
   }
 
   render (context) {
     this.renderWithSnapshot(context)
+    if (this.#switchingBeatmap) {
+      this.renderTitleMask(context)
+    }
   }
 
   renderWithSnapshot (context) {
-    if (!this.#headerSnapshot) {
-      this.#headerSnapshot = FrameSnapshot.createSnapshot((ctx) => {
-        ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
-        this.renderBackground(ctx)
-        this.renderBeatmapInfo(ctx)
-      })
-    }
+    if (this.#switchingBeatmap) {
+      this.renderBackground(context)
+      this.renderBeatmapInfo(context)
+    } else {
+      if (!this.#headerSnapshot) {
+        this.#headerSnapshot = FrameSnapshot.createSnapshot((ctx) => {
+          ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
+          this.renderBackground(ctx)
+          this.renderBeatmapInfo(ctx)
+        })
+      }
 
-    this.#headerSnapshot.setStyle(0, this.#translateY, CANVAS.WIDTH, CANVAS.HEIGHT)
-    this.#headerSnapshot.render(context)
+      this.#headerSnapshot.setStyle(0, this.#translateY, CANVAS.WIDTH, CANVAS.HEIGHT)
+      this.#headerSnapshot.render(context)
+    }
   }
 
   /**
@@ -130,7 +160,6 @@ export class MainHeader extends Shape {
 
     context.save()
     let offsetY = top
-    context.fillStyle = color
 
     /**
      * @param text {string}
@@ -138,6 +167,8 @@ export class MainHeader extends Shape {
      */
     const renderLine = (text, item) => {
       const { font, fontWeight, fontSize, lineHeight } = item
+      const [r, g, b] = rgba.toValues(color)
+      context.fillStyle = rgba.format([r, g, b, this.#textAlpha / 100])
       context.font = `${fontWeight} ${fontSize}px ${font}`
       context.textBaseline = 'top'
       context.textAlign = 'left'
@@ -158,13 +189,35 @@ export class MainHeader extends Shape {
    * @private
    * @param context {CanvasRenderingContext2D}
    */
+  renderTitleMask (context) {
+    const LEFT_RIGHT = CANVAS.WIDTH / 3 - 120
+
+    context.save()
+    // 从下到上的渐变
+    const gradient = context.createLinearGradient(0, LEFT_HEIGHT, 0, LEFT_MASK_TOP)
+
+    const offsetBlack = (LEFT_HEIGHT - this.#leftMaskTop) / (LEFT_HEIGHT - LEFT_MASK_TOP)
+
+    // 从下向上，从不透明到透明
+    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
+    gradient.addColorStop(offsetBlack, 'rgba(0, 0, 0, 1)')
+    gradient.addColorStop((1 - offsetBlack) / 2, 'rgba(0, 0, 0, 0.5)')
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
+
+    context.fillStyle = gradient
+    context.fillRect(0, LEFT_MASK_TOP, LEFT_RIGHT - 4, LEFT_HEIGHT - LEFT_MASK_TOP - 4) // 4: strokeLineWidth, 2: rightStroke
+    context.restore()
+  }
+
+  /**
+   * @private
+   * @param context {CanvasRenderingContext2D}
+   */
   renderBackground (context) {
     if (!this.#backgroundSnapshot) {
       this.#backgroundSnapshot = FrameSnapshot.createSnapshot((ctx) => {
         ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
-        const RIGHT_HEIGHT = 160
         const RIGHT_LEFT = CANVAS.WIDTH / 3 + 120
-        const LEFT_HEIGHT = RIGHT_HEIGHT + 100
         const LEFT_RIGHT = CANVAS.WIDTH / 3 - 120
         const BEZIER_POINT1 = [RIGHT_LEFT - 40, RIGHT_HEIGHT]
         const BEZIER_POINT2 = [LEFT_RIGHT + 40, RIGHT_HEIGHT]

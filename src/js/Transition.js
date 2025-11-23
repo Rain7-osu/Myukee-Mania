@@ -69,6 +69,20 @@ export class Transition {
 
   /**
    * @public
+   * @param startValue {number}
+   * @param endValue {number}
+   * @param duration {number}
+   * @param type {TransitionType}
+   * @param updateFn {(value: number) => void}
+   */
+  createTransitionPromisify (startValue, endValue, duration, type, updateFn) {
+    return new Promise(resolve => {
+      this.createTransition(startValue, endValue, duration, type, updateFn, () => resolve())
+    })
+  }
+
+  /**
+   * @public
    * @param time {number?}
    */
   updateTransition (time) {
