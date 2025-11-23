@@ -47,6 +47,26 @@ export function formatTime (time = new Date().getMilliseconds()) {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
+export function formatMapTime(milliseconds) {
+  // 确保是正数
+  const ms = Math.abs(milliseconds);
+
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+  // 格式化为两位数
+  const format = (num) => num.toString().padStart(2, '0');
+
+  if (hours <= 0) {
+    if (minutes <= 0) {
+      return format(seconds)
+    }
+    return `${format(minutes)}:${format(seconds)}`
+  }
+
+  return `${format(hours)}:${format(minutes)}:${format(seconds)}`;
+}
 export const rgba = {
   regexp: /rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*([\d.]+)\s*)?\)/,
   /**
@@ -90,4 +110,3 @@ export function uniqNotes (notes) {
     return true
   })
 }
-

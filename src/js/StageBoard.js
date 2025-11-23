@@ -41,6 +41,7 @@ export class StageBoard extends Shape {
     this.#width = width * this.#keys
     this.#columnStart = columnCenter - width * k / 2
     this.#judgementLine.left = this.#columnStart
+    this.#judgementLine.width = this.#width
   }
 
   get visible () { return this.#visible }

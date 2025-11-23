@@ -1,7 +1,7 @@
 import { Shape } from './Shape'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
-import { rgba } from './utils'
+import { formatMapTime, rgba } from './utils'
 
 const TRANSITION_DURATION = 200
 const RIGHT_HEIGHT = 160
@@ -178,7 +178,7 @@ export class MainHeader extends Shape {
 
     renderLine(title, titleItem)
     renderLine(`Mapper: ${creator}`, subtitle)
-    renderLine(`Length: ${length}  BPM: ${bpm}  Objects: ${objectCount}`, info1)
+    renderLine(`Length: ${formatMapTime(length)}  BPM: ${bpm}  Objects: ${objectCount}`, info1)
     renderLine(`Circles: ${circles}  Sliders: ${sliders}`, info2)
     renderLine(`Keys: ${keys}  OD: ${od}  HP: ${hp} Star Rating: ${star.toFixed(2)}`, difficultyItem)
 
