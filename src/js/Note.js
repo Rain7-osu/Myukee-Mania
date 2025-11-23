@@ -1,6 +1,7 @@
 import { NoteType } from './NoteType'
 import { OffsetShape } from './Shape'
 import { Skin } from './Skin'
+import { createLimitLog } from './dev'
 
 /**
  * @description 0 - 480
@@ -152,6 +153,7 @@ export class Note extends OffsetShape {
       columnStart,
     } = Skin.config.stage
     context.fillStyle = this.#color
+
     if (this.#type === NoteType.TAP) {
       if (offsetY > 0) {
         // y - NOTE_HEIGHT: judgement on the bottom of note
@@ -169,3 +171,5 @@ export class Note extends OffsetShape {
     }
   }
 }
+
+const log = createLimitLog(2)

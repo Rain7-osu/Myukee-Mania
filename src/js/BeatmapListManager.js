@@ -93,43 +93,37 @@ export class BeatmapListManager {
     })
   }
 
-  /**
-   * @param callback {Function}
-   */
-  open (callback) {
-    const items = this.beatmapList.scrollItems()
-    // 临时用这个值代替，确保能大于每一项的宽度
-    const targetX = CANVAS.WIDTH / 2
-    this.#beatmapList.cancelTransitions()
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      const translateX = item.translateX
-      item.cancelTransitions()
-      this.#beatmapList.createTransition(translateX, translateX + targetX, 500, 'easeOut', (value) => {
-        item.translateX = value
-      })
-    }
+  async hide () {
+    return new Promise(resolve => {
+      const items = this.beatmapList.scrollItems()
+      // 临时用这个值代替，确保能大于每一项的宽度
+      const targetX = CANVAS.WIDTH / 2
+      this.#beatmapList.cancelTransitions()
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        const translateX = item.translateX
+        item.cancelTransitions()
+        this.#beatmapList.createTransition(translateX, translateX + targetX, 500, 'easeOut', (value) => {
+          item.translateX = value
+        })
+      }
 
-    this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => {
-      callback?.()
+      this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => resolve())
     })
   }
 
-  /**
-   * @param callback {Function?}
-   */
-  back (callback) {
-    const items = this.beatmapList.scrollItems()
-    this.#beatmapList.cancelTransitions()
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      const translateX = item.translateX
-      this.#beatmapList.createTransition(translateX, 0, 500, 'easeOut', (value) => {
-        item.translateX = value
-      })
-    }
-    this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => {
-      callback?.()
+  async show () {
+    return new Promise(resolve => {
+      const items = this.beatmapList.scrollItems()
+      this.#beatmapList.cancelTransitions()
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        const translateX = item.translateX
+        this.#beatmapList.createTransition(translateX, 0, 500, 'easeOut', (value) => {
+          item.translateX = value
+        })
+      }
+      this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => resolve())
     })
   }
 

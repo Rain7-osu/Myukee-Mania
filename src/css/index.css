@@ -1,3 +1,24 @@
+@font-face {
+  font-family: Torus;
+  /*noinspection CssUnknownTarget*/
+  src: url('/fonts/Torus-Regular.otf');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: Torus;
+  /*noinspection CssUnknownTarget*/
+  src: url('/fonts/Torus-SemiBold.otf');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: Torus;
+  /*noinspection CssUnknownTarget*/
+  src: url('/fonts/Torus-Bold.otf');
+  font-weight: 700;
+}
+
 * {
   cursor: none !important;
 }

@@ -1,19 +1,22 @@
 export function warn (...args) {
   if (window.__DEV__) {
-    console.warn(...args)
+    console.warn(performance.now(), ...args)
   }
 }
 
 /**
  * @param limit {number}
+ * @param delay {number}
  * @return {(function(...[*]): void)|*}
  */
-export function createLimitLog (limit) {
+export function createLimitLog (limit, delay = 0) {
   let times = 0
   return (...args) => {
-    if (times < limit) {
+    if (times - delay < limit) {
       times++
-      console.log(...args)
+      if (times - delay > 0) {
+        console.log(performance.now(), ...args)
+      }
     }
   }
 }

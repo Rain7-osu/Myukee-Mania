@@ -66,7 +66,7 @@ export class SpeedChangeEffect extends Shape {
     context.fillRect(x, y, CANVAS.WIDTH, this.#height)
 
     const text = `Speed has changed to ${this.#currentSpeed}`
-    context.font = 'normal 36px 微软雅黑'
+    context.font = 'normal 36px Torus'
     context.textAlign = 'left'
     context.textBaseline = 'middle'
     context.fillStyle = '#ffffff'

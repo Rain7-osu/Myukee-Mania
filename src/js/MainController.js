@@ -14,6 +14,7 @@ import { enterFullscreen, exitFullscreen, isFullscreen, listenFullscreenChange }
 import { PauseMenu } from './PauseMenu'
 import { BackgroundEffect } from './BackgroundEffect'
 import { RankingBoard } from './RankingBoard'
+import { MainHeader } from './MainHeader'
 
 /**
  * 主界面管理器
@@ -31,6 +32,8 @@ export class MainController {
   #backgroundDarker = new BackgroundDarker()
 
   #backgroundEffect = new BackgroundEffect()
+
+  #mainHeader = new MainHeader()
 
   /**
    * @type {RankingBoard}
@@ -111,8 +114,11 @@ export class MainController {
     const songs = await this.loadSongList()
     this.#beatmapListManager.init(songs)
     const selectItem = this.#beatmapListManager.firstSelect()
+    this.#mainHeader.setBeatmap(selectItem.beatmap)
     this.#backgroundEffect.setImage(selectItem.beatmap.bgImage)
-    this.run()
+    this.run().then(() => {
+      // run
+    })
     this.registerEvents()
 
     listenFullscreenChange((fullscreen) => {
@@ -182,20 +188,25 @@ export class MainController {
    * 点击了选择的 Beatmap，到真正开始 play 的过渡过程
    * @param beatmap {Beatmap}
    */
-  preparePlay (beatmap) {
+  async preparePlay (beatmap) {
     this.#beatmapListManager.beatmapList.removeEvents()
     this.#autoManager.abort()
     this.#autoManager.abort()
-    this.#beatmapListManager.open(async () => {
-      if (!this.#interrupt) {
-        await this.play(beatmap)
-        this.removeEvents()
-        this.#backgroundDarker.value = this.#settings.get('backgroundDark')
-      } else {
-        this.#playing = false
-        this.#beatmapListManager.back()
-      }
-    })
+    await Promise.all([
+      this.#beatmapListManager.hide(),
+      this.#mainHeader.hide(),
+    ])
+    if (!this.#interrupt) {
+      await this.play(beatmap)
+      this.removeEvents()
+      this.#backgroundDarker.value = this.#settings.get('backgroundDark')
+    } else {
+      this.#playing = false
+      await Promise.all([
+        this.#beatmapListManager.show(),
+        this.#mainHeader.show(),
+      ])
+    }
   }
 
   /**
@@ -203,6 +214,7 @@ export class MainController {
    */
   async selectBeatmapItem (beatmapItem) {
     this.#beatmapListManager.selectItem(beatmapItem)
+    this.#mainHeader.setBeatmap(beatmapItem.beatmap)
     this.#backgroundEffect.setImage(beatmapItem.beatmap.bgImage)
     await this.playAuto(beatmapItem.beatmap)
   }
@@ -229,14 +241,16 @@ export class MainController {
 
     this.loopFrame()
     await this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
-    this.#beatmapListManager.back(() => {
-      if (!this.#interrupt) {
-        this.registerEvents()
-        this.#beatmapListManager.beatmapList.registerEvents({
-          onClick: handleClick,
-        })
-      }
-    })
+    await Promise.all([
+      this.#beatmapListManager.show(),
+      this.#mainHeader.show(),
+    ])
+    if (!this.#interrupt) {
+      this.registerEvents()
+      this.#beatmapListManager.beatmapList.registerEvents({
+        onClick: handleClick,
+      })
+    }
   }
 
   registerKeyboardEvents () {
@@ -248,7 +262,7 @@ export class MainController {
             await enterFullscreen()
           }
           if (!this.#playing) {
-            this.preparePlay(this.#beatmapListManager.selectedBeatmapItem.beatmap)
+            await this.preparePlay(this.#beatmapListManager.selectedBeatmapItem.beatmap)
           } else if (this.#playing && this.#paused) {
             await this.resume()
           }
@@ -425,6 +439,7 @@ export class MainController {
     this.#backgroundEffect.updateTransition(now)
     this.#backgroundDarker.updateTransition(now)
     this.#pauseMenu.updateTransition(now)
+    this.#mainHeader.updateTransition(now)
     this.#rankingBoard.update(now)
   }
 
@@ -446,6 +461,7 @@ export class MainController {
       this.renderResultsBoard()
     } else {
       this.renderBeatmaps()
+      this.renderHeader()
     }
 
     if (this.#interrupt) {
@@ -453,6 +469,10 @@ export class MainController {
     }
 
     // this.#layoutEngine.renderGridLine()
+  }
+
+  renderHeader () {
+    this.#layoutEngine.renderShape(this.#mainHeader)
   }
 
   renderResultsBoard () {

@@ -22,6 +22,11 @@ export class BeatmapList extends ScrollList {
       minVelocity: 0.1, // 最小速度阈值
       maxVelocity: 75, // 最大速度限制
       initialScrollY: -CANVAS.HEIGHT / 3 + Skin.config.main.beatmap.item.base.height / 2,
+    }, {
+      left: CANVAS.WIDTH / 2,
+      top: 164,
+      width: CANVAS.WIDTH / 2,
+      height: CANVAS.HEIGHT - 160
     })
   }
 

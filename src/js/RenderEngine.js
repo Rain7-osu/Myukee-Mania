@@ -50,7 +50,7 @@ export class RenderEngine {
   convertOffsetToY (offset) {
     const timing = this.timing
     // per frame fall (10 * speed) px
-    return (timing - offset) / 10 * this.#speed + CANVAS.HEIGHT
+    return Math.floor((timing - offset) / 10 * this.#speed + CANVAS.HEIGHT)
   }
 
   /**

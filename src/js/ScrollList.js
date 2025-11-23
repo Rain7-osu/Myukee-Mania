@@ -5,15 +5,22 @@ import { createCollectMaxValues, createLimitLog, warn } from './dev'
 import { Skin } from './Skin'
 
 /**
- * @typedef {{
- *   friction: number;
- *   minVelocity: number;
- *   maxVelocity: number;
- *   initialScrollY: number;
- *   speedPerFrame: number;
- *   minDeltaScrollY: number;
- *   maxDeltaScrollY: number;
- * }} ListConfig
+ * @typedef {Object} ListConfig
+ * @property {number} friction - 摩擦系数
+ * @property {number} minVelocity - 最小速度
+ * @property {number} maxVelocity - 最大速度
+ * @property {number} initialScrollY - 初始滚动位置
+ * @property {number} speedPerFrame - 每帧速度
+ * @property {number} minDeltaScrollY - 最小滚动增量
+ * @property {number} maxDeltaScrollY - 最大滚动增量
+ */
+
+/**
+ * @typedef {Object} ScrollListStyle
+ * @property {number} left
+ * @property {number} top
+ * @property {number} width
+ * @property {number} height
  */
 
 const DURATION = 800
@@ -27,14 +34,20 @@ export class ScrollList extends Shape {
    * @type {HTMLElement}
    */
   #container
+  /**
+   * @type {ScrollListStyle}
+   */
+  #style
 
   /**
    * @param container {HTMLElement}
    * @param listConfig {Partial<ListConfig>}
+   * @param style {ScrollListStyle}
    */
-  constructor (container, listConfig) {
+  constructor (container, listConfig, style) {
     super()
     this.#container = container
+    this.#style = style
     this.#listConfig = {
       friction: 0.95, // 摩擦系数
       minVelocity: 1, // 最小速度阈值
@@ -162,12 +175,27 @@ export class ScrollList extends Shape {
   }
 
   /**
+   * 检查是否补获事件
+   * @param e {HTMLElementEventMap['canvas']}
+   */
+  checkEventCapture (e) {
+    const x = e.clientX
+    const y = e.clientY
+    const { left: listLeft, top: listTop, height: listHeight, width: listWidth } = this.#style
+    return x >= listLeft && y >= listTop && x <= listLeft + listWidth && y <= listTop + listHeight;
+  }
+
+
+  /**
    * @public
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
   handleMouseWheel (e) {
-    console.timeStamp('mouseWheel')
+    if (!this.checkEventCapture(e)) {
+      return
+    }
+
     e.preventDefault()
     clearTimeout(this.#mouseMoveTimer)
     this.#status.wheelEvent = e
@@ -202,6 +230,13 @@ export class ScrollList extends Shape {
    * @return void
    */
   handleMouseMove (e) {
+    if (!this.checkEventCapture(e)) {
+      return
+    }
+
+    const x = e.clientX
+    const y = e.clientY
+
     e.preventDefault()
     this.#status.wheelEvent = e
     this.#status.mouseMoving = true
@@ -211,9 +246,6 @@ export class ScrollList extends Shape {
       // this.#status.wheelEvent && this.handleMouseMove(this.#status.wheelEvent)
       this.#status.mouseMoving = false
     }, 500)
-
-    const x = e.clientX
-    const y = e.clientY
 
     const items = this.scrollItems()
     /** @type {ScrollItem | null} */
@@ -257,6 +289,10 @@ export class ScrollList extends Shape {
    * @return void
    */
   handleClick (e) {
+    if (!this.checkEventCapture(e)) {
+      return
+    }
+
     e.preventDefault()
     this.#status.wheelEvent = e
     clearTimeout(this.#mouseMoveTimer)

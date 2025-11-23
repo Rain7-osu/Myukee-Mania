@@ -20,6 +20,7 @@ import { FrameSnapshot } from './FrameSnapshot'
 import { AudioManager } from './AudioManager'
 import { FileManager } from './FileManager'
 import { MapResolver } from './MapResolver'
+import { createLimitLog } from './dev'
 
 /**
  * @callback Callback
@@ -459,8 +460,10 @@ export class StageController {
       return
     }
 
+    log('renderStart', performance.now())
     this.updateFrame()
     this.renderFrame()
+    log('renderEnd', performance.now())
   }
 
   updateFrame () {
@@ -601,3 +604,4 @@ export class StageController {
   }
 }
 
+const log = createLimitLog(2, 1000)

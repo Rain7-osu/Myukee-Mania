@@ -83,6 +83,10 @@ const GROUP_NAME_MATCH = /\[(\w+)]/
  */
 
 /**
+ * @typedef {{ offset: number; beatLen: number }} TimmingPoint
+ */
+
+/**
  * @param fileContent {string}
  * @return {{
  *   General: object;
@@ -102,6 +106,9 @@ const resolveConfig = (fileContent) => {
   /** @type {HitObject[]} */
   const hitObjects = []
 
+  /** @type {TimmingPoint[]} */
+  const timingPoints = []
+
   for (let i = 0; i < strings.length; i++) {
     const currentLine = strings[i]
     const matchArray = currentLine.match(GROUP_NAME_MATCH)
@@ -111,7 +118,7 @@ const resolveConfig = (fileContent) => {
       continue
     }
 
-    if (['General', 'Metadata', 'Events'].includes(currentGroup)) {
+    if (['General', 'Metadata', 'Events', 'Difficulty'].includes(currentGroup)) {
       if (!res[currentGroup]) {
         res[currentGroup] = {}
       }
@@ -139,10 +146,57 @@ const resolveConfig = (fileContent) => {
       const hitObject = resolveHitObject(currentLine)
       hitObjects.push(hitObject)
     }
+
+    if (currentGroup === 'TimingPoints') {
+      const [offset, beatLen] = currentLine.split(',')
+
+      if (beatLen > 0) {
+        timingPoints.push({
+          offset: Number(offset),
+          beatLen: Number(beatLen),
+        })
+      }
+    }
   }
 
-  res.StarRating = resolveStarRating(hitObjects)
-  res.Length = hitObjects[hitObjects.length - 1].end
+  const beatLenList = timingPoints.map(p => p.beatLen)
+  const maxBeatLen = Math.max(...beatLenList)
+  const minBeatLen = Math.min(...beatLenList)
+
+  const maxBpm = Math.round(60 * 1000 / minBeatLen)
+  const minBpm = Math.round(60 * 1000 / maxBeatLen)
+
+  let mainBpm = maxBpm
+  if (maxBpm !== minBpm) {
+    let maxArea = 0
+    let mainBeatLen = timingPoints[0].beatLen
+    let lastOffset = timingPoints[0].offset
+    for (let i = 1; i < timingPoints.length; i++) {
+      const currentArea = timingPoints[i].offset - lastOffset
+      lastOffset = timingPoints[i].offset
+      if (currentArea > maxArea) {
+        maxArea = currentArea
+        mainBeatLen = timingPoints[i].beatLen
+      }
+    }
+
+    mainBpm = 60 * 1000 / mainBeatLen
+  }
+
+  if (hitObjects.length) {
+    res.HitObjects = {
+      Circles: hitObjects.filter((item) => item.type === 1).length,
+      Sliders: hitObjects.filter((item) => item.type === 2).length,
+    }
+  }
+
+  if (!res.Difficulty) {
+    res.Difficulty = {}
+  }
+
+  res.Difficulty.StarRating = resolveStarRating(hitObjects)
+  res.Difficulty.Length = hitObjects[hitObjects.length - 1].end
+  res.Difficulty.BPM = maxBpm === minBpm ? `${maxBpm}` : `${minBpm}-${maxBpm}(${mainBpm})`
 
   if (!hasMetadata) {
     return null

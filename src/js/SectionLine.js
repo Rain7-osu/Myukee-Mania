@@ -12,6 +12,10 @@ export class SectionLine extends OffsetShape {
     }
 
     const { note: { width: NOTE_WIDTH }, sectionLine: { color, height }, columnStart } = Skin.config.stage
+
+    if (height <= 0) {
+      return
+    }
     context.fillStyle = color
     context.fillRect(columnStart, offsetY, NOTE_WIDTH * 4, height)
   }

@@ -49,6 +49,26 @@ export class Beatmap {
    * @type {HTMLImageElement}
    */
   #image
+  /**
+   * @type {number}
+   */
+  #od
+  /**
+   * @type {number}
+   */
+  #keys
+  /**
+   * @type {number}
+   */
+  #hp
+  /**
+   * @type {number}
+   */
+  #circles
+  /**
+   * @type {number}
+   */
+  #sliders
 
   /**
    * @return {string}
@@ -81,7 +101,7 @@ export class Beatmap {
   }
 
   get difficulty () {
-    return this.#version
+    return `${this.#version} (${this.#keys}K)`
   }
 
   get star () {
@@ -111,6 +131,34 @@ export class Beatmap {
     return this.#previewTime
   }
 
+  get bpm () {
+    return 180
+  }
+
+  get objectCount () {
+    return this.#circles + this.#sliders
+  }
+
+  get keys () {
+    return this.#keys
+  }
+
+  get sliders () {
+    return this.#sliders
+  }
+
+  get circles () {
+    return this.#circles
+  }
+
+  get hp () {
+    return this.#hp
+  }
+
+  get od () {
+    return this.#od
+  }
+
   /**
    * @param artist {string}
    * @param title {string}
@@ -123,6 +171,11 @@ export class Beatmap {
    * @param filename {string}
    * @param starRating {number}
    * @param length {number}
+   * @param hp {number}
+   * @param keys {number}
+   * @param od {number}
+   * @param circles {number}
+   * @param sliders {number}
    */
   constructor ({
     artist,
@@ -136,6 +189,11 @@ export class Beatmap {
     filename,
     starRating,
     length,
+    hp,
+    keys,
+    od,
+    circles,
+    sliders,
   }) {
     this.#artist = artist
     this.#title = title
@@ -148,6 +206,11 @@ export class Beatmap {
     this.#filename = filename
     this.#starRating = starRating
     this.#length = length
+    this.#od = od
+    this.#keys = keys
+    this.#hp = hp
+    this.#circles = circles
+    this.#sliders = sliders
   }
 
   /**
@@ -167,8 +230,13 @@ export class Beatmap {
       creator: config.Metadata.Creator,
       bg: config.Path.Directory + '/' + config.Path.BgName,
       filename: config.Path.Directory + '/' + config.Path.Filename,
-      starRating: config.StarRating,
-      length: config.length
+      starRating: config.Difficulty.StarRating,
+      length: config.Difficulty.Length,
+      hp: config.Difficulty.HPDrainRate,
+      keys: config.Difficulty.CircleSize,
+      od: config.Difficulty.OverallDifficulty,
+      circles: config.HitObjects.Circles,
+      sliders: config.HitObjects.Sliders,
     })
   }
 }
