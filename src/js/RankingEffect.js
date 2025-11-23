@@ -109,13 +109,15 @@ export class RankingEffect extends Shape {
   /**
    * @param acc {number}
    */
-  setAccuracy (acc) {
+  async setAccuracy (acc) {
     this.#type = RankingEffect.calcRankingType(acc)
-    this.cancelTransitions()
     const targetScale = this.#size === 'large' ? Skin.config.rankingBoard.ranking.scale : Skin.config.stage.ranking.scale
     const startScale = Skin.config.rankingBoard.ranking.startScale
-    this.createTransition(startScale, targetScale, 2000, 'easeOut', (value) => {
-      this.#renderScale = value
+    this.cancelTransitions()
+    return new Promise(resolve => {
+      this.createTransition(startScale, targetScale, 2000, 'easeOut', (value) => {
+        this.#renderScale = value
+      }, () => resolve())
     })
   }
 

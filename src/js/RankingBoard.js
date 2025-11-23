@@ -53,6 +53,10 @@ export class RankingBoard extends Shape {
    * @type {BaseButton}
    */
   #backButton
+  /**
+   * @type {boolean}
+   */
+  #hasRegistered = false
 
   /**
    * @param container {HTMLCanvasElement}
@@ -126,13 +130,43 @@ export class RankingBoard extends Shape {
     })
   }
 
+  #alpha = 0
+
+  #shown = false
+
+  async show () {
+    if (this.#alpha === 100) {
+      return
+    }
+    this.cancelTransitions()
+    const showedBoard = new Promise(resolve => {
+      this.createTransition(this.#alpha, 100, 600, 'easeOut', value => this.#alpha = value, () => resolve())
+    })
+    await showedBoard
+    this.#shown = true
+    const { accuracy, score } = this.#rankingResult
+    await Promise.all([
+      this.#scoreEffect.setScore(score, score / 200),
+      this.#rankingEffect.setAccuracy(accuracy)
+    ])
+  }
+
+  hide () {
+    if (this.#alpha === 0) {
+      return Promise.resolve()
+    }
+    this.cancelTransitions()
+
+    return new Promise(resolve => {
+      this.createTransition(this.#alpha, 0, 600, 'easeOut', value => this.#alpha = value, () => resolve())
+    })
+  }
+
   /**
    * @param rankingResult {RankingResult}
    */
   setResult (rankingResult) {
     this.#rankingResult = rankingResult
-    this.#scoreEffect.setScore(rankingResult.score, rankingResult.score / 200)
-    this.#rankingEffect.setAccuracy(rankingResult.accuracy)
   }
 
   /**
@@ -157,28 +191,39 @@ export class RankingBoard extends Shape {
     onWatchReplay,
     onBack,
   }) {
+    if (this.#hasRegistered) {
+      return
+    }
     this.#retryButton.registerEvents({ onClick: onRetry })
     this.#watchReplayButton.registerEvents({ onClick: onWatchReplay })
     this.#backButton.registerEvents({ onClick: onBack })
   }
 
   removeEvents () {
+    if (!this.#hasRegistered) {
+      return
+    }
     this.#retryButton.removeEvents()
     this.#watchReplayButton.removeEvents()
     this.#backButton.removeEvents()
   }
 
   render (context) {
+    context.save()
+    context.globalAlpha = this.#alpha / 100
     const {
-      accuracy, judgementRecord, fullCombo, maxCombo, score, beatmap, finishTime,
+      accuracy,
+      judgementRecord,
+      fullCombo,
+      maxCombo,
+      beatmap,
+      finishTime,
     } = this.#rankingResult
 
     const {
       header: HEADER_CONFIG,
       results: RESULTS_CONFIG,
-      ranking: RANKING_CONFIG,
       score: SCORE_CONFIG,
-      buttons: BUTTON_CONFIG,
     } = Skin.config.rankingBoard
 
     const renderHeader = () => {
@@ -388,7 +433,9 @@ export class RankingBoard extends Shape {
     renderHeader()
     renderScore()
     renderResults()
-    renderRanking()
+    if (this.#shown) {
+      renderRanking()
+    }
     renderButtons()
   }
 }

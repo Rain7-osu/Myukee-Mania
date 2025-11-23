@@ -60,19 +60,17 @@ export class ScoreEffect extends Shape {
    * @param score {number}
    * @param increasing {number?} 单次 render 后更新增量
    */
-  setScore (score, increasing) {
+  async setScore (score, increasing) {
     if (score === this.#score) {
-      return
+      return Promise.resolve()
     }
 
     const step = increasing || ((this.#targetScore - this.#score) / 10)
 
     this.#targetScore = score
     this.cancelStepTos()
-    this.createStepTo(this.#score, this.#targetScore, step, (value) => {
-      this.#score = value
-    }, () => {
-      this.#score = this.#targetScore
+    return new Promise(resolve => {
+      this.createStepTo(this.#score, this.#targetScore, step, (value) => this.#score = value, () => resolve())
     })
   }
 

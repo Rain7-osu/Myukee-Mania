@@ -1,5 +1,8 @@
+window.__FORCE_FINISH__ = false
+window.__DEV__ = false
+
 export function warn (...args) {
-  if (window.__DEV__) {
+  if (__DEV__) {
     console.warn(performance.now(), ...args)
   }
 }

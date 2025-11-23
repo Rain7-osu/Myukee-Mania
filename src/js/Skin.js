@@ -84,7 +84,7 @@ export class Skin {
     },
     stage: {
       board: {
-        bgRgba: 'rgba(0, 0, 0, 1)',
+        background: 'rgba(0, 0, 0, 1)',
         width: 4 * note.width,
       },
       border: {

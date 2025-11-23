@@ -4,11 +4,13 @@ import { CANVAS } from './Config'
 export class BackgroundDarker extends Shape {
   #value = 0
 
-  set value (value) {
-    const target = Math.min(value, 100)
+  async setValue (value, duration = 2000) {
+    const target = Math.max(Math.min(value, 100), 0)
     this.cancelTransitions()
-    this.createTransition(0, target, 2000, 'easeOut', (v) => {
-      this.#value = v
+    return new Promise(resolve => {
+      this.createTransition(this.#value, target, duration, 'easeOut', (v) => {
+        this.#value = v
+      }, () => resolve())
     })
   }
 

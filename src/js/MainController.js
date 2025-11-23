@@ -86,6 +86,10 @@ export class MainController {
    * @type {boolean}
    */
   #interrupt = false
+  /**
+   * @type {boolean}
+   */
+  #backgroundFading = false
 
   /**
    * @param canvas {HTMLCanvasElement}
@@ -199,7 +203,7 @@ export class MainController {
     if (!this.#interrupt) {
       await this.play(beatmap)
       this.removeEvents()
-      this.#backgroundDarker.value = this.#settings.get('backgroundDark')
+      this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
     } else {
       this.#playing = false
       await Promise.all([
@@ -368,20 +372,39 @@ export class MainController {
     })
   }
 
+  async fadeIn () {
+    this.#backgroundFading = true
+    await this.#backgroundDarker.setValue(100, 600)
+    await this.#backgroundDarker.setValue(0, 800)
+    this.#backgroundFading = false
+  }
+
+  async fadeOut () {
+    this.#backgroundFading = true
+    await this.#backgroundDarker.setValue(0, 600)
+    await this.#backgroundDarker.setValue(100, 800)
+    this.#backgroundFading = false
+  }
+
   /**
    * @param rankingResults {RankingResult}
    */
-  finish (rankingResults) {
+  async finish (rankingResults) {
     this.#playing = false
     this.#showResults = true
     this.#rankingBoard.setResult(rankingResults)
     this.#cursor.show()
-    this.#backgroundDarker.reset()
+    await this.fadeIn()
+    await this.#rankingBoard.show()
     this.#rankingBoard.registerEvents({
       onRetry: async () => {
+        await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
+        console.log('retry')
         await this.retry()
       },
       onBack: async () => {
+        await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
+        console.log('backMain')
         await this.backMain()
       },
       onWatchReplay: async () => {
@@ -398,6 +421,7 @@ export class MainController {
     this.#pauseMenu.hide()
     this.#stageController.quit()
     this.#pauseMenu.removeEvents()
+    this.#rankingBoard.removeEvents()
   }
 
   async resume () {
@@ -416,6 +440,8 @@ export class MainController {
     this.#pauseMenu.hide()
     this.#stageController.retry()
     this.#pauseMenu.removeEvents()
+    this.#rankingBoard.removeEvents()
+    await this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
   }
 
   removeEvents () {
@@ -496,7 +522,7 @@ export class MainController {
   renderBackground () {
     this.#layoutEngine.renderShape(this.#backgroundEffect)
 
-    if (this.#playing) {
+    if (this.#playing || this.#backgroundFading) {
       this.#layoutEngine.renderShape(this.#backgroundDarker)
     }
   }

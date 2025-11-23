@@ -460,19 +460,19 @@ export class StageController {
       return
     }
 
-    log('renderStart', performance.now())
     this.updateFrame()
     this.renderFrame()
-    log('renderEnd', performance.now())
   }
 
   updateFrame () {
-    if (this.#isPlaying && this.#playingMap.length < this.getGameTiming()) {
+    if (this.#isPlaying && this.#playingMap.length < this.getGameTiming() || __FORCE_FINISH__) {
       this.#finished = true
       this.#isPaused = false
-      this.#stageBoard.hide()
+      if (this.#stageBoard.visible) {
+        this.#stageBoard.hide()
+      }
 
-      if (this.#playingMap.length < this.getGameTiming() + 3) {
+      if (this.#playingMap.length < this.getGameTiming() - 3000 || __FORCE_FINISH__) {
         this.finish()
         return
       }
