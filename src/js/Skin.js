@@ -105,7 +105,7 @@ export class Skin {
         font: '微软雅黑',
         fontSize: 128,
         lineHeight: 128,
-        color: 'rgba(255, 255, 255, 1)'
+        color: 'rgba(255, 255, 255, 1)',
       },
       judgement: {
         top: CANVAS.HEIGHT / 3,
@@ -369,6 +369,12 @@ export class Skin {
           background: 'rgba(255, 255, 255, 0.85)',
           text: 'Enter Fullscreen',
         },
+      },
+      arrow: {
+        left: (CANVAS.WIDTH - 600) / 2 - 160,
+        right: (CANVAS.WIDTH - 600) / 2 - 160,
+        size: 80,
+        color: 'rgba(0,114,254,100)',
       },
     }
     ,

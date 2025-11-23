@@ -229,6 +229,68 @@ export class Shape extends Transition {
     ctx.strokeStyle = strokeColor
     ctx.stroke()
   }
+
+  /**
+   * @param size {number}
+   * @param context {CanvasRenderingContext2D}
+   * @param color {string}
+   * @param strokeColor {string}
+   * @param stroke {boolean}
+   * @param x {number}
+   * @param y {number}
+   * @param direction {'right' | 'left'}
+   * @param shadowColor {string?}
+   */
+  drawArrow ({
+    size,
+    context,
+    color,
+    strokeColor,
+    stroke = true,
+    x,
+    y,
+    direction,
+    shadowColor,
+  }) {
+    context.save()
+    context.beginPath()
+    const quadSize = size / 4
+    const halfSize = size / 2
+
+    if (direction === 'left') {
+      context.moveTo(x, y + quadSize)
+      context.lineTo(x - halfSize, y + quadSize)
+      context.lineTo(x - halfSize, y)
+      context.lineTo(x - size, y + halfSize)
+      context.lineTo(x - halfSize, y + size)
+      context.lineTo(x - halfSize, y + quadSize * 3)
+      context.lineTo(x, y + quadSize * 3)
+      context.lineTo(x, y + quadSize)
+      context.closePath()
+    } else {
+      context.moveTo(x, y + quadSize)
+      context.lineTo(x + halfSize, y + quadSize)
+      context.lineTo(x + halfSize, y)
+      context.lineTo(x + size, y + halfSize)
+      context.lineTo(x + halfSize, y + size)
+      context.lineTo(x + halfSize, y + quadSize * 3)
+      context.lineTo(x, y + quadSize * 3)
+      context.lineTo(x, y + quadSize)
+      context.closePath()
+    }
+
+    context.fillStyle = color
+    context.strokeStyle = strokeColor
+
+    if (shadowColor) {
+      context.shadowBlur = 15
+      context.shadowColor = shadowColor
+    }
+
+    context.fill()
+    stroke && context.stroke()
+    context.restore()
+  }
 }
 
 export class OffsetShape {

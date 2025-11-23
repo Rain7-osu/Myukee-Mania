@@ -320,6 +320,7 @@ export class MainController {
 
   interrupt () {
     this.#interrupt = true
+    this.#pauseMenu.removeEvents()
     this.#pauseMenu.showBack = false
     this.#pauseMenu.showRetry = false
     this.#pauseMenu.showResume = false
@@ -354,10 +355,10 @@ export class MainController {
     this.#paused = true
     this.#stageController.pause()
     this.#cursor.show()
-    this.registerKeyboardEvents()
     this.#pauseMenu.showResume = true
     this.#pauseMenu.showBack = true
     this.#pauseMenu.showRetry = true
+    this.#keyboardEventManager.removeEvents()
     this.#pauseMenu.show()
     this.#pauseMenu.registerEvents({
       onResume: async () => {

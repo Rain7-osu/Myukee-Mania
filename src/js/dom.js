@@ -1,9 +1,11 @@
+import { warn } from './dev'
+
 /**
  * @param time {number}
  * @return {Promise<void>}
  */
-async function sleep(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
+async function sleep (time) {
+  return new Promise(resolve => setTimeout(resolve, time))
 }
 
 /**
@@ -23,10 +25,14 @@ export function bindClick (btnId, handler) {
 }
 
 export async function enterFullscreen () {
-  if (!isFullscreen()) {
-    await document.documentElement.requestFullscreen({
-      navigationUI: 'hide',
-    })
+  try {
+    if (!isFullscreen()) {
+      await document.documentElement.requestFullscreen({
+        navigationUI: 'hide',
+      })
+    }
+  } catch (err) {
+    warn(err)
   }
 }
 
