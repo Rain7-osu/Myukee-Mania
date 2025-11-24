@@ -1,5 +1,5 @@
 /**
- * @typedef {'easeOut' | 'linear'} TransitionType
+ * @typedef {'easeOut' | 'linear' | 'elastic' | 'elastic-strong' | 'elastic-medium' | 'elastic-weak' | 'elastic-bouncy'} TransitionType
  * @typedef {(startValue: number, endValue: number, start: number , end: number, current: number) => number} TransitionFunc
  * @typedef {[
  * {
@@ -112,6 +112,21 @@ export class Transition {
         case 'linear':
           transformer = Transition.linear
           break
+        case 'elastic':
+          transformer = Transition.simpleElastic
+          break
+        case 'elastic-bouncy':
+          transformer = (...args) => Transition.presetElastic('bouncy', ...args)
+          break
+        case 'elastic-medium':
+          transformer = (...args) => Transition.presetElastic('medium', ...args)
+          break
+        case 'elastic-strong':
+          transformer = (...args) => Transition.presetElastic('strong', ...args)
+          break
+        case 'elastic-weak':
+          transformer = (...args) => Transition.presetElastic('weak', ...args)
+          break
         default:
           transformer = Transition.easeOut
       }
@@ -148,7 +163,7 @@ export class Transition {
   updateStepTo () {
     this.#stepTos = this.#stepTos.filter(stepTo => {
       const [{ endValue, step, currentValue }, updateFn, endFn] = stepTo
-      if (currentValue + step >= endValue) {
+      if (step > 0 && currentValue + step >= endValue || step < 0 && currentValue + step <= endValue) {
         updateFn(endValue)
         endFn?.()
         return false
@@ -228,5 +243,113 @@ export class Transition {
     // 斜率
     const k = (endValue - startValue) / (end - start)
     return +(k * (current - start) + startValue).toFixed(2)
+  }
+
+  /**
+   * 弹性动画计算函数
+   * 使用弹簧物理模型实现弹性效果
+   *
+   * @param {number} startValue - 起始y轴值
+   * @param {number} endValue - 目标y轴值
+   * @param {number} start - 起始x轴值（时间起点）
+   * @param {number} end - 结束x轴值（时间终点）
+   * @param {number} current - 当前x轴值（当前时间）
+   * @param {Object} options - 可选参数，调整弹性行为
+   * @param {number} options.stiffness - 弹性系数，默认0.1
+   * @param {number} options.damping - 阻尼系数，默认0.8
+   * @param {number} options.velocity - 初始速度，默认0
+   * @param {number} options.mass - 质量，默认1
+   * @returns {number} 当前x值对应的y值
+   */
+  static elastic(startValue, endValue, start, end, current, options = {}) {
+    // 参数解构和默认值
+    const {
+      stiffness = 0.1,
+      damping = 0.8,
+      velocity = 0,
+      mass = 1
+    } = options;
+
+    // 边界检查
+    if (current <= start) return startValue;
+    if (current >= end) return endValue;
+
+    // 计算进度（0到1之间）
+    const progress = (current - start) / (end - start);
+
+    // 使用弹簧物理模型计算当前值
+    const displacement = endValue - startValue;
+    const springForce = stiffness * displacement;
+    const dampingForce = damping * velocity;
+
+    // 计算加速度 (F = ma)
+    const acceleration = (springForce - dampingForce) / mass;
+
+    // 更新速度（简化模型）
+    const newVelocity = velocity + acceleration * progress;
+
+    // 计算当前位置
+    const currentValue = startValue + displacement * progress + newVelocity * progress;
+
+    return currentValue;
+  }
+
+  /**
+   * 弹性动画计算函数
+   * 使用弹簧物理模型实现弹性效果
+   *
+   * @param {number} startValue - 起始y轴值
+   * @param {number} endValue - 目标y轴值
+   * @param {number} start - 起始x轴值（时间起点）
+   * @param {number} end - 结束x轴值（时间终点）
+   * @param {number} current - 当前x轴值（当前时间）
+   * @returns {number} 当前x值对应的y值
+   */
+  static simpleElastic(startValue, endValue, start, end, current) {
+    return  Transition.elastic(startValue, endValue, start, end, current, {
+      stiffness: 0.15,
+      damping: 0.7,
+      velocity: 0,
+      mass: 1
+    });
+  }
+
+  /**
+   * 预配置的弹性动画类型
+   */
+  static elasticPresets = {
+    // 强弹性效果
+    strong: {
+      stiffness: 0.2,
+      damping: 0.6,
+      velocity: 10,
+      mass: 1
+    },
+    // 中等弹性效果
+    medium: {
+      stiffness: 0.15,
+      damping: 0.7,
+      velocity: 5,
+      mass: 1
+    },
+    // 弱弹性效果
+    weak: {
+      stiffness: 0.1,
+      damping: 0.8,
+      velocity: 2,
+      mass: 1
+    },
+    // 弹跳效果
+    bouncy: {
+      stiffness: 0.25,
+      damping: 0.5,
+      velocity: 15,
+      mass: 1
+    }
+  };
+
+
+  static presetElastic(preset, startValue, endValue, start, end, current) {
+    return Transition.elastic(startValue, endValue, start, end, current, Transition.elasticPresets[preset]);
   }
 }

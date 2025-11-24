@@ -16,6 +16,8 @@ import { rgba } from './utils'
  * @property {string} background
  * @property {string?} hoverBackground
  * @property {number?} hoverScale
+ * @property {number?} hoverWidth
+ * @property {number?} offsetPercentX
  */
 
 export class BaseButton extends Shape {
@@ -38,7 +40,11 @@ export class BaseButton extends Shape {
    */
   #currentBackground
 
-  #hovered = false
+  /**
+   * @protected
+   * @type {boolean}
+   */
+  hovered = false
 
   /**
    * @param container {HTMLCanvasElement}
@@ -56,6 +62,7 @@ export class BaseButton extends Shape {
   setStyle (style) {
     this.#style = {
       hoverScale: 105,
+      offsetPercentX: 0.5,
       ...this.#style,
       ...style,
     }
@@ -67,29 +74,35 @@ export class BaseButton extends Shape {
   /**
    * @private
    */
-  rgba () {
-    const [r, g, b, a] = rgba.toValues(this.#currentBackground)
-    return `rgba(${r}, ${g}, ${b}, ${a})`
+  background () {
+    return this.#currentBackground
   }
 
   /**
    *
    */
   rect () {
-    const { left, top, width, height } = this.#style
+    const { left, top, width, height, offsetPercentX } = this.style()
     const scale = this.#currentScale / 100
-    const x = left + (1 - scale) * width * 0.5
-    const y = top + (1 - scale) * height * 0.5
+    const x = left + (1 - scale) * width * offsetPercentX
+    const y = top + (1 - scale) * height * offsetPercentX
     const w = width * scale
     const h = height * scale
 
     return [x, y, w, h]
   }
 
+  /**
+   * @return {ButtonStyle}
+   */
+  style () {
+    return this.#style
+  }
+
   render (context) {
     const [x, y, width, height] = this.rect()
-    const { text, fontSize: initialFontSize, font, color, radius } = this.#style
-    context.fillStyle = this.rgba()
+    const { text, fontSize: initialFontSize, font, color, radius } = this.style()
+    context.fillStyle = this.background()
     this.roundRect({
       context,
       x, y, width, height,
@@ -113,7 +126,7 @@ export class BaseButton extends Shape {
   }
 
   hover () {
-    this.#hovered = true
+    this.hovered = true
     this.cancelTransitions()
     const { hoverBackground, hoverScale } = this.#style
     if (hoverBackground) {
@@ -135,7 +148,7 @@ export class BaseButton extends Shape {
   }
 
   hoverOut () {
-    this.#hovered = false
+    this.hovered = false
     this.cancelTransitions()
     const { hoverBackground, hoverScale, background } = this.#style
     if (hoverBackground) {
@@ -180,10 +193,10 @@ export class BaseButton extends Shape {
       mousemoveEvents: [
         (e) => {
           if (this.isMouseIn(e)) {
-            if (!this.#hovered) {
+            if (!this.hovered) {
               this.hover()
             }
-          } else if (this.#hovered) {
+          } else if (this.hovered) {
             this.hoverOut()
           }
         },

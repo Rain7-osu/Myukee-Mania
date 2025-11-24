@@ -8,6 +8,7 @@ import { JudgementAssets } from './JudgementEffect'
 import { AccuracyEffect } from './AccuracyEffect'
 import { RankingEffect } from './RankingEffect'
 import { BaseButton } from './BaseButton'
+import { BackButton } from './BackButton'
 
 /**
  * @typedef RankingResult
@@ -115,19 +116,7 @@ export class RankingBoard extends Shape {
       fontSize: watchReplay.fontSize,
       hoverScale: 100,
     })
-    this.#backButton = new BaseButton(container, {
-      width: back.width,
-      height: back.height,
-      left: back.left,
-      top: back.top,
-      text: back.text,
-      background: back.background,
-      color: back.color,
-      font: back.font,
-      fontSize: back.fontSize,
-      hoverScale: 100,
-      radius: 0,
-    })
+    this.#backButton = new BackButton(container)
   }
 
   #alpha = 0
