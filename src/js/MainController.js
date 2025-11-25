@@ -17,6 +17,7 @@ import { RankingBoard } from './RankingBoard'
 import { MainHeader } from './MainHeader'
 import { FlashLightEffect } from './FlashLightEffect'
 import { CANVAS } from './Config'
+import { BackButton } from './BackButton'
 
 /**
  * 主界面管理器
@@ -38,6 +39,11 @@ export class MainController {
   #flashLightEffect = new FlashLightEffect()
 
   #mainHeader = new MainHeader()
+
+  /**
+   * @type {BackButton}
+   */
+  #backButton
 
   /**
    * @type {RankingBoard}
@@ -65,6 +71,10 @@ export class MainController {
    * @type {HTMLCanvasElement}
    */
   #canvas
+  /**
+   * @type {HTMLElement}
+   */
+  #entry
 
   /**
    * @type {AudioManager}
@@ -97,10 +107,12 @@ export class MainController {
 
   /**
    * @param canvas {HTMLCanvasElement}
+   * @param entry {HTMLElement}
    */
-  constructor (canvas) {
+  constructor (canvas, entry) {
     if (canvas) {
       this.#canvas = canvas
+      this.#entry = entry
       this.#layoutEngine = new LayoutRenderEngine(canvas)
     }
 
@@ -111,7 +123,22 @@ export class MainController {
     this.#pauseMenu = new PauseMenu(canvas)
     this.#rankingBoard = new RankingBoard(canvas)
     this.#beatmapListManager = new BeatmapListManager(canvas)
+    this.#backButton = new BackButton(canvas)
     this.#cursor = new Cursor()
+  }
+
+  exit () {
+    this.#canvas.style.display = 'none'
+    this.#entry.style.display = 'flex'
+  }
+
+  registerMainBackButtonEvents () {
+    this.#backButton.registerEvents({
+      onClick: async () => {
+        await this.fadeOut(0, 2000)
+        this.exit()
+      },
+    })
   }
 
   /**
@@ -119,15 +146,19 @@ export class MainController {
    * @return {Promise<void>}
    */
   async start () {
+    this.#canvas.style.display = 'block'
+    this.#entry.style.display = 'none'
     const songs = await this.loadSongList()
     this.#beatmapListManager.init(songs)
     const selectItem = this.#beatmapListManager.firstSelect()
-    await Promise.all([
+    Promise.all([
       this.#mainHeader.setBeatmap(selectItem.beatmap),
       this.#backgroundEffect.setImage(selectItem.beatmap.bgImage),
       this.run(),
-    ])
-    this.registerEvents()
+    ]).then()
+    this.registerKeyboardEvents()
+    this.registerMouseEvents()
+    this.registerMainBackButtonEvents()
 
     listenFullscreenChange((fullscreen) => {
       if (!fullscreen) {
@@ -197,6 +228,8 @@ export class MainController {
    * @param beatmap {Beatmap}
    */
   async preparePlay (beatmap) {
+    this.#backButton.cancelAnimations()
+    this.#backButton.removeEvents()
     this.#beatmapListManager.beatmapList.removeEvents()
     this.#autoManager.abort()
     this.#autoManager.abort()
@@ -257,7 +290,8 @@ export class MainController {
       this.#mainHeader.show(),
     ])
     if (!this.#interrupt) {
-      this.registerEvents()
+      this.registerKeyboardEvents()
+      this.registerMouseEvents()
       this.#beatmapListManager.beatmapList.registerEvents({
         onClick: handleClick,
       })
@@ -335,20 +369,13 @@ export class MainController {
         } else {
           await enterFullscreen()
           this.#interrupt = false
-          this.registerEvents()
+          this.registerKeyboardEvents()
+          this.registerMouseEvents()
           this.#pauseMenu.hide()
           this.run()
         }
       },
     })
-  }
-
-  /**
-   * @private
-   */
-  registerEvents () {
-    this.registerKeyboardEvents()
-    this.registerMouseEvents()
   }
 
   pause () {
@@ -380,20 +407,6 @@ export class MainController {
     })
   }
 
-  async fadeIn () {
-    this.#backgroundFading = true
-    await this.#backgroundDarker.setValue(100, 200)
-    await this.#backgroundDarker.setValue(0, 300)
-    this.#backgroundFading = false
-  }
-
-  async fadeOut () {
-    this.#backgroundFading = true
-    await this.#backgroundDarker.setValue(0, 200)
-    await this.#backgroundDarker.setValue(100, 300)
-    this.#backgroundFading = false
-  }
-
   /**
    * @param rankingResults {RankingResult}
    */
@@ -402,23 +415,24 @@ export class MainController {
     this.#showResults = true
     this.#rankingBoard.setResult(rankingResults)
     this.#cursor.show()
-    await this.fadeIn()
-    await this.#rankingBoard.show()
     this.#rankingBoard.registerEvents({
       onRetry: async () => {
         await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
-        console.log('retry')
         await this.retry()
-      },
-      onBack: async () => {
-        await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
-        console.log('backMain')
-        await this.backMain()
       },
       onWatchReplay: async () => {
         console.log('Not implements')
       },
     })
+    this.#backButton.registerEvents({
+      onClick: async () => {
+        await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
+        this.#backButton.removeEvents()
+        await this.backMain()
+      },
+    })
+    await this.fadeIn()
+    await this.#rankingBoard.show()
   }
 
   async backMain () {
@@ -430,6 +444,8 @@ export class MainController {
     this.#stageController.quit()
     this.#pauseMenu.removeEvents()
     this.#rankingBoard.removeEvents()
+    this.#backButton.cancelAnimations()
+    this.registerMainBackButtonEvents()
   }
 
   async resume () {
@@ -469,13 +485,15 @@ export class MainController {
 
   updateFrame () {
     const now = performance.now()
-    this.#beatmapListManager.beatmapList.updateTransition(now)
-    this.#backgroundEffect.updateTransition(now)
-    this.#backgroundDarker.updateTransition(now)
-    this.#flashLightEffect.updateTransition(now)
-    this.#pauseMenu.updateTransition(now)
-    this.#mainHeader.updateTransition(now)
-    this.#rankingBoard.update(now)
+
+    this.#backgroundDarker.updateEffect(now)
+    this.#rankingBoard.updateEffect(now)
+    this.#beatmapListManager.beatmapList.updateEffect(now)
+    this.#mainHeader.updateEffect(now)
+    this.#backButton.updateEffect(now)
+    this.#flashLightEffect.updateEffect(now)
+    this.#pauseMenu.updateEffect(now)
+    this.#backgroundDarker.updateEffect(now)
   }
 
   renderFrame () {
@@ -487,6 +505,7 @@ export class MainController {
     // }
 
     if (this.#playing) {
+      this.#layoutEngine.renderShape(this.#backgroundDarker)
       this.#stageController.loopFrame()
       if (this.#paused) {
         this.renderFrameSnapshot()
@@ -494,16 +513,22 @@ export class MainController {
       }
     } else if (this.#showResults) {
       this.renderResultsBoard()
+      this.#layoutEngine.renderShape(this.#backButton)
     } else {
       this.renderBeatmaps()
       this.renderHeader()
+      this.#layoutEngine.renderShape(this.#backButton)
     }
+
+    this.#layoutEngine.renderShape(this.#flashLightEffect)
 
     if (this.#interrupt) {
       this.renderPauseMenu()
     }
 
-    this.#layoutEngine.renderShape(this.#flashLightEffect)
+    if (this.#backgroundFading) {
+      this.#layoutEngine.renderShape(this.#backgroundDarker)
+    }
   }
 
   renderHeader () {
@@ -530,10 +555,6 @@ export class MainController {
    */
   renderBackground () {
     this.#layoutEngine.renderShape(this.#backgroundEffect)
-
-    if (this.#playing || this.#backgroundFading) {
-      this.#layoutEngine.renderShape(this.#backgroundDarker)
-    }
   }
 
   /**
@@ -548,6 +569,20 @@ export class MainController {
    */
   renderBeatmaps () {
     this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
+  }
+
+  async fadeIn (start = 200, end = 300) {
+    this.#backgroundFading = true
+    await this.#backgroundDarker.setValue(100, start)
+    await this.#backgroundDarker.setValue(0, end)
+    this.#backgroundFading = false
+  }
+
+  async fadeOut (start = 200, end = 300) {
+    this.#backgroundFading = true
+    await this.#backgroundDarker.setValue(0, start)
+    await this.#backgroundDarker.setValue(100, end)
+    this.#backgroundFading = false
   }
 
   /**

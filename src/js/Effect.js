@@ -24,7 +24,22 @@
  * ]} StepToConfig
  */
 
-export class Transition {
+import { createLimitLog } from './dev'
+
+/**
+ * @typedef {{
+ *   params: [
+ *     startValue: number,
+ *     endValue: number,
+ *     type: 'spring',
+ *     update: (value: number) => void,
+ *  ],
+ *  status: Object
+ * }} AnimationConfig
+ *
+ */
+
+export class Effect {
   /**
    * @private
    * @type {TransitionConfig[]}
@@ -35,6 +50,11 @@ export class Transition {
    * @type {StepToConfig[]}
    */
   #stepTos = []
+
+  /**
+   * @type {AnimationConfig[]}
+   */
+  #animations = []
 
   /**
    * @public
@@ -107,28 +127,13 @@ export class Transition {
       let transformer
       switch (type) {
         case 'easeOut':
-          transformer = Transition.easeOut
+          transformer = Effect.easeOut
           break
         case 'linear':
-          transformer = Transition.linear
-          break
-        case 'elastic':
-          transformer = Transition.simpleElastic
-          break
-        case 'elastic-bouncy':
-          transformer = (...args) => Transition.presetElastic('bouncy', ...args)
-          break
-        case 'elastic-medium':
-          transformer = (...args) => Transition.presetElastic('medium', ...args)
-          break
-        case 'elastic-strong':
-          transformer = (...args) => Transition.presetElastic('strong', ...args)
-          break
-        case 'elastic-weak':
-          transformer = (...args) => Transition.presetElastic('weak', ...args)
+          transformer = Effect.linear
           break
         default:
-          transformer = Transition.easeOut
+          transformer = Effect.easeOut
       }
 
       const value = transformer(startValue, endValue, start, end, current)
@@ -184,6 +189,59 @@ export class Transition {
   }
 
   /**
+   * @param startValue {number}
+   * @param endValue {number}
+   * @param type {'spring'}
+   * @param update {(value: number) => void}
+   */
+  createAnimation (startValue, endValue, type, update) {
+    const ANIMATION_INIT_STATUS = {
+      spring: {
+        stiffness: 0.1,  // 弹性系数
+        damping: 0.85,    // 阻尼系数
+        velocity: 0,      // 当前速度
+        currentValue: null,
+      },
+    }
+
+    this.#animations.push({
+      params: [startValue, endValue, type, update],
+      status: { ...ANIMATION_INIT_STATUS[type] },
+    })
+  }
+
+  updateAnimation () {
+    if (!this.#animations.length) {
+      return
+    }
+
+    this.#animations.forEach(({ params, status }) => {
+      const [startValue, endValue, type, update] = params
+      let animation
+      switch (type) {
+        case 'spring':
+          animation = Effect.spring
+          break
+        default:
+          animation = Effect.spring
+      }
+      const value = animation(startValue, endValue, status)
+      update(value)
+    })
+  }
+
+  /**
+   * @param animations {Array<(value: number) => void>?}
+   */
+  cancelAnimations (animations) {
+    if (!animations) {
+      this.#animations = []
+      return
+    }
+    this.#animations = this.#animations.filter(animation => !animations.includes(animation[2]))
+  }
+
+  /**
    * @param transformers {Array<(value: number) => void>?}
    */
   cancelStepTos (transformers) {
@@ -202,6 +260,18 @@ export class Transition {
       this.#updates = []
     }
     this.#updates = this.#updates.filter((update) => !transformers.includes(update[1]))
+  }
+
+  updateEffect (time) {
+    this.updateTransition(time)
+    this.updateStepTo()
+    this.updateAnimation()
+  }
+
+  cancelEffect () {
+    this.cancelAnimations()
+    this.cancelTransitions()
+    this.cancelStepTos()
   }
 
   /**
@@ -246,110 +316,32 @@ export class Transition {
   }
 
   /**
-   * 弹性动画计算函数
-   * 使用弹簧物理模型实现弹性效果
-   *
-   * @param {number} startValue - 起始y轴值
-   * @param {number} endValue - 目标y轴值
-   * @param {number} start - 起始x轴值（时间起点）
-   * @param {number} end - 结束x轴值（时间终点）
-   * @param {number} current - 当前x轴值（当前时间）
-   * @param {Object} options - 可选参数，调整弹性行为
-   * @param {number} options.stiffness - 弹性系数，默认0.1
-   * @param {number} options.damping - 阻尼系数，默认0.8
-   * @param {number} options.velocity - 初始速度，默认0
-   * @param {number} options.mass - 质量，默认1
-   * @returns {number} 当前x值对应的y值
+   * @param startValue {number}
+   * @param endValue {number}
+   * @param status {Object}
+   * @return {number}
    */
-  static elastic(startValue, endValue, start, end, current, options = {}) {
-    // 参数解构和默认值
-    const {
-      stiffness = 0.1,
-      damping = 0.8,
-      velocity = 0,
-      mass = 1
-    } = options;
-
-    // 边界检查
-    if (current <= start) return startValue;
-    if (current >= end) return endValue;
-
-    // 计算进度（0到1之间）
-    const progress = (current - start) / (end - start);
-
-    // 使用弹簧物理模型计算当前值
-    const displacement = endValue - startValue;
-    const springForce = stiffness * displacement;
-    const dampingForce = damping * velocity;
-
-    // 计算加速度 (F = ma)
-    const acceleration = (springForce - dampingForce) / mass;
-
-    // 更新速度（简化模型）
-    const newVelocity = velocity + acceleration * progress;
-
-    // 计算当前位置
-    const currentValue = startValue + displacement * progress + newVelocity * progress;
-
-    return currentValue;
-  }
-
-  /**
-   * 弹性动画计算函数
-   * 使用弹簧物理模型实现弹性效果
-   *
-   * @param {number} startValue - 起始y轴值
-   * @param {number} endValue - 目标y轴值
-   * @param {number} start - 起始x轴值（时间起点）
-   * @param {number} end - 结束x轴值（时间终点）
-   * @param {number} current - 当前x轴值（当前时间）
-   * @returns {number} 当前x值对应的y值
-   */
-  static simpleElastic(startValue, endValue, start, end, current) {
-    return  Transition.elastic(startValue, endValue, start, end, current, {
-      stiffness: 0.15,
-      damping: 0.7,
-      velocity: 0,
-      mass: 1
-    });
-  }
-
-  /**
-   * 预配置的弹性动画类型
-   */
-  static elasticPresets = {
-    // 强弹性效果
-    strong: {
-      stiffness: 0.2,
-      damping: 0.6,
-      velocity: 10,
-      mass: 1
-    },
-    // 中等弹性效果
-    medium: {
-      stiffness: 0.15,
-      damping: 0.7,
-      velocity: 5,
-      mass: 1
-    },
-    // 弱弹性效果
-    weak: {
-      stiffness: 0.1,
-      damping: 0.8,
-      velocity: 2,
-      mass: 1
-    },
-    // 弹跳效果
-    bouncy: {
-      stiffness: 0.25,
-      damping: 0.5,
-      velocity: 15,
-      mass: 1
+  static spring (startValue, endValue, status) {
+    if (status.currentValue === null) {
+      status.currentValue = startValue
     }
-  };
 
+    // 计算目标差值
+    const displacement = endValue - status.currentValue
+    // 计算弹性力
+    const springForce = displacement * status.stiffness
 
-  static presetElastic(preset, startValue, endValue, start, end, current) {
-    return Transition.elastic(startValue, endValue, start, end, current, Transition.elasticPresets[preset]);
+    // 更新速度
+    status.velocity += springForce
+    status.velocity *= status.damping
+
+    l(displacement, springForce, status.velocity)
+
+    // 更新值
+    status.currentValue += status.velocity
+    return status.currentValue
   }
 }
+
+window.cl = createLimitLog
+window.l = createLimitLog(10)

@@ -513,7 +513,7 @@ export class StageController {
       }
     }
 
-    this.#stageBoard.updateTransition(now)
+    this.#stageBoard.updateEffect(now)
   }
 
   renderJudgementDeviations () {

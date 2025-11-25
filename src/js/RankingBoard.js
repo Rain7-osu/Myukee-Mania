@@ -51,10 +51,6 @@ export class RankingBoard extends Shape {
    */
   #watchReplayButton
   /**
-   * @type {BaseButton}
-   */
-  #backButton
-  /**
    * @type {boolean}
    */
   #hasRegistered = false
@@ -116,7 +112,6 @@ export class RankingBoard extends Shape {
       fontSize: watchReplay.fontSize,
       hoverScale: 100,
     })
-    this.#backButton = new BackButton(container)
   }
 
   #alpha = 0
@@ -161,13 +156,12 @@ export class RankingBoard extends Shape {
   /**
    * @param now {number}
    */
-  update (now) {
-    this.updateTransition(now)
-    this.#rankingEffect.updateTransition(now)
-    this.#watchReplayButton.updateTransition(now)
-    this.#retryButton.updateTransition(now)
-    this.#backButton.updateTransition(now)
-    this.#scoreEffect.updateStepTo()
+  updateEffect (now) {
+    super.updateEffect(now)
+    this.#rankingEffect.updateEffect(now)
+    this.#watchReplayButton.updateEffect(now)
+    this.#retryButton.updateEffect(now)
+    this.#scoreEffect.updateEffect(now)
   }
 
   /**
@@ -185,7 +179,6 @@ export class RankingBoard extends Shape {
     }
     this.#retryButton.registerEvents({ onClick: onRetry })
     this.#watchReplayButton.registerEvents({ onClick: onWatchReplay })
-    this.#backButton.registerEvents({ onClick: onBack })
   }
 
   removeEvents () {
@@ -194,7 +187,6 @@ export class RankingBoard extends Shape {
     }
     this.#retryButton.removeEvents()
     this.#watchReplayButton.removeEvents()
-    this.#backButton.removeEvents()
   }
 
   render (context) {
@@ -397,8 +389,8 @@ export class RankingBoard extends Shape {
       renderResultsBg()
 
       let offsetY = itemTop + RESULTS_TOP
-      renderJudgement(itemLeft, offsetY, JudgementType.PERFECT)
-      renderJudgement(halfItemLeft, offsetY, JudgementType.GREAT)
+      renderJudgement(itemLeft, offsetY, JudgementType.GREAT)
+      renderJudgement(halfItemLeft, offsetY, JudgementType.PERFECT)
       offsetY += itemHeight + itemTop
       renderJudgement(itemLeft, offsetY, JudgementType.GOOD)
       renderJudgement(halfItemLeft, offsetY, JudgementType.OK)
@@ -417,7 +409,6 @@ export class RankingBoard extends Shape {
     const renderButtons = () => {
       this.#retryButton.render(context)
       this.#watchReplayButton.render(context)
-      this.#backButton.render(context)
     }
 
     renderHeader()

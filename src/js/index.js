@@ -19,9 +19,9 @@ async function run () {
   const container = $('stage-container')
   container.append(canvas)
   await enterFullscreen()
-  const main = new MainController(canvas)
+  const entry = $('enter')
+  const main = new MainController(canvas, entry)
   await main.start()
-  $('enter').style.display = 'none'
 }
 
 bindClick('enter', run)

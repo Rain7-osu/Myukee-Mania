@@ -1,9 +1,14 @@
-import { Transition } from './Transition'
+import { Effect } from './Effect'
 
 /**
  * @abstract
  */
-export class Shape extends Transition {
+export class Shape extends Effect {
+  #display = true
+
+  set display (value) { this.#display = value}
+
+  get display () { return this.#display}
 
   /**
    * @public

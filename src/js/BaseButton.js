@@ -85,7 +85,7 @@ export class BaseButton extends Shape {
     const { left, top, width, height, offsetPercentX } = this.style()
     const scale = this.#currentScale / 100
     const x = left + (1 - scale) * width * offsetPercentX
-    const y = top + (1 - scale) * height * offsetPercentX
+    const y = top + (1 - scale) * height
     const w = width * scale
     const h = height * scale
 

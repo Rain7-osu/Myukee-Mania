@@ -58,7 +58,9 @@ export class RenderEngine {
    * @param shape {Shape}
    */
   renderShape (shape) {
-    shape.render(this.context)
+    if (shape.display) {
+      shape.render(this.context)
+    }
   }
 
   /**
