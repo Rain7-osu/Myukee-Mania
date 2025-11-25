@@ -15,6 +15,11 @@ export class AudioManager {
 
   constructor () {
     this.#audio = new Audio()
+    document.body.appendChild(this.#audio)
+    this.#audio.style.position = 'fixed'
+    this.#audio.style.top = '50%'
+    this.#audio.style.zIndex = '999'
+    this.#audio.id = 'test'
   }
 
   /**
@@ -23,31 +28,31 @@ export class AudioManager {
    * @param startTime {number?}
    * @return Promise<void>
    */
-  load (filename, startTime) {
+  async load (filename, startTime = 0) {
     if (this.#filename === filename) {
       return Promise.resolve()
     }
 
     this.#filename = filename
+    const res = await fetch(filename)
+    const blob = await res.blob()
+    const urlObj = URL.createObjectURL(blob)
 
     return new Promise((resolve) => {
-      this.#audio.src = filename
+      this.#audio.src = urlObj
       this.#audio.controls = true
       this.#audio.autoplay = false
+      this.#audio.currentTime = startTime / 1000
 
       const onLoad = () => {
         if (this.#audio.duration) {
-          if (startTime) {
-            this.#audio.currentTime = startTime / 100.0
-          }
-
           this.#duration = this.#audio.duration * 1000
-          this.#audio.removeEventListener('loadedmetadata', onLoad)
+          this.#audio.removeEventListener('canplaythrough', onLoad)
           resolve()
         }
       }
 
-      this.#audio.addEventListener('loadedmetadata', onLoad)
+      this.#audio.addEventListener('canplaythrough', onLoad)
     })
   }
 

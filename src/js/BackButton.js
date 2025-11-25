@@ -38,7 +38,6 @@ export class BackButton extends BaseButton {
     this.hovered = true
     this.cancelAnimations()
     const { hoverWidth, width, hoverBackground, background } = this.style()
-    console.log(width, hoverWidth)
     const [rh, gh, bh, ah] = rgba.toValues(hoverBackground)
     const [rb] = rgba.toValues(background)
     const [r, g, b, a] = rgba.toValues(this.#currentBackground)
@@ -62,7 +61,6 @@ export class BackButton extends BaseButton {
     this.hovered = false
     this.cancelAnimations()
     const { width, background, hoverBackground } = this.style()
-    console.log(width, this.#defaultWidth)
     this.createAnimation(width, this.#defaultWidth, 'spring', (value) => this.setStyle({ width: value }))
     const [rh, gh, bh, ah] = rgba.toValues(this.#currentBackground)
     const [rb] = rgba.toValues(hoverBackground)

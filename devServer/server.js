@@ -111,6 +111,7 @@ function serveFile (res, filePath, contentType) {
     if (contentType === 'audio/mp3' || contentType === 'image/png' || contentType === 'audio/ogg') {
       const stat = fs.statSync(filePath)
       headers['Content-Length'] = stat.size
+      headers['Cache-Control'] = 'private; max-age: 3153600'
     }
 
     res.writeHead(200, headers)

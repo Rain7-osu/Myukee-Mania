@@ -20,4 +20,5 @@ export const KeyCode = {
   ENTER: 'Enter',
   ARROW_UP: 'ArrowUp',
   ARROW_DOWN: 'ArrowDown',
+  F6: 'F6',
 }

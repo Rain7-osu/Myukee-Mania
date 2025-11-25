@@ -283,12 +283,6 @@ export class MainController {
       }
     }
 
-    this.loopFrame()
-    await this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap)
-    await Promise.all([
-      this.#beatmapListManager.show(),
-      this.#mainHeader.show(),
-    ])
     if (!this.#interrupt) {
       this.registerKeyboardEvents()
       this.registerMouseEvents()
@@ -296,6 +290,12 @@ export class MainController {
         onClick: handleClick,
       })
     }
+    this.loopFrame()
+    await Promise.all([
+      this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap),
+      this.#beatmapListManager.show(),
+      this.#mainHeader.show(),
+    ])
   }
 
   registerKeyboardEvents () {
@@ -320,6 +320,12 @@ export class MainController {
               this.pause()
             }
           }
+        },
+        [KeyCode.F6]: async () => {
+          this.#autoManager.pause()
+        },
+        [KeyCode.F5]: async () => {
+          this.#autoManager.resume()
         },
       },
     })
