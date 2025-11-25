@@ -63,6 +63,7 @@ export class ScrollList extends Shape {
       lastScrollTime: 0,
       lastScrollY: this.#listConfig.initialScrollY,
       wheelEvent: null,
+      velocity: 0,
     }
   }
 
@@ -107,6 +108,7 @@ export class ScrollList extends Shape {
    *   lastScrollY: number;
    *   wheelEvent: HTMLElementEventMap['canvas'] | null;
    *   mouseMoving: boolean;
+   *   velocity: 0,
    * }}
    */
   #status
@@ -182,43 +184,30 @@ export class ScrollList extends Shape {
     const x = e.clientX
     const y = e.clientY
     const { left: listLeft, top: listTop, height: listHeight, width: listWidth } = this.#style
-    return x >= listLeft && y >= listTop && x <= listLeft + listWidth && y <= listTop + listHeight;
+    return x >= listLeft && y >= listTop && x <= listLeft + listWidth && y <= listTop + listHeight
   }
 
-
   /**
-   * @public
-   * @param e {HTMLElementEventMap['canvas']}
+   * @private
+   * @param e {WheelEvent}
    * @return void
    */
-  handleMouseWheel (e) {
-    if (!this.checkEventCapture(e)) {
-      return
-    }
+  _onWheel (e) {
+    const wheelDirection = e.deltaY > 0 ? 1 : -1
+    const wheelSpeed = 5
 
-    e.preventDefault()
-    clearTimeout(this.#mouseMoveTimer)
-    this.#status.wheelEvent = e
-    const currentScrollY = this.#scrollY
+    this.#status.velocity += wheelDirection * wheelSpeed
+    this.#status.velocity = Math.max(-160, Math.min(160, this.#status.velocity))
+  }
+
+  _updateScroll() {
+    this.#scrollY += this.#status.velocity
     const { maxScrollY, minScrollY } = this.calcScrollYConfig()
-    const { maxVelocity } = this.#listConfig
-    const { lastScrollY, lastScrollTime } = this.#status
-    const currentTime = performance.now()
-
-    this.#status.lastScrollTime = currentTime
-    this.#status.lastScrollY = this.#scrollY
-    this.#scrollY += e.deltaY * 0.5
     this.#scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
+    this.#status.velocity *= this.#listConfig.friction
 
-    if (lastScrollTime > 0) {
-      const timeDiff = currentTime - lastScrollTime
-      const scrollDiff = currentScrollY - lastScrollY
-      // 计算每帧速度
-      this.#scrollSpeed = (scrollDiff / timeDiff) * 16.7
-
-      if (Math.abs(this.#scrollSpeed) > maxVelocity) {
-        this.#scrollSpeed = this.#scrollSpeed > 0 ? maxVelocity : -maxVelocity
-      }
+    if (Math.abs(this.#status.velocity) < 0.1) {
+      this.#status.velocity = 0
     }
   }
 
@@ -306,41 +295,6 @@ export class ScrollList extends Shape {
   }
 
   /**
-   * @return void
-   */
-  inertiaScroll () {
-    if (this.#status.isWheeling) {
-      return
-    }
-    const { minVelocity, friction } = this.#listConfig
-    const { wheelEvent } = this.#status
-    const { maxScrollY, minScrollY } = this.calcScrollYConfig()
-    const scrollSpeed = this.#scrollSpeed
-    const scrollY = this.#scrollY
-
-    if (Math.abs(scrollSpeed) > minVelocity) {
-      if (Math.abs(scrollSpeed) < 1 && wheelEvent) {
-        this.handleMouseMove(wheelEvent)
-      }
-
-      this.#status.isInertiaScrolling = true
-      this.#scrollY += scrollSpeed
-      this.#scrollSpeed *= friction
-
-      if (scrollY < minScrollY) {
-        this.#scrollY = minScrollY
-        this.#scrollSpeed = 0
-      } else if (scrollY > maxScrollY) {
-        this.#scrollY = maxScrollY
-        this.#scrollSpeed = 0
-      }
-    } else {
-      this.#status.isInertiaScrolling = false
-      this.#scrollSpeed = 0
-    }
-  }
-
-  /**
    * @public
    * @param eventMaps {{
    *   onClick: (item: T) => void;
@@ -354,7 +308,7 @@ export class ScrollList extends Shape {
     const container = this.#container
     this.#eventMaps = eventMaps
 
-    const handleMouseWheel = this.handleMouseWheel.bind(this)
+    const handleMouseWheel = this._onWheel.bind(this)
     const handleMouseMove = this.handleMouseMove.bind(this)
     const handleClick = this.handleClick.bind(this)
     container.addEventListener('wheel', handleMouseWheel)
@@ -528,7 +482,7 @@ export class ScrollList extends Shape {
     const scrollItems = this.scrollItems()
     for (const scrollItem of scrollItems) {
       scrollItem.scrollY = this.#scrollY
-      scrollItem.offsetX = this.getOffsetX(this.#scrollSpeed, scrollItem.offsetY - this.#scrollY)
+      scrollItem.offsetX = this.getOffsetX(this.#status.velocity, scrollItem.offsetY - this.#scrollY)
     }
   }
 
@@ -536,9 +490,7 @@ export class ScrollList extends Shape {
    * @param now {number}
    */
   updateTransition (now) {
-    if (!this.#status.isWheeling) {
-      this.inertiaScroll()
-    }
+    this._updateScroll()
     super.updateTransition(now)
     if (this.#lastScrollY !== this.#scrollY) {
       this.scrollRefreshItems()

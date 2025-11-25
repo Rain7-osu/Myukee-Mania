@@ -26,7 +26,7 @@ export class BeatmapList extends ScrollList {
       left: CANVAS.WIDTH / 2,
       top: 164,
       width: CANVAS.WIDTH / 2,
-      height: CANVAS.HEIGHT - 160
+      height: CANVAS.HEIGHT - 160,
     })
   }
 
@@ -45,7 +45,7 @@ export class BeatmapList extends ScrollList {
   }
 
   getOffsetX (scrollSpeed, offsetY) {
-    const speedOffset = Math.min(Math.abs(scrollSpeed * 5.0), CANVAS.WIDTH / 4.0)
+    const speedOffset = Math.min(Math.abs(scrollSpeed * 3.0), CANVAS.WIDTH / 4.0)
     const itemHeight = Skin.config.main.beatmap.item.base.height
     const scrollOffset = Math.abs(offsetY - CANVAS.HEIGHT / 2) / itemHeight * 25
     return Math.min(speedOffset + scrollOffset, 240)
