@@ -3,7 +3,7 @@ import { Note } from './Note'
 import { PlayMap } from './PlayMap'
 import { uniqNotes } from './utils'
 
-const LINE_WRAP_CHAR = '\r\n'
+const LINE_WRAP_CHAR = '\n'
 const GROUP_NAME_MATCH = /\[(\w+)]/
 
 export class MapResolver {
