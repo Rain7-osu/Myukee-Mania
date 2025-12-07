@@ -40,7 +40,7 @@ export class AudioManager {
 
     return new Promise((resolve) => {
       this.#audio.src = urlObj
-      this.#audio.controls = true
+      this.#audio.controls = false
       this.#audio.autoplay = false
       this.#audio.currentTime = startTime / 1000
 
