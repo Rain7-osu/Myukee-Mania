@@ -34,12 +34,17 @@ export class AudioManager {
     }
 
     this.#filename = filename
-    const res = await fetch(filename)
-    const blob = await res.blob()
-    const urlObj = URL.createObjectURL(blob)
+    let src
+    if (startTime > 0) {
+      const res = await fetch(filename)
+      const blob = await res.blob()
+      src = URL.createObjectURL(blob)
+    } else {
+      src = filename
+    }
 
     return new Promise((resolve) => {
-      this.#audio.src = urlObj
+      this.#audio.src = src
       this.#audio.controls = false
       this.#audio.autoplay = false
       this.#audio.currentTime = startTime / 1000
@@ -66,6 +71,13 @@ export class AudioManager {
    */
   setCurrentTime (time) {
     this.#audio.currentTime = time
+  }
+
+  /**
+   * @param value {number}
+   */
+  setRate(value) {
+    this.#audio.playbackRate = value;
   }
 
   async play () {

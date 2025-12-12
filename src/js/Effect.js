@@ -24,7 +24,6 @@
  * ]} StepToConfig
  */
 
-import { createLimitLog } from './dev'
 
 /**
  * @typedef {{
@@ -335,13 +334,8 @@ export class Effect {
     status.velocity += springForce
     status.velocity *= status.damping
 
-    l(displacement, springForce, status.velocity)
-
     // 更新值
     status.currentValue += status.velocity
     return status.currentValue
   }
 }
-
-window.cl = createLimitLog
-window.l = createLimitLog(10)

@@ -21,4 +21,7 @@ export const KeyCode = {
   ARROW_UP: 'ArrowUp',
   ARROW_DOWN: 'ArrowDown',
   F6: 'F6',
+  F7: 'F7',
+  F8: 'F8',
+  F9: 'F9',
 }

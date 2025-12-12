@@ -192,9 +192,10 @@ export class StageController {
   /**
    * @param beatmap {Beatmap}
    * @param settings {Settings}
+   * @param rate {number}
    * @return void
    */
-  async init (beatmap, settings) {
+  async init (beatmap, settings, rate) {
     const { keys } = Skin.config.stage
 
     this.#settings = settings
@@ -202,6 +203,7 @@ export class StageController {
     this.#beatmap = beatmap
     const mapFile = await FileManager.loadMapFile(beatmap.filename)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
+    currentMap.setRate(rate)
     const audio = new AudioManager()
     const { keys: keysCount, notes, overallDifficulty } = currentMap
     const { note: { width } } = keys[`keys${keysCount}`]
@@ -209,6 +211,7 @@ export class StageController {
     this.#hitEffects.keys = keysCount
     this.#stageWidth = keysCount * width
     await audio.load(beatmap.audioFile)
+    audio.setRate(rate)
     this.#playingMap = currentMap
     this.#playingAudio = audio
     this.initSectionLines()

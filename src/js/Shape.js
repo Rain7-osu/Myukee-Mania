@@ -305,12 +305,32 @@ export class OffsetShape {
   /** @type {number} */
   #end
 
+  /**
+   * @return {number}
+   */
   get offset () {
     return this.#offset
   }
 
+  /**
+   * @param value {number}
+   */
+  set offset(value) {
+    this.#offset = value
+  }
+
+  /**
+   * @return {number}
+   */
   get end () {
     return this.#end
+  }
+
+  /**
+   * @param value {number}
+   */
+  set end(value) {
+    this.#end = value
   }
 
   /**

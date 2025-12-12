@@ -18,6 +18,7 @@ import { MainHeader } from './MainHeader'
 import { FlashLightEffect } from './FlashLightEffect'
 import { BackButton } from './BackButton'
 import { FPS } from './FPS'
+import { RateChangeEffect } from './RateChangeEffect'
 
 /**
  * 主界面管理器
@@ -66,6 +67,11 @@ export class MainController {
    */
   #stageController
 
+  /**
+   * @type {number}
+   */
+  #currentRate = 1
+
   #loading = false
   #playing = false
   #paused = false
@@ -96,6 +102,11 @@ export class MainController {
    * @type {MouseEventManager}
    */
   #mouseEventManager
+
+  /**
+   * @type {ValueChangeEffect}
+   */
+  #valueChangeEffect = null
 
   /**
    * @type {Cursor}
@@ -131,6 +142,24 @@ export class MainController {
     this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#backButton = new BackButton(canvas)
     this.#cursor = new Cursor()
+  }
+
+  increaseRate () {
+    this.#currentRate += 0.05
+    if (this.#currentRate >= 2.5) {
+      this.#currentRate = 2.5
+    }
+    this.#currentRate = +this.#currentRate.toFixed(2)
+    this.#valueChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
+  }
+
+  decreaseRate () {
+    this.#currentRate -= 0.05
+    if (this.#currentRate <= 0.25) {
+      this.#currentRate = 0.25
+    }
+    this.#currentRate = +this.#currentRate.toFixed(2)
+    this.#valueChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
   }
 
   exit () {
@@ -222,7 +251,7 @@ export class MainController {
     this.#stageController.afterFinish((rankingResults) => {
       this.finish(rankingResults)
     })
-    await this.#stageController.init(beatmap, this.#settings)
+    await this.#stageController.init(beatmap, this.#settings, this.#currentRate)
     this.#stageController.start()
     this.#playing = true
     this.#showResults = false
@@ -333,6 +362,12 @@ export class MainController {
         },
         [KeyCode.F5]: async () => {
           this.#autoManager.resume()
+        },
+        [KeyCode.F7]: async () => {
+          this.decreaseRate()
+        },
+        [KeyCode.F8]: async () => {
+          this.increaseRate()
         },
       },
     })
@@ -507,6 +542,13 @@ export class MainController {
     this.#flashLightEffect.updateEffect(now)
     this.#pauseMenu.updateEffect(now)
     this.#backgroundDarker.updateEffect(now)
+
+    if (this.#valueChangeEffect) {
+      this.#valueChangeEffect.update(now)
+      if (!this.#valueChangeEffect.active) {
+        this.#valueChangeEffect = null
+      }
+    }
   }
 
   renderFrame () {
@@ -543,6 +585,9 @@ export class MainController {
       this.#layoutEngine.renderShape(this.#backgroundDarker)
     }
 
+    if (this.#valueChangeEffect) {
+      this.#layoutEngine.renderShape(this.#valueChangeEffect)
+    }
     this.renderFps()
   }
 

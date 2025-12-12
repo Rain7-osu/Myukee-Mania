@@ -1,7 +1,6 @@
 import { Beatmap } from './Beatmap'
 import { BeatmapItem } from './BeatmapItem'
 import { BeatmapList } from './BeatmapList'
-import { warn } from './dev'
 import { CANVAS } from './Config'
 import { selectRandomArrayItem } from './utils'
 
@@ -50,7 +49,7 @@ export class BeatmapListManager {
       lastBeatmap = beatmapItem
     }
 
-    this.#beatmapList.beatmapItems = result
+    this.#beatmapList.beatmapItems = result.sort((a, b) => a.beatmap.songName.localeCompare(b.beatmap.songName))
   }
 
   /**

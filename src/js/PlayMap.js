@@ -87,4 +87,30 @@ export class PlayMap {
   reset () {
     this.#notes.forEach((item) => item.reset())
   }
+
+  /**
+   * @param rate {number}
+   */
+  setRate (rate) {
+    this.#notes.forEach((note) => {
+      note.offset /= rate
+      note.end /= rate
+    })
+    this.#timingList.forEach((timing) => {
+      timing.beatLen /= rate
+      timing.offset /= rate
+    })
+    this.#length /= rate
+  }
+
+  clone () {
+    return new PlayMap({
+      notes: [...this.#notes],
+      timingList: [...this.#timingList],
+      overallDifficulty: this.#overallDifficulty,
+      hpDrainRate: this.#hpDrainRate,
+      keys: this.#keys,
+      length: this.#length,
+    })
+  }
 }

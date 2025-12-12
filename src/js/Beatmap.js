@@ -92,6 +92,9 @@ export class Beatmap {
     return this.#creator
   }
 
+  /**
+   * @return {string}
+   */
   get songName () {
     return this.#title
   }
