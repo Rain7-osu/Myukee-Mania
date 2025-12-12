@@ -95,6 +95,7 @@ html, body {
   background-image: url(../skin/cursor.png);
   background-size: contain;
   background-repeat: no-repeat;
+  will-change: auto;
 }
 
 #cursor-middle {

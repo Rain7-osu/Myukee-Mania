@@ -164,11 +164,11 @@ export class Note extends OffsetShape {
     } = keys[`keys${this.#keys}`]
     const halfWidth = this.#keys * NOTE_WIDTH / 2
     const columnStart = columnCenter - halfWidth
-    context.fillStyle = this.#color
     const LEFT = this.#col * NOTE_WIDTH + (this.#col + 1) * NOTE_GAP / 2 + columnStart
 
     if (this.#type === NoteType.TAP) {
       if (offsetY > 0 && !this.#isHit) {
+        context.fillStyle = this.#color
         // y - NOTE_HEIGHT: judgement on the bottom of note
         context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
@@ -177,10 +177,24 @@ export class Note extends OffsetShape {
         const height = offsetY - endY
         if (this.#grayed) {
           // add 50 alpha
-          context.fillStyle = this.#color + '50'
+          // context.fillStyle = this.#color + '50'
+          context.fillStyle = 'rgb(186, 191, 195, 50)'
         }
 
-        context.fillRect(LEFT, endY, NOTE_WIDTH - NOTE_GAP, height)
+        context.fillStyle = 'rgb(186, 191, 195)'
+        const BODY_WIDTH = NOTE_WIDTH * 0.8
+        const HIDE_LENGTH = NOTE_HEIGHT * 4
+        const TAIL_HEIGHT = BODY_WIDTH / 2 * 1.732
+
+        context.beginPath()
+        context.moveTo(LEFT + NOTE_WIDTH / 2, endY + HIDE_LENGTH - TAIL_HEIGHT)
+        context.lineTo(LEFT + NOTE_WIDTH / 2 + BODY_WIDTH / 2, endY + HIDE_LENGTH)
+        context.lineTo(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, endY + HIDE_LENGTH)
+        context.closePath()
+        context.fill()
+        context.fillRect(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, endY + HIDE_LENGTH, BODY_WIDTH, height - HIDE_LENGTH - NOTE_HEIGHT)
+        context.fillStyle = this.#color
+        context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
     }
   }

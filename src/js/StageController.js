@@ -2,7 +2,6 @@ import { DEFAULT_DELAY_TIME, MAX_SPEED, MIN_SPEED } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
 import { HitEffectManager } from './HitEffectManager'
-import { FPS } from './FPS'
 import { SectionLine } from './SectionLine'
 import { ComboEffect } from './ComboEffect'
 import { JudgementManager } from './JudgementManager'
@@ -77,12 +76,6 @@ export class StageController {
    * @type {number}
    */
   #totalPauseTime = 0
-
-  /**
-   * 帧数记录
-   * @type {number[]}
-   */
-  #frameTimeList = []
 
   /**
    * @type {Beatmap}
@@ -252,7 +245,6 @@ export class StageController {
     this.#startTime = 0
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
-    this.#frameTimeList = []
     this.#playingMap?.reset()
     this.#judgementManager.reset()
     this.#scoreManager.reset()
@@ -448,7 +440,6 @@ export class StageController {
   renderFrame () {
     // TODO update 逻辑抽出
     if (this.#isPlaying) {
-      this.renderFps()
       this.renderStageBoard()
       if (!this.#finished) {
         this.renderScoreEffect()
@@ -576,22 +567,6 @@ export class StageController {
     this.#sectionLines.forEach((offset) => {
       this.#renderEngine.renderOffsetShape(new SectionLine(offset, this.#stageWidth))
     })
-  }
-
-  renderFps () {
-    const now = performance.now()
-    this.#frameTimeList.push(now)
-
-    const first = this.#frameTimeList[0]
-    const last = this.#frameTimeList[this.#frameTimeList.length - 1]
-
-    const fpsValue = (1000.0 * this.#frameTimeList.length / (last - first)).toFixed(0)
-
-    if (this.#frameTimeList.length > 200) {
-      this.#frameTimeList.shift()
-    }
-
-    this.#renderEngine.renderShape(new FPS(fpsValue))
   }
 
   increaseSpeed () {

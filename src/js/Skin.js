@@ -147,9 +147,9 @@ export class Skin {
       keys: {
         keys4: {
           note: {
-            width: 150,
-            height: 50,
-            gap: 2,
+            width: 148,
+            height: 64,
+            gap: 0,
             color: {
               0: WHITE_NOTE,
               1: BLUE_NOTE,
@@ -166,9 +166,9 @@ export class Skin {
         },
         keys5: {
           note: {
-            width: 150,
-            height: 50,
-            gap: 2,
+            width: 128,
+            height: 60,
+            gap: 0,
             color: {
               0: WHITE_NOTE,
               1: BLUE_NOTE,
@@ -187,9 +187,9 @@ export class Skin {
         },
         keys6: {
           note: {
-            width: 150,
-            height: 50,
-            gap: 2,
+            width: 118,
+            height: 54,
+            gap: 0,
             color: {
               0: WHITE_NOTE,
               1: BLUE_NOTE,
@@ -210,9 +210,9 @@ export class Skin {
         },
         keys7: {
           note: {
-            width: 150,
-            height: 50,
-            gap: 2,
+            width: 108,
+            height: 48,
+            gap: 0,
             color: {
               0: WHITE_NOTE,
               1: BLUE_NOTE,
@@ -237,7 +237,7 @@ export class Skin {
           note: {
             width: 150,
             height: 50,
-            gap: 2,
+            gap: 0,
             color: {
               0: WHITE_NOTE,
               1: BLUE_NOTE,

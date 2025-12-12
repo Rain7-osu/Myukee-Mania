@@ -16,8 +16,8 @@ import { BackgroundEffect } from './BackgroundEffect'
 import { RankingBoard } from './RankingBoard'
 import { MainHeader } from './MainHeader'
 import { FlashLightEffect } from './FlashLightEffect'
-import { CANVAS } from './Config'
 import { BackButton } from './BackButton'
+import { FPS } from './FPS'
 
 /**
  * 主界面管理器
@@ -39,6 +39,12 @@ export class MainController {
   #flashLightEffect = new FlashLightEffect()
 
   #mainHeader = new MainHeader()
+
+  /**
+   * 帧数记录
+   * @type {number[]}
+   */
+  #frameTimeList = []
 
   /**
    * @type {BackButton}
@@ -159,6 +165,7 @@ export class MainController {
     this.registerKeyboardEvents()
     this.registerMouseEvents()
     this.registerMainBackButtonEvents()
+    this.loopFrame()
 
     listenFullscreenChange((fullscreen) => {
       if (!fullscreen) {
@@ -290,7 +297,7 @@ export class MainController {
         onClick: handleClick,
       })
     }
-    this.loopFrame()
+
     await Promise.all([
       this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap),
       this.#beatmapListManager.show(),
@@ -535,6 +542,8 @@ export class MainController {
     if (this.#backgroundFading) {
       this.#layoutEngine.renderShape(this.#backgroundDarker)
     }
+
+    this.renderFps()
   }
 
   renderHeader () {
@@ -575,6 +584,22 @@ export class MainController {
    */
   renderBeatmaps () {
     this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
+  }
+
+  renderFps () {
+    const now = performance.now()
+    this.#frameTimeList.push(now)
+
+    const first = this.#frameTimeList[0]
+    const last = this.#frameTimeList[this.#frameTimeList.length - 1]
+
+    const fpsValue = (1000.0 * this.#frameTimeList.length / (last - first)).toFixed(0)
+
+    if (this.#frameTimeList.length >= 200) {
+      this.#frameTimeList.shift()
+    }
+
+    this.#layoutEngine.renderShape(new FPS(fpsValue))
   }
 
   async fadeIn (start = 200, end = 300) {
