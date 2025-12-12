@@ -6,6 +6,20 @@ import { Effect } from './Effect'
 export class Shape extends Effect {
   #display = true
 
+  /**
+   * @protected
+   * @type {[number, number, number, number]}
+   * x, y, w, h
+   */
+  clickArea
+
+  /**
+   * @return {[number,number,number,number]}
+   */
+  get hotArea () {
+    return this.clickArea
+  }
+
   set display (value) { this.#display = value}
 
   get display () { return this.#display}
@@ -315,7 +329,7 @@ export class OffsetShape {
   /**
    * @param value {number}
    */
-  set offset(value) {
+  set offset (value) {
     this.#offset = value
   }
 
@@ -329,7 +343,7 @@ export class OffsetShape {
   /**
    * @param value {number}
    */
-  set end(value) {
+  set end (value) {
     this.#end = value
   }
 

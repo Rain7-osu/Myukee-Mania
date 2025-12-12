@@ -135,7 +135,7 @@ export class MainController {
 
     this.#autoManager = new AudioManager()
     this.#keyboardEventManager = new KeyboardEventManager()
-    this.#mouseEventManager = new MouseEventManager(canvas, 'main')
+    this.#mouseEventManager = new MouseEventManager(canvas, 'MainController')
     this.#stageController = new StageController(canvas)
     this.#pauseMenu = new PauseMenu(canvas)
     this.#rankingBoard = new RankingBoard(canvas)
@@ -165,6 +165,8 @@ export class MainController {
   exit () {
     this.#canvas.style.display = 'none'
     this.#entry.style.display = 'flex'
+    this.removeEvents()
+    this.#autoManager.abort()
   }
 
   registerMainBackButtonEvents () {
@@ -275,7 +277,7 @@ export class MainController {
     ])
     if (!this.#interrupt) {
       await this.play(beatmap)
-      this.removeEvents()
+      this.#keyboardEventManager.removeEvents()
       this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
     } else {
       this.#playing = false
@@ -312,7 +314,7 @@ export class MainController {
      */
     const handleClick = (item) => {
       if (this.#beatmapListManager.selectedBeatmapItem === item) {
-        this.removeEvents()
+        this.#keyboardEventManager.removeEvents()
         this.preparePlay(item.beatmap)
       } else {
         this.selectBeatmapItem(item)
@@ -518,6 +520,8 @@ export class MainController {
 
   removeEvents () {
     this.#keyboardEventManager.removeEvents()
+    this.#mouseEventManager.removeEvents()
+    this.#backButton.removeEvents()
   }
 
   /**

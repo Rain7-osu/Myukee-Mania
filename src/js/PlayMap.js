@@ -84,6 +84,13 @@ export class PlayMap {
 
   get keys () { return this.#keys}
 
+  /**
+   * @return {number}
+   */
+  get startTiming () {
+    return this.#notes[0].offset
+  }
+
   reset () {
     this.#notes.forEach((item) => item.reset())
   }

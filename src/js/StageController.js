@@ -20,6 +20,8 @@ import { FileManager } from './FileManager'
 import { MapResolver } from './MapResolver'
 import { Settings } from './Settings'
 import { Skin } from './Skin'
+import { SkipHeadEffect } from './SkipHeadEffect'
+import { MouseEventManager } from './MouseEventManager'
 
 /**
  * @callback Callback
@@ -165,6 +167,18 @@ export class StageController {
 
   #stageWidth = 0
 
+  #skippedTiming = 0
+
+  /**
+   * @type {MouseEventManager}
+   */
+  #mouseEventHandler
+
+  /**
+   * @type {SkipHeadEffect}
+   */
+  #skipHeadEffect = null
+
   /**
    * @constructor
    * @param canvas {HTMLCanvasElement} canvas node name
@@ -178,6 +192,14 @@ export class StageController {
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
     this.#stageBoard = new StageBoard()
+    this.#mouseEventHandler = new MouseEventManager(canvas, 'StageController')
+  }
+
+  skipHead () {
+    this.#skippedTiming = this.#playingMap.startTiming - this.getGameTiming() - 3000
+    this.#playingAudio.setCurrentTime(this.getGameTiming() / 1000)
+    this.#mouseEventHandler.remove(this.#skipHeadEffect)
+    this.#skipHeadEffect = null
   }
 
   /**
@@ -185,8 +207,12 @@ export class StageController {
    * 减去暂停时间
    */
   getGameTiming () {
-    const now = performance.now()
+    const now = performance.now() + this.#skippedTiming
     return now - this.#startTime - this.#totalPauseTime
+  }
+
+  canSkip () {
+    return this.getGameTiming() - this.#playingMap.startTiming < -3000
   }
 
   /**
@@ -218,6 +244,13 @@ export class StageController {
     this.#judgementManager.init(notes, overallDifficulty)
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
+    this.#mouseEventHandler.registerEvents({})
+    if (this.canSkip()) {
+      this.#skipHeadEffect = new SkipHeadEffect()
+      this.#mouseEventHandler.bind(this.#skipHeadEffect, () => {
+        this.skipHead()
+      })
+    }
   }
 
   initSectionLines () {
@@ -248,6 +281,7 @@ export class StageController {
     this.#startTime = 0
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
+    this.#skippedTiming = 0
     this.#playingMap?.reset()
     this.#judgementManager.reset()
     this.#scoreManager.reset()
@@ -337,6 +371,13 @@ export class StageController {
       keydownEventList: {
         ...hitObjectsDownEvents,
         ...optionKeyEvents,
+        [KeyCode.SPACE]: () => {
+          if (this.canSkip()) {
+            this.skipHead()
+          } else {
+            hitObjectsDownEvents[KeyCode.SPACE]?.()
+          }
+        },
       },
     })
   }
@@ -456,6 +497,7 @@ export class StageController {
         this.renderJudgementDeviations()
       }
       this.renderSpeedChangeEffects()
+      this.renderSkip()
     }
   }
 
@@ -528,6 +570,12 @@ export class StageController {
     const acc = this.#accuracyManager.acc
     this.#renderEngine.renderShape(new AccuracyEffect(acc))
     this.#renderEngine.renderShape(new RankingEffect(acc))
+  }
+
+  renderSkip () {
+    if (this.#skipHeadEffect) {
+      this.#renderEngine.renderShape(this.#skipHeadEffect)
+    }
   }
 
   renderProgressEffect () {

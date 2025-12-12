@@ -34,14 +34,9 @@ export class AudioManager {
     }
 
     this.#filename = filename
-    let src
-    if (startTime > 0) {
-      const res = await fetch(filename)
-      const blob = await res.blob()
-      src = URL.createObjectURL(blob)
-    } else {
-      src = filename
-    }
+    const res = await fetch(filename)
+    const blob = await res.blob()
+    const src = URL.createObjectURL(blob)
 
     return new Promise((resolve) => {
       this.#audio.src = src

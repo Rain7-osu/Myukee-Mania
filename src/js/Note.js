@@ -187,12 +187,17 @@ export class Note extends OffsetShape {
         const TAIL_HEIGHT = BODY_WIDTH / 2 * 1.732
 
         context.beginPath()
-        context.moveTo(LEFT + NOTE_WIDTH / 2, endY + HIDE_LENGTH - TAIL_HEIGHT)
-        context.lineTo(LEFT + NOTE_WIDTH / 2 + BODY_WIDTH / 2, endY + HIDE_LENGTH)
-        context.lineTo(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, endY + HIDE_LENGTH)
+        const tailBottom = endY + HIDE_LENGTH
+        context.moveTo(LEFT + NOTE_WIDTH / 2, tailBottom - TAIL_HEIGHT)
+        const tailY = tailBottom <= offsetY ? tailBottom : offsetY
+        context.lineTo(LEFT + NOTE_WIDTH / 2 + BODY_WIDTH / 2, tailY)
+        context.lineTo(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, tailY)
         context.closePath()
         context.fill()
-        context.fillRect(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, endY + HIDE_LENGTH, BODY_WIDTH, height - HIDE_LENGTH - NOTE_HEIGHT)
+        const h = height - HIDE_LENGTH - NOTE_HEIGHT
+        if (h > 0) {
+          context.fillRect(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, tailY, BODY_WIDTH, h)
+        }
         context.fillStyle = this.#color
         context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
