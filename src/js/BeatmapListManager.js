@@ -42,14 +42,18 @@ export class BeatmapListManager {
         continue
       }
       const beatmapItem = new BeatmapItem(beatmap)
-      beatmapItem.last = lastBeatmap
-      lastBeatmap && (lastBeatmap.next = beatmapItem)
       this.#beatmapItemMap.set(beatmap.id, beatmapItem)
       result.push(beatmapItem)
+    }
+
+    const sortedBeatmaps = result.sort((a, b) => a.beatmap.songName.localeCompare(b.beatmap.songName))
+    for (let beatmapItem of sortedBeatmaps) {
+      beatmapItem.last = lastBeatmap
+      lastBeatmap && (lastBeatmap.next = beatmapItem)
       lastBeatmap = beatmapItem
     }
 
-    this.#beatmapList.beatmapItems = result.sort((a, b) => a.beatmap.songName.localeCompare(b.beatmap.songName))
+    this.#beatmapList.beatmapItems = sortedBeatmaps
   }
 
   /**
