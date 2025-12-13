@@ -8,12 +8,12 @@ import { rgba } from './utils'
  * @property {number} top
  * @property {number} width
  * @property {number} height
- * @property {string} text
- * @property {string} font
- * @property {number} fontSize
- * @property {string} color
- * @property {number} radius
- * @property {string} background
+ * @property {string?} text
+ * @property {string?} font
+ * @property {number?} fontSize
+ * @property {string?} color
+ * @property {number?} radius
+ * @property {string?} background
  * @property {string?} hoverBackground
  * @property {number?} hoverScale
  * @property {number?} hoverWidth
@@ -61,7 +61,7 @@ export class BaseButton extends Shape {
    */
   setStyle (style) {
     this.#style = {
-      hoverScale: 105,
+      hoverScale: 100,
       offsetPercentX: 0.5,
       ...this.#style,
       ...style,

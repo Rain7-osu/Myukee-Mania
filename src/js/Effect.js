@@ -94,7 +94,7 @@ export class Effect {
    * @param type {TransitionType}
    * @param updateFn {(value: number) => void}
    */
-  createTransitionPromisify (startValue, endValue, duration, type, updateFn) {
+  createTransitionAsync (startValue, endValue, duration, type, updateFn) {
     return new Promise(resolve => {
       this.createTransition(startValue, endValue, duration, type, updateFn, () => resolve())
     })

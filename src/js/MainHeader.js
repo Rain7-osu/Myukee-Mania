@@ -6,6 +6,9 @@ import { formatMapTime, rgba } from './utils'
 const TRANSITION_DURATION = 200
 const RIGHT_HEIGHT = 160
 const LEFT_HEIGHT = RIGHT_HEIGHT + 100
+const BG_COLOR = 'rgb(0, 0, 0)'
+const BORDER_COLOR = 'rgb(0, 102, 255)'
+
 
 const RENDER_CONFIG = {
   color: 'rgba(255, 255, 255, 1)',
@@ -99,8 +102,8 @@ export class MainHeader extends Shape {
     this.#beatmap = beatmap
     this.#leftMaskTop = LEFT_MASK_TOP
     await Promise.all([
-      this.createTransitionPromisify(this.#leftMaskTop, LEFT_HEIGHT, TRANSITION_DURATION, 'linear', (value) => this.#leftMaskTop = value),
-      this.createTransitionPromisify(this.#textAlpha, 100, TRANSITION_DURATION, 'linear', (value) => this.#textAlpha = value),
+      this.createTransitionAsync(this.#leftMaskTop, LEFT_HEIGHT, TRANSITION_DURATION, 'linear', (value) => this.#leftMaskTop = value),
+      this.createTransitionAsync(this.#textAlpha, 100, TRANSITION_DURATION, 'linear', (value) => this.#textAlpha = value),
     ])
     this.#switchingBeatmap = false
   }
@@ -237,7 +240,7 @@ export class MainHeader extends Shape {
         ctx.lineTo(0, 0)
         ctx.closePath()
 
-        ctx.fillStyle = '#000'
+        ctx.fillStyle = BG_COLOR
         ctx.fill()
 
         ctx.beginPath()
@@ -251,7 +254,7 @@ export class MainHeader extends Shape {
         ctx.lineTo(0, LEFT_HEIGHT)
 
         ctx.lineWidth = 8
-        ctx.strokeStyle = 'rgb(0,102,255)'
+        ctx.strokeStyle = BORDER_COLOR
         ctx.stroke()
       })
     }

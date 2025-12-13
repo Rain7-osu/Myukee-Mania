@@ -19,6 +19,7 @@ import { FlashLightEffect } from './FlashLightEffect'
 import { BackButton } from './BackButton'
 import { FPS } from './FPS'
 import { RateChangeEffect } from './RateChangeEffect'
+import { MainFooter } from './MainFooter'
 
 /**
  * 主界面管理器
@@ -42,10 +43,9 @@ export class MainController {
   #mainHeader = new MainHeader()
 
   /**
-   * 帧数记录
-   * @type {number[]}
+   * @type {MainFooter}
    */
-  #frameTimeList = []
+  #mainFooter
 
   /**
    * @type {BackButton}
@@ -122,6 +122,8 @@ export class MainController {
    */
   #backgroundFading = false
 
+  #fps = new FPS()
+
   /**
    * @param canvas {HTMLCanvasElement}
    * @param entry {HTMLElement}
@@ -141,6 +143,7 @@ export class MainController {
     this.#rankingBoard = new RankingBoard(canvas)
     this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#backButton = new BackButton(canvas)
+    this.#mainFooter = new MainFooter(canvas)
     this.#cursor = new Cursor()
   }
 
@@ -196,6 +199,7 @@ export class MainController {
     this.registerKeyboardEvents()
     this.registerMouseEvents()
     this.registerMainBackButtonEvents()
+    this.registerFooterEvents()
     this.loopFrame()
 
     listenFullscreenChange((fullscreen) => {
@@ -268,6 +272,7 @@ export class MainController {
   async preparePlay (beatmap) {
     this.#backButton.cancelAnimations()
     this.#backButton.removeEvents()
+    this.#mainFooter.removeEvents()
     this.#beatmapListManager.beatmapList.removeEvents()
     this.#autoManager.abort()
     this.#autoManager.abort()
@@ -337,19 +342,23 @@ export class MainController {
   }
 
   registerKeyboardEvents () {
+    /** @type {KeyboardEventHandler} */
+    const handleEnter = async (e) => {
+      e.preventDefault()
+      if (!document.fullscreenElement) {
+        await enterFullscreen()
+      }
+      if (!this.#playing) {
+        await this.preparePlay(this.#beatmapListManager.selectedBeatmapItem.beatmap)
+      } else if (this.#playing && this.#paused) {
+        await this.resume()
+      }
+    }
+
     this.#keyboardEventManager.registerEvents({
       keydownEventList: {
-        [KeyCode.ENTER]: async (e) => {
-          e.preventDefault()
-          if (!document.fullscreenElement) {
-            await enterFullscreen()
-          }
-          if (!this.#playing) {
-            await this.preparePlay(this.#beatmapListManager.selectedBeatmapItem.beatmap)
-          } else if (this.#playing && this.#paused) {
-            await this.resume()
-          }
-        },
+        [KeyCode.ENTER]: handleEnter,
+        [KeyCode.NUMPAD_ENTER]: handleEnter,
         [KeyCode.ESCAPE]: async () => {
           if (this.#playing) {
             if (this.#paused) {
@@ -402,6 +411,10 @@ export class MainController {
     })
   }
 
+  registerFooterEvents() {
+    this.#mainFooter.registerEvents({})
+  }
+
   interrupt () {
     this.#interrupt = true
     this.#pauseMenu.removeEvents()
@@ -419,6 +432,8 @@ export class MainController {
         } else {
           await enterFullscreen()
           this.#interrupt = false
+          this.registerMainBackButtonEvents()
+          this.registerFooterEvents()
           this.registerKeyboardEvents()
           this.registerMouseEvents()
           this.#pauseMenu.hide()
@@ -496,6 +511,7 @@ export class MainController {
     this.#rankingBoard.removeEvents()
     this.#backButton.cancelAnimations()
     this.registerMainBackButtonEvents()
+    this.registerFooterEvents()
   }
 
   async resume () {
@@ -522,6 +538,7 @@ export class MainController {
     this.#keyboardEventManager.removeEvents()
     this.#mouseEventManager.removeEvents()
     this.#backButton.removeEvents()
+    this.#mainFooter.removeEvents()
   }
 
   /**
@@ -538,10 +555,12 @@ export class MainController {
   updateFrame () {
     const now = performance.now()
 
+    this.#fps.update(now)
     this.#backgroundDarker.updateEffect(now)
     this.#rankingBoard.updateEffect(now)
     this.#beatmapListManager.beatmapList.updateEffect(now)
     this.#mainHeader.updateEffect(now)
+    this.#mainFooter.updateEffect(now)
     this.#backButton.updateEffect(now)
     this.#flashLightEffect.updateEffect(now)
     this.#pauseMenu.updateEffect(now)
@@ -576,6 +595,7 @@ export class MainController {
     } else {
       this.renderBeatmaps()
       this.renderHeader()
+      this.renderFooter()
       this.#layoutEngine.renderShape(this.#backButton)
     }
 
@@ -597,6 +617,10 @@ export class MainController {
 
   renderHeader () {
     this.#layoutEngine.renderShape(this.#mainHeader)
+  }
+
+  renderFooter () {
+    this.#layoutEngine.renderShape(this.#mainFooter)
   }
 
   renderResultsBoard () {
@@ -636,19 +660,7 @@ export class MainController {
   }
 
   renderFps () {
-    const now = performance.now()
-    this.#frameTimeList.push(now)
-
-    const first = this.#frameTimeList[0]
-    const last = this.#frameTimeList[this.#frameTimeList.length - 1]
-
-    const fpsValue = (1000.0 * this.#frameTimeList.length / (last - first)).toFixed(0)
-
-    if (this.#frameTimeList.length >= 200) {
-      this.#frameTimeList.shift()
-    }
-
-    this.#layoutEngine.renderShape(new FPS(fpsValue))
+    this.#layoutEngine.renderShape(this.#fps)
   }
 
   async fadeIn (start = 200, end = 300) {

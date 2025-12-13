@@ -19,6 +19,7 @@ import { Skin } from './Skin'
  * @typedef {Object} ScrollListStyle
  * @property {number} left
  * @property {number} top
+ * @property {number} bottom
  * @property {number} width
  * @property {number} height
  */
@@ -183,8 +184,12 @@ export class ScrollList extends Shape {
   checkEventCapture (e) {
     const x = e.clientX
     const y = e.clientY
-    const { left: listLeft, top: listTop, height: listHeight, width: listWidth } = this.#style
-    return x >= listLeft && y >= listTop && x <= listLeft + listWidth && y <= listTop + listHeight
+    const { left: listLeft, top: listTop, height: listHeight, width: listWidth, bottom: listBottom } = this.#style
+    return x >= listLeft &&
+      y >= listTop &&
+      x <= listLeft + listWidth &&
+      y <= listTop + listHeight &&
+      y <= CANVAS.HEIGHT - listBottom
   }
 
   /**
@@ -200,7 +205,7 @@ export class ScrollList extends Shape {
     this.#status.velocity = Math.max(-160, Math.min(160, this.#status.velocity))
   }
 
-  _updateScroll() {
+  _updateScroll () {
     this.#scrollY += this.#status.velocity
     const { maxScrollY, minScrollY } = this.calcScrollYConfig()
     this.#scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)

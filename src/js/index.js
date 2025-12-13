@@ -1,6 +1,7 @@
 import { CANVAS, setCanvasSize } from './Config'
 import { MainController } from './MainController'
 import { $, bindClick, enterFullscreen } from './dom'
+import { Skin } from './Skin'
 
 function createStageCanvas (id = 'stage') {
   const canvas = document.createElement('canvas')
@@ -15,6 +16,7 @@ async function run () {
     WIDTH: window.screen.width,
     HEIGHT: window.screen.height,
   })
+  Skin.loadConfig()
   const canvas = createStageCanvas('stage')
   const container = $('stage-container')
   container.append(canvas)

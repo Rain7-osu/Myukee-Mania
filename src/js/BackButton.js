@@ -1,6 +1,7 @@
 import { BaseButton } from './BaseButton'
 import { Skin } from './Skin'
 import { rgba } from './utils'
+import { CANVAS } from './Config'
 
 export class BackButton extends BaseButton {
   #defaultWidth = 200
@@ -27,6 +28,7 @@ export class BackButton extends BaseButton {
       hoverScale: 100,
       offsetPercentX: 0,
     })
+
     this.#currentBackground = back.background
     this.#defaultWidth = back.width
   }
@@ -43,7 +45,7 @@ export class BackButton extends BaseButton {
     const [r, g, b, a] = rgba.toValues(this.#currentBackground)
     const startPercent = (r - rb) / (rh - rb)
     this.createAnimation(width, hoverWidth, 'spring', (value) => this.setStyle({ width: value }))
-    await this.createTransitionPromisify(startPercent * 100, 100, 300 * startPercent, 'easeOut', (value) => {
+    await this.createTransitionAsync(startPercent * 100, 100, 300 * startPercent, 'easeOut', (value) => {
       const progress = value / 100
       this.#currentBackground = rgba.format([
         r + (rh - r) * progress,
@@ -66,7 +68,7 @@ export class BackButton extends BaseButton {
     const [rb] = rgba.toValues(hoverBackground)
     const [r, g, b, a] = rgba.toValues(background)
     const startPercent = (rh - r) / (rb - r)
-    await this.createTransitionPromisify(startPercent * 100, 100, 300 * startPercent, 'easeOut', (value) => {
+    await this.createTransitionAsync(startPercent * 100, 100, 300 * startPercent, 'easeOut', (value) => {
       const progress = value / 100
       this.#currentBackground = rgba.format([
         rh - (rh - r) * progress,

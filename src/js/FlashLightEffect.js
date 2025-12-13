@@ -12,8 +12,8 @@ export class FlashLightEffect extends Shape {
   async flash(maxValue = 5, duration = 60) {
     const target = Math.min(maxValue, 100)
     this.cancelTransitions()
-    await this.createTransitionPromisify(this.#value, target, duration, 'easeOut', (v) => this.#value = v)
-    await this.createTransitionPromisify(this.#value, 0, duration, 'easeOut', (v) => this.#value = v)
+    await this.createTransitionAsync(this.#value, target, duration, 'easeOut', (v) => this.#value = v)
+    await this.createTransitionAsync(this.#value, 0, duration, 'easeOut', (v) => this.#value = v)
   }
 
   reset () {

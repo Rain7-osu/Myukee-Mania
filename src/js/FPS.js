@@ -6,12 +6,30 @@ export class FPS extends Shape {
   /** @type {string} */
   #value
 
-  /**
-   * @param value {string}
-   */
-  constructor (value) {
+  constructor () {
     super()
-    this.#value = value
+  }
+
+  /**
+   * 帧数记录
+   * @type {number[]}
+   */
+  #frameTimeList = []
+
+  /**
+   * @param now {number}
+   */
+  update (now) {
+    this.#frameTimeList.push(now)
+    const first = this.#frameTimeList[0]
+    const last = this.#frameTimeList[this.#frameTimeList.length - 1]
+    const fpsValue = (1000.0 * this.#frameTimeList.length / (last - first)).toFixed(0)
+
+    if (this.#frameTimeList.length >= 200) {
+      this.#frameTimeList.shift()
+    }
+
+    this.#value = fpsValue
   }
 
   render (context) {
@@ -26,12 +44,12 @@ export class FPS extends Shape {
       y,
       width,
       height,
-      radius: height / 2,
+      radius,
       fill: true,
       stroke: false,
     })
 
-    const text = `${this.#value}FPS`
+    const text = `${this.#value}fps`
     this.drawText({
       context,
       x,

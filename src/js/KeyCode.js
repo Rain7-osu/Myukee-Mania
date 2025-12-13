@@ -24,4 +24,5 @@ export const KeyCode = {
   F7: 'F7',
   F8: 'F8',
   F9: 'F9',
+  NUMPAD_ENTER: 'NumpadEnter',
 }

@@ -102,6 +102,7 @@ export class PauseMenu extends Shape {
       color,
       background: resume.background,
       text: resume.text,
+      hoverScale: 105,
     })
     offsetY += gap + height
     this.#retryButton = new BaseButton(container, {
@@ -115,6 +116,7 @@ export class PauseMenu extends Shape {
       color,
       background: retry.background,
       text: retry.text,
+      hoverScale: 105,
     })
     offsetY += gap + height
     this.#backButton = new BaseButton(container, {
@@ -128,6 +130,7 @@ export class PauseMenu extends Shape {
       color,
       background: back.background,
       text: back.text,
+      hoverScale: 105,
     })
     offsetY += gap + height
     this.#fullscreenButton = new BaseButton(container, {
@@ -141,6 +144,7 @@ export class PauseMenu extends Shape {
       color,
       background: fullscreen.background,
       text: fullscreen.text,
+      hoverScale: 105,
     })
   }
 

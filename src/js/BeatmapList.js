@@ -25,6 +25,7 @@ export class BeatmapList extends ScrollList {
     }, {
       left: CANVAS.WIDTH / 2,
       top: 164,
+      bottom: 136 + 8,
       width: CANVAS.WIDTH / 2,
       height: CANVAS.HEIGHT - 160,
     })
