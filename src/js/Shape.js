@@ -116,9 +116,6 @@ export class Shape extends Effect {
     stroke,
     textBaseline = 'middle',
   }) {
-    // 保存当前上下文状态
-    context.save()
-
     // 设置字体和颜色
     context.font = font
     context.fillStyle = color
@@ -142,9 +139,6 @@ export class Shape extends Effect {
     if (stroke) {
       context.strokeText(text, left, top)
     }
-
-    // 恢复上下文状态
-    context.restore()
   }
 
   /**
@@ -271,7 +265,6 @@ export class Shape extends Effect {
     direction,
     shadowColor,
   }) {
-    context.save()
     context.beginPath()
     const quadSize = size / 4
     const halfSize = size / 2
@@ -308,7 +301,6 @@ export class Shape extends Effect {
 
     context.fill()
     stroke && context.stroke()
-    context.restore()
   }
 }
 

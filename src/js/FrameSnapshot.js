@@ -30,15 +30,28 @@ export class FrameSnapshot extends Shape {
 
   /**
    * @param render {(context: CanvasRenderingContext2D) => void}
+   * @param width {number}
+   * @param height {number}
    * @return FrameSnapshot
    */
-  static createSnapshot (render) {
+  static createSnapshot (render, width = CANVAS.WIDTH, height = CANVAS.HEIGHT) {
+    const offscreenCanvas = FrameSnapshot.createOffscreenCanvas(render, width, height)
+    return new FrameSnapshot(offscreenCanvas)
+  }
+
+  /**
+   * @param render {(context: CanvasRenderingContext2D) => void}
+   * @param width {number}
+   * @param height {number}
+   * @return {HTMLCanvasElement}
+   */
+  static createOffscreenCanvas (render, width = CANVAS.WIDTH, height = CANVAS.HEIGHT) {
     const offscreenCanvas = document.createElement('canvas')
     const context = offscreenCanvas.getContext('2d')
-    offscreenCanvas.width = CANVAS.WIDTH
-    offscreenCanvas.height = CANVAS.HEIGHT
+    offscreenCanvas.width = width
+    offscreenCanvas.height = height
     render(context)
-    return new FrameSnapshot(offscreenCanvas)
+    return offscreenCanvas
   }
 
   #style = {

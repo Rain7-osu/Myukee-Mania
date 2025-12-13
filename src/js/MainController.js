@@ -248,12 +248,15 @@ export class MainController {
 
   showModsPanel () {
     this.#modsPanel.display = true
+    this.#beatmapListManager.beatmapList.disableEvents()
     this.removeEvents()
     this.#modsPanel.registerEvents({
       onClose: (mods) => {
         this.#selectedMods = mods
         this.#modsPanel.display = false
         this.registerEvents()
+        this.#beatmapListManager.beatmapList.enableEvents()
+        this.#modsPanel.removeEvents()
       },
     })
   }

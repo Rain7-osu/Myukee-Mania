@@ -182,6 +182,9 @@ export class ScrollList extends Shape {
    * @param e {HTMLElementEventMap['canvas']}
    */
   checkEventCapture (e) {
+    if (!this.#enableEvents) {
+      return false
+    }
     const x = e.clientX
     const y = e.clientY
     const { left: listLeft, top: listTop, height: listHeight, width: listWidth, bottom: listBottom } = this.#style
@@ -198,6 +201,9 @@ export class ScrollList extends Shape {
    * @return void
    */
   _onWheel (e) {
+    if (!this.#enableEvents) {
+      return
+    }
     const wheelDirection = e.deltaY > 0 ? 1 : -1
     const wheelSpeed = 5
 
@@ -223,7 +229,7 @@ export class ScrollList extends Shape {
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
-  handleMouseMove (e) {
+  _onMouseMove (e) {
     if (!this.checkEventCapture(e)) {
       return
     }
@@ -282,7 +288,7 @@ export class ScrollList extends Shape {
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
-  handleClick (e) {
+  _onClick (e) {
     if (!this.checkEventCapture(e)) {
       return
     }
@@ -314,8 +320,8 @@ export class ScrollList extends Shape {
     this.#eventMaps = eventMaps
 
     const handleMouseWheel = this._onWheel.bind(this)
-    const handleMouseMove = this.handleMouseMove.bind(this)
-    const handleClick = this.handleClick.bind(this)
+    const handleMouseMove = this._onMouseMove.bind(this)
+    const handleClick = this._onClick.bind(this)
     container.addEventListener('wheel', handleMouseWheel)
     container.addEventListener('mousemove', handleMouseMove)
     container.addEventListener('click', handleClick)
@@ -347,6 +353,16 @@ export class ScrollList extends Shape {
     } else {
       warn('Please listenEvents firstly')
     }
+  }
+
+  #enableEvents = true
+
+  disableEvents () {
+    this.#enableEvents = false
+  }
+
+  enableEvents () {
+    this.#enableEvents = true
   }
 
   /**
@@ -521,7 +537,7 @@ export class ScrollList extends Shape {
     this.#cancelUpdate()
     this.#cancelUpdate = this.createTransition(currentScrollY, targetScrollY, 800, 'easeOut',
       (value) => this.#scrollY = value,
-      () => this.#status.wheelEvent && this.handleMouseMove(this.#status.wheelEvent))
+      () => this.#status.wheelEvent && this._onMouseMove(this.#status.wheelEvent))
   }
 }
 

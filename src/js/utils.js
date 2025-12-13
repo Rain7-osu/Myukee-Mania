@@ -117,9 +117,9 @@ export function uniqNotes (notes) {
  * @param v {number}
  * @return {number}
  */
-export const vw = v => v * CANVAS.WIDTH
+export const vw = v => Math.round(v * CANVAS.WIDTH)
 /**
  * @param v {number}
  * @return {number}
  */
-export const vh = v => v * CANVAS.HEIGHT
+export const vh = v => Math.round(v * CANVAS.HEIGHT)

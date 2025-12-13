@@ -4,19 +4,21 @@ import { rgba } from './utils'
 
 /**
  * @typedef {Object} ButtonStyle
- * @property {number} left
- * @property {number} top
- * @property {number} width
- * @property {number} height
+ * @property {number?} left
+ * @property {number?} top
+ * @property {number?} width
+ * @property {number?} height
  * @property {string?} text
  * @property {string?} font
  * @property {number?} fontSize
  * @property {string?} color
  * @property {number?} radius
  * @property {string?} background
+ * @property {CanvasImageSource?} backgroundImage
  * @property {string?} hoverBackground
  * @property {number?} hoverScale
  * @property {number?} hoverWidth
+ * @property {number?} rotate
  * @property {number?} offsetPercentX
  */
 
@@ -61,8 +63,14 @@ export class BaseButton extends Shape {
    */
   setStyle (style) {
     this.#style = {
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0,
       hoverScale: 100,
       offsetPercentX: 0.5,
+      font: '微软雅黑',
+      fontSize: 24,
       ...this.#style,
       ...style,
     }
@@ -100,29 +108,48 @@ export class BaseButton extends Shape {
   }
 
   render (context) {
-    const [x, y, width, height] = this.rect()
-    const { text, fontSize: initialFontSize, font, color, radius } = this.style()
-    context.fillStyle = this.background()
-    this.roundRect({
-      context,
-      x, y, width, height,
-      radius,
-      fill: true,
-      stroke: false,
-    })
+    let [x, y, width, height] = this.rect()
+    const { text, fontSize: initialFontSize, font, color, radius, backgroundImage, rotate } = this.style()
 
-    const fontSize = initialFontSize * this.#currentScale / 100
-    this.drawText({
-      context,
-      text,
-      x,
-      y: y + 5, // 稍微往下一点，视觉上更对齐
-      width,
-      height,
-      font: `${fontSize}px ${font}`,
-      color,
-      stroke: false,
-    })
+    context.save()
+    if (rotate) {
+      context.translate(Math.round(x + width / 2), Math.round(y + height / 2))
+      context.rotate(rotate)
+      x = -width / 2
+      y = -height / 2
+    }
+
+    if (backgroundImage) {
+      context.drawImage(backgroundImage, x, y, width, height)
+    }
+
+    const fillStyle = this.background()
+    if (fillStyle) {
+      context.fillStyle = fillStyle
+      this.roundRect({
+        context,
+        x, y, width, height,
+        radius,
+        fill: true,
+        stroke: false,
+      })
+    }
+
+    if (text) {
+      const fontSize = initialFontSize * this.#currentScale / 100
+      this.drawText({
+        context,
+        text,
+        x,
+        y: y + 5, // 稍微往下一点，视觉上更对齐
+        width,
+        height,
+        font: `${fontSize}px ${font}`,
+        color,
+        stroke: false,
+      })
+    }
+    context.restore()
   }
 
   hover () {
@@ -151,17 +178,13 @@ export class BaseButton extends Shape {
   hoverOut () {
     this.hovered = false
     this.cancelTransitions()
-    console.log('hoverout')
+
     const { hoverBackground, hoverScale, background } = this.#style
     if (hoverBackground) {
       const [rh, gh, bh, ah] = rgba.toValues(this.#currentBackground)
-      console.log('cb', this.#currentBackground)
       const [r, g, b, a] = rgba.toValues(background)
       this.createTransition(0, 100, 100, 'easeOut', (value) => {
         const progress = value / 100
-        if (this.#style.text.includes('Reset')) {
-          console.log(ah, a)
-        }
         this.#currentBackground = rgba.format([
           rh !== r ? rh - (rh - r) * progress : rh,
           gh !== g ? gh - (gh - g) * progress : gh,

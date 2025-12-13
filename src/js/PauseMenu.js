@@ -307,6 +307,7 @@ export class PauseMenu extends Shape {
     let offsetY = (CANVAS.HEIGHT - 4 * height - 3 * gap) / 2
     offsetY += (gap + height) * this.#currentSelectIndex
 
+    context.save()
     this.drawArrow({
       size,
       context,
@@ -325,5 +326,6 @@ export class PauseMenu extends Shape {
       direction: 'left',
       stroke: false,
     })
+    context.restore()
   }
 }
