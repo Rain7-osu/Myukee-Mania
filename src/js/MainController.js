@@ -162,6 +162,7 @@ export class MainController {
     }
     this.#currentRate = +this.#currentRate.toFixed(2)
     this.#valueChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
+    this.#autoManager.setRate(this.#currentRate)
   }
 
   decreaseRate () {
@@ -171,6 +172,7 @@ export class MainController {
     }
     this.#currentRate = +this.#currentRate.toFixed(2)
     this.#valueChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
+    this.#autoManager.setRate(this.#currentRate)
   }
 
   exit () {
@@ -260,6 +262,7 @@ export class MainController {
     }
     this.#autoManager.abort()
     await this.#autoManager.load(beatmap.audioFile, beatmap.previewTime)
+    this.#autoManager.setRate(this.#currentRate)
     await this.#autoManager.play()
   }
 

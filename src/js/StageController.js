@@ -138,6 +138,7 @@ export class StageController {
    * @type {null | number}
    */
   #delayStartTimer = null
+  #duration = 0
 
   /**
    * @return {boolean}
@@ -238,6 +239,7 @@ export class StageController {
     this.#stageWidth = keysCount * width
     await audio.load(beatmap.audioFile)
     audio.setRate(rate)
+    this.#duration = audio.duration / rate
     this.#playingMap = currentMap
     this.#playingAudio = audio
     this.initSectionLines()
@@ -580,7 +582,7 @@ export class StageController {
 
   renderProgressEffect () {
     const timing = this.getGameTiming()
-    const duration = this.#playingAudio.duration
+    const duration = this.#duration
     const percent = timing > duration ? 1.0 : (timing / duration)
     this.#renderEngine.renderShape(new ProgressPercentEffect(percent))
   }
