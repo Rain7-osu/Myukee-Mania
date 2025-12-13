@@ -48,26 +48,55 @@ export class ModButton extends BaseButton {
 
   registerEvents (eventMap) {
     const valueList = [null, ...(Array.isArray(this.#mod) ? this.#mod : [this.#mod])]
-    /** @type {CanvasImageSource[]} */
-    const bg = Array.isArray(this.#backgroundImage) ? this.#backgroundImage : [this.#backgroundImage]
-    const bgList = [bg[0], ...bg]
     super.registerEvents({
       onClick: () => {
         this.#currentIndex += 1
         this.#currentIndex %= valueList.length
         this.#currentValue = valueList[this.#currentIndex]
-        this.setStyle({
-          backgroundImage: bgList[this.#currentIndex],
-        })
+        this._updateState()
         eventMap.onClick?.()
-        if (this.#currentValue) {
-          this.setStyle({
-            rotate: Math.PI / 24,
-          })
-        } else {
-          this.setStyle({ rotate: 0 })
-        }
       },
     })
+  }
+
+  _updateState () {
+    /** @type {CanvasImageSource[]} */
+    const bg = Array.isArray(this.#backgroundImage) ? this.#backgroundImage : [this.#backgroundImage]
+    const bgList = [bg[0], ...bg]
+    this.setStyle({
+      backgroundImage: bgList[this.#currentIndex],
+    })
+    if (this.#currentValue) {
+      this.setStyle({
+        rotate: Math.PI / 24,
+      })
+    } else {
+      this.setStyle({ rotate: 0 })
+    }
+  }
+
+  /**
+   * @param {Mod | null} mod
+   */
+  setValue (mod) {
+    /** @type {Mod[]} */
+    const valueList = [null, ...(Array.isArray(this.#mod) ? this.#mod : [this.#mod])]
+    let index = valueList.indexOf(mod)
+    index = index < 0 ? index + valueList.length : index
+    index %= valueList.length
+    this.#currentValue = mod
+    this.#currentIndex = index
+    this._updateState()
+  }
+
+  /**
+   * @return {Mod|null}
+   */
+  get value () {
+    return this.#currentValue
+  }
+
+  get mod () {
+    return this.#mod
   }
 }

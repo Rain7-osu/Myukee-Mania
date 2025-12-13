@@ -54,6 +54,16 @@ export const Mod = {
   AT: 'AT',
 }
 
+/**
+ * @type {Mod[][]}
+ */
+const ConflictModsMap = [
+  [Mod.EZ, Mod.HR],
+  [Mod.HT, Mod.DT, Mod.NC],
+  [Mod.HD, Mod.FD, Mod.FL],
+  [Mod.SD, Mod.PF, Mod.NF],
+]
+
 export class ModsPanel extends Shape {
   /**
    * @type {HTMLCanvasElement}
@@ -161,7 +171,7 @@ export class ModsPanel extends Shape {
   }) {
     this.#resetButton.registerEvents({
       onClick: () => {
-        this.#selectedMods = []
+        this._reset()
       },
     })
     this.#closeButton.registerEvents({
@@ -170,7 +180,52 @@ export class ModsPanel extends Shape {
       },
     })
     this.#modButtons.forEach(btn => {
-      btn.registerEvents({})
+      btn.registerEvents({
+        onClick: () => {
+          this._updateMods(btn)
+        },
+      })
+    })
+  }
+
+  _reset () {
+    this.#selectedMods = []
+    this.#modButtons.forEach(btn => {
+      btn.setValue(null)
+    })
+  }
+
+  /**
+   * @param btn {ModButton}
+   * @private
+   */
+  _updateMods (btn) {
+    const newMod = btn.value
+    if (!newMod) {
+      if (Array.isArray(btn.mod)) {
+        this.#selectedMods = this.#selectedMods.filter(mod => !btn.mod.includes(mod))
+      } else {
+        this.#selectedMods = this.#selectedMods.filter(mod => btn.mod !== mod)
+      }
+    } else {
+      const conflictList = ConflictModsMap.find(list => list.includes(newMod))
+      if (conflictList) {
+        this.#selectedMods = this.#selectedMods.filter(mod => !conflictList.includes(mod))
+      }
+      this.#selectedMods.push(newMod)
+    }
+    this.#modButtons.forEach(btn => {
+      if (Array.isArray(btn.mod)) {
+        const found = this.#selectedMods.find(mod => btn.mod.includes(mod))
+        if (!found) {
+          btn.setValue(null)
+        }
+      } else {
+        const found = this.#selectedMods.find(mod => btn.mod === mod)
+        if (!found) {
+          btn.setValue(null)
+        }
+      }
     })
   }
 
