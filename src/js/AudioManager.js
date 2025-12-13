@@ -13,6 +13,8 @@ export class AudioManager {
 
   #playing = false
 
+  #startTime = 0
+
   constructor () {
     this.#audio = new Audio()
     document.body.appendChild(this.#audio)
@@ -29,6 +31,7 @@ export class AudioManager {
    * @return Promise<void>
    */
   async load (filename, startTime = 0) {
+    this.#startTime = startTime
     if (this.#filename === filename) {
       return Promise.resolve()
     }
@@ -57,6 +60,22 @@ export class AudioManager {
   }
 
   /**
+   * @param value {boolean}
+   */
+  set repeat (value) {
+    if (value) {
+      this.#audio.onended = () => {
+        this.#audio.currentTime = this.#startTime / 1000
+        setTimeout(() => {
+          this.play()
+        }, 1000)
+      }
+    } else {
+      this.#audio.onended = undefined
+    }
+  }
+
+  /**
    * @return {string}
    */
   get filename () { return this.#filename}
@@ -71,8 +90,8 @@ export class AudioManager {
   /**
    * @param value {number}
    */
-  setRate(value) {
-    this.#audio.playbackRate = value;
+  setRate (value) {
+    this.#audio.playbackRate = value
   }
 
   async play () {

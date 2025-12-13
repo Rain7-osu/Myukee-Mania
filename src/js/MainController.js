@@ -20,6 +20,7 @@ import { BackButton } from './BackButton'
 import { FPS } from './FPS'
 import { RateChangeEffect } from './RateChangeEffect'
 import { MainFooter } from './MainFooter'
+import { ModsPanel } from './ModsPanel'
 
 /**
  * 主界面管理器
@@ -133,6 +134,16 @@ export class MainController {
   #fps = new FPS()
 
   /**
+   * @type {Mod[]}
+   */
+  #selectedMods = []
+
+  /**
+   * @type {ModsPanel}
+   */
+  #modsPanel
+
+  /**
    * @param canvas {HTMLCanvasElement}
    * @param entry {HTMLElement}
    */
@@ -147,12 +158,14 @@ export class MainController {
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#mouseEventManager = new MouseEventManager(canvas, 'MainController')
     this.#stageController = new StageController(canvas)
-    this.#pauseMenu = new PauseMenu(canvas)
     this.#rankingBoard = new RankingBoard(canvas)
     this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#backButton = new BackButton(canvas)
+    this.#modsPanel = new ModsPanel(canvas)
+    this.#pauseMenu = new PauseMenu(canvas, this)
     this.#mainFooter = new MainFooter(canvas, this)
     this.#cursor = new Cursor()
+    this.#modsPanel.display = false
   }
 
   increaseRate () {
@@ -206,10 +219,7 @@ export class MainController {
       this.#backgroundEffect.setImage(selectItem.beatmap.bgImage),
       this.run(),
     ]).then()
-    this.registerKeyboardEvents()
-    this.registerMouseEvents()
-    this.registerMainBackButtonEvents()
-    this.registerFooterEvents()
+    this.registerEvents()
     this.loopFrame()
 
     listenFullscreenChange((fullscreen) => {
@@ -233,6 +243,18 @@ export class MainController {
           }
         }
       }
+    })
+  }
+
+  showModsPanel () {
+    this.#modsPanel.display = true
+    this.removeEvents()
+    this.#modsPanel.registerEvents({
+      onClose: (mods) => {
+        this.#selectedMods = mods
+        this.#modsPanel.display = false
+        this.registerEvents()
+      },
     })
   }
 
@@ -264,6 +286,7 @@ export class MainController {
     await this.#autoManager.load(beatmap.audioFile, beatmap.previewTime)
     this.#autoManager.setRate(this.#currentRate)
     await this.#autoManager.play()
+    this.#autoManager.repeat = true
   }
 
   /**
@@ -458,19 +481,11 @@ export class MainController {
     this.#keyboardEventManager.removeEvents()
     this.#mouseEventManager.removeEvents()
     this.#pauseMenu.registerEvents({
-      onFullscreenChange: async () => {
-        if (isFullscreen()) {
-          await exitFullscreen()
-        } else {
-          await enterFullscreen()
-          this.#interrupt = false
-          this.registerMainBackButtonEvents()
-          this.registerFooterEvents()
-          this.registerKeyboardEvents()
-          this.registerMouseEvents()
-          this.#pauseMenu.hide()
-          this.run()
-        }
+      onEnterFullscreen: async () => {
+        this.#interrupt = false
+        this.registerEvents()
+        this.#pauseMenu.hide()
+        this.run()
       },
     })
   }
@@ -484,24 +499,7 @@ export class MainController {
     this.#pauseMenu.showRetry = true
     this.#keyboardEventManager.removeEvents()
     this.#pauseMenu.show()
-    this.#pauseMenu.registerEvents({
-      onResume: async () => {
-        await this.resume()
-      },
-      onRetry: async () => {
-        await this.retry()
-      },
-      onBack: async () => {
-        await this.backMain()
-      },
-      onFullscreenChange: async () => {
-        if (isFullscreen()) {
-          await exitFullscreen()
-        } else {
-          await enterFullscreen()
-        }
-      },
-    })
+    this.#pauseMenu.registerEvents({})
   }
 
   /**
@@ -573,6 +571,13 @@ export class MainController {
     this.#mainFooter.removeEvents()
   }
 
+  registerEvents () {
+    this.registerKeyboardEvents()
+    this.registerMouseEvents()
+    this.registerMainBackButtonEvents()
+    this.registerFooterEvents()
+  }
+
   /**
    * @private
    */
@@ -597,6 +602,9 @@ export class MainController {
     this.#flashLightEffect.updateEffect(now)
     this.#pauseMenu.updateEffect(now)
     this.#backgroundDarker.updateEffect(now)
+    if (this.#modsPanel.display) {
+      this.#modsPanel.updateEffect(now)
+    }
 
     if (this.#valueChangeEffect) {
       this.#valueChangeEffect.update(now)
@@ -608,7 +616,7 @@ export class MainController {
 
   renderFrame () {
     this.#layoutEngine.clearBackground()
-    this.renderBackground()
+    this.#layoutEngine.renderShape(this.#backgroundEffect)
 
     // if (this.#loading) {
     //   this.renderLoading()
@@ -619,22 +627,23 @@ export class MainController {
       this.#stageController.loopFrame()
       if (this.#paused) {
         this.renderFrameSnapshot()
-        this.renderPauseMenu()
+        this.#layoutEngine.renderShape(this.#pauseMenu)
       }
     } else if (this.#showResults) {
-      this.renderResultsBoard()
+      this.#layoutEngine.renderShape(this.#rankingBoard)
       this.#layoutEngine.renderShape(this.#backButton)
     } else {
-      this.renderBeatmaps()
-      this.renderHeader()
-      this.renderFooter()
+      this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
+      this.#layoutEngine.renderShape(this.#mainHeader)
+      this.#layoutEngine.renderShape(this.#mainFooter)
       this.#layoutEngine.renderShape(this.#backButton)
+      this.#layoutEngine.renderShape(this.#modsPanel)
     }
 
     this.#layoutEngine.renderShape(this.#flashLightEffect)
 
     if (this.#interrupt) {
-      this.renderPauseMenu()
+      this.#layoutEngine.renderShape(this.#pauseMenu)
     }
 
     if (this.#backgroundFading) {
@@ -644,19 +653,7 @@ export class MainController {
     if (this.#valueChangeEffect) {
       this.#layoutEngine.renderShape(this.#valueChangeEffect)
     }
-    this.renderFps()
-  }
-
-  renderHeader () {
-    this.#layoutEngine.renderShape(this.#mainHeader)
-  }
-
-  renderFooter () {
-    this.#layoutEngine.renderShape(this.#mainFooter)
-  }
-
-  renderResultsBoard () {
-    this.#layoutEngine.renderShape(this.#rankingBoard)
+    this.#layoutEngine.renderShape(this.#fps)
   }
 
   renderFrameSnapshot () {
@@ -666,33 +663,11 @@ export class MainController {
     }
   }
 
-  renderPauseMenu () {
-    this.#layoutEngine.renderShape(this.#pauseMenu)
-  }
-
-  /**
-   * @private
-   */
-  renderBackground () {
-    this.#layoutEngine.renderShape(this.#backgroundEffect)
-  }
-
   /**
    * @private
    */
   renderLoading () {
     this.#layoutEngine.renderShape(this.#loadingEffect)
-  }
-
-  /**
-   * @private
-   */
-  renderBeatmaps () {
-    this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
-  }
-
-  renderFps () {
-    this.#layoutEngine.renderShape(this.#fps)
   }
 
   async fadeIn (start = 200, end = 300) {

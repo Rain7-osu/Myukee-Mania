@@ -24,4 +24,4 @@ export const setCanvasSize = ({
 export const DEFAULT_DELAY_TIME = 1200
 export const DEFAULT_SPEED = 34
 export const MAX_SPEED = 40
-export const MIN_SPEED = 5
+export const MIN_SPEED = 1

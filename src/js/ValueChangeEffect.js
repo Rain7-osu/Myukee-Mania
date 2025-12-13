@@ -62,19 +62,21 @@ export class ValueChangeEffect extends Shape {
   render (context) {
     const x = 0
     const y = (CANVAS.HEIGHT - this.#height) / 2.0
-    context.fillStyle = 'rgba(16, 16, 16, 0.8)'
+    context.fillStyle = 'rgba(18, 18, 18, 0.5)'
     context.fillRect(x, y, CANVAS.WIDTH, this.#height)
 
     const text = this.#value
-    context.font = 'normal 36px 微软雅黑'
-    context.textAlign = 'left'
-    context.textBaseline = 'middle'
-    context.fillStyle = '#ffffff'
-
-    const textMetrics = context.measureText(text)
-    const textX = (CANVAS.WIDTH - textMetrics.width) / 2.0
-    const textY = CANVAS.HEIGHT / 2.0
-    context.fillText(text, textX, textY)
+    this.drawText({
+      context,
+      text,
+      font: '36px 微软雅黑',
+      color: '#fff',
+      x,
+      y,
+      width: CANVAS.WIDTH,
+      height: this.#height,
+      stroke: false,
+    })
     context.restore()
   }
 }

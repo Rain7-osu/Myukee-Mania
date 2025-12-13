@@ -1,7 +1,6 @@
 import { NoteType } from './NoteType'
 import { OffsetShape } from './Shape'
 import { Skin } from './Skin'
-import { createLimitLog } from './dev'
 
 /**
  * @description 0 - 480
@@ -186,18 +185,25 @@ export class Note extends OffsetShape {
         const HIDE_LENGTH = NOTE_HEIGHT * 4
         const TAIL_HEIGHT = BODY_WIDTH / 2 * 1.732
 
-        context.beginPath()
+        // draw Tail
         const tailBottom = endY + HIDE_LENGTH
-        context.moveTo(LEFT + NOTE_WIDTH / 2, tailBottom - TAIL_HEIGHT)
-        const tailY = tailBottom <= offsetY ? tailBottom : offsetY
-        context.lineTo(LEFT + NOTE_WIDTH / 2 + BODY_WIDTH / 2, tailY)
-        context.lineTo(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, tailY)
-        context.closePath()
-        context.fill()
-        const h = height - HIDE_LENGTH - NOTE_HEIGHT
-        if (h > 0) {
-          context.fillRect(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, tailY, BODY_WIDTH, h)
+        const tailTop = tailBottom - TAIL_HEIGHT
+        if (tailTop < offsetY - NOTE_HEIGHT) {
+          context.beginPath()
+          context.moveTo(LEFT + NOTE_WIDTH / 2, tailTop)
+          const tailY = tailBottom <= offsetY ? tailBottom : offsetY
+          context.lineTo(LEFT + NOTE_WIDTH / 2 + BODY_WIDTH / 2, tailY)
+          context.lineTo(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, tailY)
+          context.closePath()
+          context.fill()
+
+          // draw body
+          const h = height - HIDE_LENGTH - NOTE_HEIGHT
+          if (h > 0) {
+            context.fillRect(LEFT + NOTE_WIDTH / 2 - BODY_WIDTH / 2, tailY, BODY_WIDTH, h)
+          }
         }
+
         context.fillStyle = this.#color
         context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }

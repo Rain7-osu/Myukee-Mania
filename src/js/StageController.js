@@ -544,7 +544,7 @@ export class StageController {
     }
 
     if (this.#speedChangeEffect) {
-      this.#speedChangeEffect.update()
+      this.#speedChangeEffect.update(now)
 
       if (!this.#speedChangeEffect.active) {
         this.#speedChangeEffect = null

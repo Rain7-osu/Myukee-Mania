@@ -1,3 +1,5 @@
+import { CANVAS } from './Config'
+
 /**
  * @param arr {any[]}
  */
@@ -77,7 +79,7 @@ export const rgba = {
    * @return {string}
    */
   format ([r, g, b, a]) {
-    return `rgba(${r}, ${g}, ${b}, ${a})`
+    return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`
   },
   /**
    * @param color
@@ -110,3 +112,14 @@ export function uniqNotes (notes) {
     return true
   })
 }
+
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const vw = v => v * CANVAS.WIDTH
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const vh = v => v * CANVAS.HEIGHT

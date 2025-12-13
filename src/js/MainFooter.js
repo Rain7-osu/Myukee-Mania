@@ -89,7 +89,7 @@ export class MainFooter extends Shape {
     })
     this.#modsButton.registerEvents({
       onClick: () => {
-        console.log('modsButton')
+        this.#mainController.showModsPanel()
       }
     })
     this.#randomButton.registerEvents({

@@ -4,7 +4,7 @@ import { BaseButton } from './BaseButton'
 import { CANVAS } from './Config'
 import { KeyCode } from './KeyCode'
 import { Skin } from './Skin'
-import { isFullscreen } from './dom'
+import { enterFullscreen, exitFullscreen, isFullscreen } from './dom'
 
 export class PauseMenu extends Shape {
   #keyboardEventManager = new KeyboardEventManager()
@@ -30,6 +30,11 @@ export class PauseMenu extends Shape {
   #backgroundColor = 'rgba(0, 0, 0, .85)'
 
   #showRetry = true
+
+  /**
+   * @type {MainController}
+   */
+  #mainController
 
   /**
    * @type {null | 'Resume' | 'Retry' | 'Back' | 'FullscreenChange'}
@@ -71,10 +76,11 @@ export class PauseMenu extends Shape {
 
   /**
    * @param container {HTMLElement}
+   * @param mainController {MainController}
    */
-  constructor (container) {
+  constructor (container, mainController) {
     super()
-
+    this.#mainController = mainController
     this.#currentMenus = [
       'Resume',
       'Retry',
@@ -178,22 +184,34 @@ export class PauseMenu extends Shape {
   }
 
   /**
-   * @param onResume {Function?}
-   * @param onRetry  {Function?}
-   * @param onBack {Function?}
-   * @param onFullscreenChange {Function?}
+   * @param onEnterFullscreen {() => void?}
    */
   registerEvents ({
-    onResume,
-    onRetry,
-    onBack,
-    onFullscreenChange,
+    onEnterFullscreen,
   }) {
-    const eventsMap = {
-      onResume,
-      onRetry,
-      onBack,
+    const {
       onFullscreenChange,
+      onBack,
+      onRetry,
+      onResume,
+    } = {
+      onResume: async () => {
+        await this.#mainController.resume()
+      },
+      onRetry: async () => {
+        await this.#mainController.retry()
+      },
+      onBack: async () => {
+        await this.#mainController.backMain()
+      },
+      onFullscreenChange: async () => {
+        if (isFullscreen()) {
+          await exitFullscreen()
+        } else {
+          await enterFullscreen()
+          onEnterFullscreen?.()
+        }
+      },
     }
     this.#showResume && this.#resumeButton.registerEvents({ onClick: onResume })
     this.#showRetry && this.#retryButton.registerEvents({ onClick: onRetry })

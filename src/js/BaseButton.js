@@ -129,16 +129,17 @@ export class BaseButton extends Shape {
     this.hovered = true
     this.cancelTransitions()
     const { hoverBackground, hoverScale } = this.#style
+
     if (hoverBackground) {
       const [rh, gh, bh, ah] = rgba.toValues(hoverBackground)
       const [r, g, b, a] = rgba.toValues(this.#currentBackground)
       this.createTransition(0, 100, 100, 'easeOut', (value) => {
         const progress = value / 100
         this.#currentBackground = rgba.format([
-          r + (rh - r) * progress,
-          g + (gh - g) * progress,
-          b + (bh - b) * progress,
-          a + (ah - a) * progress,
+          rh !== r ? r + (rh - r) * progress : r,
+          gh !== g ? g + (gh - g) * progress : g,
+          bh !== b ? b + (bh - b) * progress : b,
+          ah !== a ? a + (ah - a) * progress : a,
         ])
       })
     }
@@ -150,17 +151,22 @@ export class BaseButton extends Shape {
   hoverOut () {
     this.hovered = false
     this.cancelTransitions()
+    console.log('hoverout')
     const { hoverBackground, hoverScale, background } = this.#style
     if (hoverBackground) {
       const [rh, gh, bh, ah] = rgba.toValues(this.#currentBackground)
+      console.log('cb', this.#currentBackground)
       const [r, g, b, a] = rgba.toValues(background)
       this.createTransition(0, 100, 100, 'easeOut', (value) => {
         const progress = value / 100
+        if (this.#style.text.includes('Reset')) {
+          console.log(ah, a)
+        }
         this.#currentBackground = rgba.format([
-          rh - (rh - r) * progress,
-          gh - (gh - g) * progress,
-          bh - (bh - b) * progress,
-          ah - (ah - a) * progress,
+          rh !== r ? rh - (rh - r) * progress : rh,
+          gh !== g ? gh - (gh - g) * progress : gh,
+          bh !== b ? bh - (bh - b) * progress : bh,
+          ah !== a ? ah - (ah - a) * progress : ah,
         ])
       })
     }
