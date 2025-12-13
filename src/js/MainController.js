@@ -32,7 +32,10 @@ export class MainController {
 
   #loadingEffect = new MainLoadingEffect()
 
-  #beatmapListManager = new BeatmapListManager()
+  /**
+   * @type {BeatmapListManager}
+   */
+  #beatmapListManager
 
   #backgroundDarker = new BackgroundDarker()
 
@@ -122,6 +125,11 @@ export class MainController {
    */
   #backgroundFading = false
 
+  /**
+   * @type {BeatmapItem[]}
+   */
+  #randomHistory = []
+
   #fps = new FPS()
 
   /**
@@ -143,7 +151,7 @@ export class MainController {
     this.#rankingBoard = new RankingBoard(canvas)
     this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#backButton = new BackButton(canvas)
-    this.#mainFooter = new MainFooter(canvas)
+    this.#mainFooter = new MainFooter(canvas, this)
     this.#cursor = new Cursor()
   }
 
@@ -224,6 +232,18 @@ export class MainController {
         }
       }
     })
+  }
+
+  async lastRandom () {
+    if (this.#randomHistory.length) {
+      await this.selectBeatmapItem(this.#randomHistory.pop())
+    }
+  }
+
+  async random () {
+    this.#randomHistory.push(this.#beatmapListManager.selectedItem)
+    const beatmapItem = this.#beatmapListManager.random()
+    await this.selectBeatmapItem(beatmapItem)
   }
 
   /**
@@ -312,13 +332,13 @@ export class MainController {
    */
   async run () {
     this.#cursor.show()
-    this.#beatmapListManager.beatmapList.initScrollItems(this.#beatmapListManager.selectedBeatmapItem)
+    this.#beatmapListManager.beatmapList.initScrollItems(this.#beatmapListManager.selectedItem)
 
     /**
      * @param item {BeatmapItem}
      */
     const handleClick = (item) => {
-      if (this.#beatmapListManager.selectedBeatmapItem === item) {
+      if (this.#beatmapListManager.selectedItem === item) {
         this.#keyboardEventManager.removeEvents()
         this.preparePlay(item.beatmap)
       } else {
@@ -335,7 +355,7 @@ export class MainController {
     }
 
     await Promise.all([
-      this.playAuto(this.#beatmapListManager.selectedBeatmapItem.beatmap),
+      this.playAuto(this.#beatmapListManager.selectedItem.beatmap),
       this.#beatmapListManager.show(),
       this.#mainHeader.show(),
     ])
@@ -349,9 +369,17 @@ export class MainController {
         await enterFullscreen()
       }
       if (!this.#playing) {
-        await this.preparePlay(this.#beatmapListManager.selectedBeatmapItem.beatmap)
+        await this.preparePlay(this.#beatmapListManager.selectedItem.beatmap)
       } else if (this.#playing && this.#paused) {
         await this.resume()
+      }
+    }
+    /** @type {KeyboardEventHandler} */
+    const handleRandom = (e) => {
+      if (e.shiftKey) {
+        this.lastRandom()
+      } else {
+        this.random()
       }
     }
 
@@ -359,27 +387,28 @@ export class MainController {
       keydownEventList: {
         [KeyCode.ENTER]: handleEnter,
         [KeyCode.NUMPAD_ENTER]: handleEnter,
-        [KeyCode.ESCAPE]: async () => {
+        [KeyCode.ESCAPE]: () => {
           if (this.#playing) {
             if (this.#paused) {
-              await this.resume()
+              this.resume()
             } else {
               this.pause()
             }
           }
         },
-        [KeyCode.F6]: async () => {
+        [KeyCode.F6]: () => {
           this.#autoManager.pause()
         },
-        [KeyCode.F5]: async () => {
+        [KeyCode.F5]: () => {
           this.#autoManager.resume()
         },
-        [KeyCode.F7]: async () => {
+        [KeyCode.F7]: () => {
           this.decreaseRate()
         },
-        [KeyCode.F8]: async () => {
+        [KeyCode.F8]: () => {
           this.increaseRate()
         },
+        [KeyCode.F2]: handleRandom,
       },
     })
   }
@@ -411,7 +440,7 @@ export class MainController {
     })
   }
 
-  registerFooterEvents() {
+  registerFooterEvents () {
     this.#mainFooter.registerEvents({})
   }
 

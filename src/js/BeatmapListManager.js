@@ -66,8 +66,17 @@ export class BeatmapListManager {
   /**
    * @return {BeatmapItem|null}
    */
-  get selectedBeatmapItem () {
+  get selectedItem () {
     return this.#selectedBeatmapItem
+  }
+
+  /**
+   * @return {BeatmapItem}
+   */
+  random() {
+    const beatmapIds = Array.from(this.#beatmapItemMap.keys())
+    const randomId = selectRandomArrayItem(beatmapIds)
+    return this.#beatmapItemMap.get(randomId)
   }
 
   /**
@@ -75,9 +84,7 @@ export class BeatmapListManager {
    * @return BeatmapItem
    */
   firstSelect () {
-    const beatmapIds = Array.from(this.#beatmapItemMap.keys())
-    const randomId = selectRandomArrayItem(beatmapIds)
-    const randomBeatmap = this.#beatmapItemMap.get(randomId)
+    const randomBeatmap = this.random()
     randomBeatmap.select()
     this.#selectedBeatmapItem = randomBeatmap
     return randomBeatmap

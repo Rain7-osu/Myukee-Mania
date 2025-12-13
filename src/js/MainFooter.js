@@ -39,11 +39,18 @@ export class MainFooter extends Shape {
   #beatmapOptions
 
   /**
-   * @param container {HTMLCanvasElement}
+   * @type {MainController}
    */
-  constructor (container) {
+  #mainController
+
+  /**
+   * @param container {HTMLCanvasElement}
+   * @param mainController {MainController}
+   */
+  constructor (container, mainController) {
     super()
     this.#container = container
+    this.#mainController = mainController
     this.#modeButton = new FooterMenuButton(container, {
       text: 'Mania',
       key: '',
@@ -87,7 +94,7 @@ export class MainFooter extends Shape {
     })
     this.#randomButton.registerEvents({
       onClick: () => {
-        console.log('random')
+        this.#mainController.random()
       }
     })
     this.#beatmapOptionButton.registerEvents({
