@@ -41,8 +41,9 @@ const main = async () => {
           if (checkOsuFile(subItem)) {
             try {
               const subItemPath = path.join(itemPath, subItem)
+              /** @type {string} */
               const fileContent = await readFile(subItemPath, 'utf-8')
-              const config = resolveConfig(fileContent)
+              const config = resolveConfig(fileContent.replaceAll('\r\n', '\n'))
               if (!config) {
                 continue
               }
@@ -68,8 +69,8 @@ const main = async () => {
   }
 }
 
-const LINE_WRAP_CHAR = '\r\n'
-const GROUP_NAME_MATCH = /\[(\w+)]/
+const LINE_WRAP_CHAR = '\n'
+const GROUP_NAME_MATCH = /^\[(\w+)]$/
 
 /**
  * @typedef {{
@@ -110,7 +111,7 @@ const resolveConfig = (fileContent) => {
   const timingPoints = []
 
   for (let i = 0; i < strings.length; i++) {
-    const currentLine = strings[i]
+    const currentLine = strings[i].trim()
     const matchArray = currentLine.match(GROUP_NAME_MATCH)
 
     if (matchArray && typeof matchArray[1] === 'string') {
