@@ -97,8 +97,8 @@ function serveFile (res, filePath, contentType) {
     // 注入热更新脚本
     if (contentType === 'text/html') {
       data = data.toString().replace('</body>', `<script>
-          const ws = new WebSocket('ws://localhost:${PORT}');
-          ws.onmessage = () => {
+          const socket = new WebSocket('ws://localhost:${PORT}');
+          socket.onmessage = () => {
             console.log('[DevServer] Reloading page...');
             location.reload();
           };

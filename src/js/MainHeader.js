@@ -287,6 +287,7 @@ export class MainHeader extends Shape {
         ctx.lineTo(0, LEFT_HEIGHT)
 
         ctx.lineWidth = 8
+        ctx.lineJoin = 'round'
         ctx.strokeStyle = BORDER_COLOR
         ctx.stroke()
       })

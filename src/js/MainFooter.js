@@ -43,6 +43,8 @@ export class MainFooter extends Shape {
    */
   #mainController
 
+  #translateY = 0
+
   /**
    * @param container {HTMLCanvasElement}
    * @param mainController {MainController}
@@ -90,21 +92,21 @@ export class MainFooter extends Shape {
     this.#modsButton.registerEvents({
       onClick: () => {
         this.#mainController.showModsPanel()
-      }
+      },
     })
     this.#randomButton.registerEvents({
       onClick: () => {
         this.#mainController.random()
-      }
+      },
     })
     this.#beatmapOptionButton.registerEvents({
       onClick: () => {
         console.log('beatmapOption')
-      }
+      },
     })
   }
 
-  removeEvents() {
+  removeEvents () {
     this.#modeButton.removeEvents()
     this.#modsButton.removeEvents()
     this.#randomButton.removeEvents()
@@ -119,9 +121,31 @@ export class MainFooter extends Shape {
     this.#beatmapOptionButton.updateEffect(time)
   }
 
+  /**
+   * @param value {number}
+   * @private
+   */
+  _setTranslateY (value) {
+    this.#translateY = value
+    this.#modeButton.translateY = value
+    this.#modsButton.translateY = value
+    this.#randomButton.translateY = value
+    this.#beatmapOptionButton.translateY = value
+  }
+
+  async show () {
+    this.cancelTransitions()
+    await this.createTransition(this.#translateY, 0, 100, 'easeOut', (value) => this._setTranslateY(value))
+  }
+
+  async hide () {
+    this.cancelTransitions()
+    await this.createTransition(this.#translateY, HEIGHT + BORDER_WIDTH, 100, 'easeOut', (value) => this._setTranslateY(value))
+  }
+
   render (context) {
     context.save()
-    const y = CANVAS.HEIGHT - HEIGHT
+    const y = CANVAS.HEIGHT - HEIGHT + this.#translateY
     context.fillStyle = BG_COLOR
     context.fillRect(0, y, CANVAS.WIDTH, HEIGHT)
     context.fillStyle = BORDER_COLOR

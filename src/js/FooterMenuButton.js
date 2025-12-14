@@ -47,6 +47,13 @@ export class FooterMenuButton extends BaseButton {
 
   #hoverPercent = 0
 
+  #translateY = 0
+
+  /**
+   * @param y {number}
+   */
+  set translateY(y) { this.#translateY = y}
+
   /**
    * @param container {HTMLCanvasElement}
    * @param config {FooterMenuConfig}
@@ -130,6 +137,11 @@ export class FooterMenuButton extends BaseButton {
         bca + (dbca - bca) * progress,
       ])
     })
+  }
+
+  rect () {
+    const [x, y, w, h] = super.rect()
+    return [x, y + this.#translateY, w, h]
   }
 
   render (context) {

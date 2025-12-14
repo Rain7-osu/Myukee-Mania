@@ -100,7 +100,7 @@ export class BaseButton extends Shape {
   }
 
   /**
-   *
+   * @return {number[]}
    */
   rect () {
     const { left, top, width, height, offsetPercentX } = this.style()

@@ -64,6 +64,9 @@ export class Judgement {
     this.#releaseTiming = releaseTiming
   }
 
+  /**
+   * @return {JudgementType}
+   */
   get type () {
     return this.#type
   }

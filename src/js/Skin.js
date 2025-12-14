@@ -86,7 +86,7 @@ export class Skin {
         },
         border: {
           width: 10,
-          color: 'rgba(255, 255, 255, 1)',
+          color: 'rgb(127, 127, 127)',
         },
         columnCenter: CANVAS.WIDTH / 2.0,
         accuracy: {

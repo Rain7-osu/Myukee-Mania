@@ -105,20 +105,20 @@ export class PlayMap {
       this.#notes.forEach(note => note.col = this.#keys - note.col - 1)
     } else if (mod === Mod.RD) {
       const keyArr = new Array(this.#keys).fill(0).map((_, index) => index)
-      console.log(keyArr)
       const targetColMap = shuffleArray(keyArr)
-      console.log(targetColMap)
       this.#notes.forEach(note => note.col = targetColMap[note.col])
     } else if (mod === Mod.HT) {
       this.setRate(0.75)
     } else if (mod === Mod.DT || mod === Mod.NC) {
       this.setRate(1.5)
     } else if (mod === Mod.EZ) {
-      this.#overallDifficulty *= 0.5
-      this.#hpDrainRate *= 0.5
+      this.#overallDifficulty = Math.round(this.#overallDifficulty * 5) / 10
+      this.#hpDrainRate = Math.round(this.#hpDrainRate * 5) / 10
     } else if (mod === Mod.HR) {
-      this.#overallDifficulty *= 7 / 5
-      this.#hpDrainRate *= 7 / 5
+      this.#overallDifficulty = Math.round(this.#overallDifficulty * 7 / 5 * 10) / 10
+      this.#hpDrainRate = Math.round(this.#hpDrainRate * 7 / 5 * 10) / 10
+      this.#overallDifficulty = Math.min(10, this.#overallDifficulty)
+      this.#hpDrainRate = Math.min(10, this.#hpDrainRate)
     } else if (mod === Mod.NF) {
       this.#hpDrainRate = 0
     }

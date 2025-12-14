@@ -4,6 +4,7 @@ import { NoteType } from './NoteType'
 import { JudgementDeviationEffect } from './JudgementDeviationEffect'
 import { JudgementDeviation } from './JudgementDeviation'
 import { warn } from './dev'
+import { HpManager } from './HpManager'
 
 const DEFAULT_OD = 7
 
@@ -26,6 +27,11 @@ export class JudgementManager {
   /** @type {JudgementDeviationEffect} */
   #activeDeviations = new JudgementDeviationEffect()
   get activeDeviations () { return this.#activeDeviations }
+
+  /**
+   * @type {HpManager}
+   */
+  #hpManager = new HpManager()
 
   /**
    * @type {Note[]}
@@ -65,16 +71,25 @@ export class JudgementManager {
   get judgementRecord () { return this.#judgementRecord }
 
   /**
+   * @return {number}
+   */
+  get hp() { return this.#hpManager.value }
+
+  /**
    * @param notes {Note[]}
    * @param od {number}
+   * @param hp {number}
+   * @param hpEffect {HpEffect}
+   * @param onFail {() => void}
    */
-  init (notes, od) {
+  init (notes, od, hp, hpEffect, onFail) {
     this.#notes = notes
     this.#od = od || 8
     this.#combo = 0
     this.#maxCombo = 0
     this.#fullCombo = true
     this.#activeDeviations.init(od)
+    this.#hpManager.init(hp, onFail, hpEffect)
     this.#judgementRecord = {
       [JudgementType.PERFECT]: 0,
       [JudgementType.GREAT]: 0,
@@ -88,6 +103,7 @@ export class JudgementManager {
   reset () {
     this.#activeDeviations.reset()
     this.#activeEffects = []
+    this.#hpManager.reset()
     this.#combo = 0
     this.#maxCombo = 0
     this.#fullCombo = true
@@ -191,6 +207,18 @@ export class JudgementManager {
   }
 
   /**
+   * @param judgement {JudgementType}
+   * @private
+   */
+  _processHp (judgement) {
+    if (judgement <= JudgementType.MEH) {
+      this.#hpManager.drop()
+    } else {
+      this.#hpManager.restore(judgement)
+    }
+  }
+
+  /**
    * @param {number} currentTiming
    */
   update (currentTiming) {
@@ -210,7 +238,6 @@ export class JudgementManager {
 
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
-      // 到 miss 区间了还没按，直接判定 miss
       const type = note.type
       const isHit = note.isHit
 
@@ -218,6 +245,7 @@ export class JudgementManager {
         continue
       }
 
+      // 到 miss 区间了还没按，直接判定 miss
       if (type === NoteType.TAP && currentTiming - note.offset > maxMehTime) {
         note.hit()
         this.breakCombo()
@@ -265,6 +293,10 @@ export class JudgementManager {
             this.breakCombo()
           }
         }
+      }
+
+      if (note.judgement) {
+        this._processHp(note.judgement.type)
       }
     }
   }
@@ -314,6 +346,9 @@ export class JudgementManager {
           this.breakCombo()
         }
         // one hit => one judgement
+        if (note.judgement) {
+          this._processHp(note.judgement.type)
+        }
         break
       } else if (noteType === NoteType.HOLD) {
         if (isHeld) {
@@ -400,6 +435,10 @@ export class JudgementManager {
             this.#combo++
           }
         }
+      }
+
+      if (note.judgement) {
+        this._processHp(note.judgement.type)
       }
       // 一定有一个判定的，所以检查完当前直接不再向下检查
       break

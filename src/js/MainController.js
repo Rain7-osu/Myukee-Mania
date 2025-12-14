@@ -304,20 +304,18 @@ export class MainController {
     this.#autoManager.repeat = true
   }
 
+  async abortPlaying () {
+    this.#playing = false
+    this.run()
+    this.#backgroundDarker.reset()
+  }
+
   /**
    * @private
    * @param beatmap {Beatmap}
    * @return {Promise<void>}
    */
   async play (beatmap) {
-    this.#stageController.afterQuit(() => {
-      this.#playing = false
-      this.run()
-      this.#backgroundDarker.reset()
-    })
-    this.#stageController.afterFinish((rankingResults) => {
-      this.finish(rankingResults)
-    })
     await this.#stageController.init(beatmap, this.#settings, this.#currentRate, this.#selectedMods)
     this.#stageController.start()
     this.#playing = true
@@ -340,6 +338,8 @@ export class MainController {
     await Promise.all([
       this.#beatmapListManager.hide(),
       this.#mainHeader.hide(),
+      this.#mainFooter.hide(),
+      this.#backButton.hide(),
     ])
     if (!this.#interrupt) {
       await this.play(beatmap)
@@ -350,6 +350,8 @@ export class MainController {
       await Promise.all([
         this.#beatmapListManager.show(),
         this.#mainHeader.show(),
+        this.#mainFooter.show(),
+        this.#backButton.show(),
       ])
     }
   }
@@ -399,6 +401,8 @@ export class MainController {
       this.playAuto(this.#beatmapListManager.selectedItem.beatmap),
       this.#beatmapListManager.show(),
       this.#mainHeader.show(),
+      this.#mainFooter.show(),
+      this.#backButton.show(),
     ])
   }
 
@@ -565,6 +569,16 @@ export class MainController {
     await this.#rankingBoard.show()
   }
 
+  async fail () {
+    this.#cursor.show()
+    this.#pauseMenu.showRetry = true
+    this.#pauseMenu.showBack = true
+    this.#pauseMenu.showResume = false
+    this.#keyboardEventManager.removeEvents()
+    this.#pauseMenu.registerEvents({})
+    await this.#pauseMenu.show()
+  }
+
   async backMain () {
     this.#showResults = false
     this.#playing = false
@@ -668,7 +682,7 @@ export class MainController {
     if (this.#playing) {
       this.#layoutEngine.renderShape(this.#backgroundDarker)
       this.#stageController.loopFrame()
-      if (this.#paused) {
+      if (this.#paused || this.#stageController.failed) {
         this.renderFrameSnapshot()
         this.#layoutEngine.renderShape(this.#pauseMenu)
       }

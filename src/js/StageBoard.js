@@ -32,9 +32,16 @@ export class StageBoard extends Shape {
   }
 
   /**
+   * @return {{left: number, right: number}}
+   */
+  get boundary () {
+    return { left: this.#columnStart, right: this.#columnStart + this.#width }
+  }
+
+  /**
    * @param k {number}
    */
-  set keys (k) {
+  init (k) {
     this.#keys = k
     const { keys, columnCenter } = Skin.config.stage
     const { note: { width } } = keys[`keys${this.#keys}`]

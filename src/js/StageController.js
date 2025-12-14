@@ -24,6 +24,7 @@ import { MouseEventManager } from './MouseEventManager'
 import { Effect } from './Effect'
 import { ModEffect } from './ModEffect'
 import { Mod } from './ModsPanel'
+import { HpEffect } from './HpEffect'
 
 /**
  * @callback Callback
@@ -61,7 +62,7 @@ export class StageController extends Effect {
    * 是否在一局游戏中处于暂停状态
    * @type {boolean}
    */
-  #isPaused
+  #paused
 
   /**
    * start rendered time
@@ -100,6 +101,21 @@ export class StageController extends Effect {
   #scoreManager
 
   /**
+   * @type {SkipHeadEffect}
+   */
+  #skipHeadEffect = null
+
+  /**
+   * @type {HpEffect}
+   */
+  #hpEffect = new HpEffect()
+
+  /**
+   * @type {ModEffect}
+   */
+  #modEffect = null
+
+  /**
    * @type {HitEffectManager}
    */
   #hitEffects
@@ -119,7 +135,7 @@ export class StageController extends Effect {
    * 是否在一局游戏中
    * @type {boolean}
    */
-  #isPlaying = false
+  #playing = false
   /**
    * 是否结束
    * @type {boolean}
@@ -129,7 +145,12 @@ export class StageController extends Effect {
   /**
    * @type {boolean}
    */
-  #isQuit = false
+  #quited = false
+
+  /**
+   * @type {boolean}
+   */
+  #failed = false
 
   /**
    * 是否真正开始，默认开始有一定的延迟，如果在这个时间段按暂停，会直接退到主屏幕
@@ -140,6 +161,10 @@ export class StageController extends Effect {
    * @type {null | number}
    */
   #delayStartTimer = null
+
+  /**
+   * @type {number}
+   */
   #duration = 0
 
   /**
@@ -150,16 +175,12 @@ export class StageController extends Effect {
   /**
    * @return {boolean}
    */
-  get realStarted () { return this.#realStarted }
+  get failed () { return this.#failed }
 
   /**
-   * @type {Callback}
+   * @return {boolean}
    */
-  #quitCallback
-  /**
-   * @type {FinishCallback}
-   */
-  #finishCallback
+  get realStarted () { return this.#realStarted }
 
   /**
    * @type {HTMLCanvasElement}
@@ -178,16 +199,6 @@ export class StageController extends Effect {
    * @type {MouseEventManager}
    */
   #mouseEventHandler
-
-  /**
-   * @type {SkipHeadEffect}
-   */
-  #skipHeadEffect = null
-
-  /**
-   * @type {ModEffect}
-   */
-  #modEffect = null
 
   /**
    * @constructor
@@ -249,11 +260,12 @@ export class StageController extends Effect {
     mods.forEach(mod => currentMap.applyMod(mod))
 
     // keys
-    const { keys: keysCount, notes, overallDifficulty } = currentMap
+    const { keys: keysCount, notes, overallDifficulty, hpDrainRate } = currentMap
     const { note: { width } } = keys[`keys${keysCount}`]
-    this.#stageBoard.keys = keysCount
+    this.#stageBoard.init(keysCount)
     this.#hitEffects.keys = keysCount
     this.#stageWidth = keysCount * width
+    this.#hpEffect.init(this.#stageBoard.boundary.right)
     const coverMod = mods.find(v => [Mod.FD, Mod.FL, Mod.HD].includes(v))
     if (coverMod) {
       this.#modEffect = new ModEffect(coverMod)
@@ -272,7 +284,7 @@ export class StageController extends Effect {
 
     // init
     this.initSectionLines()
-    this.#judgementManager.init(notes, overallDifficulty)
+    this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect,() => this.fail())
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
     this.#mouseEventHandler.registerEvents({})
@@ -300,7 +312,8 @@ export class StageController extends Effect {
    * @return void
    */
   reset () {
-    this.#isPaused = false
+    this.#paused = false
+    this.#failed = false
     this.#frameSnapshot = null
     this.#realStarted = false
     this.#startTime = 0
@@ -340,13 +353,13 @@ export class StageController extends Effect {
       return {
         ...acc,
         [key]: () => {
-          if (this.#isPaused || !this.#isPlaying) {
+          if (this.#paused || !this.#playing) {
             return
           }
           if (this.#keyStatus[key]) {
             const col = hitObjectKeys.indexOf(key)
             this.#hitEffects.releaseKey(col)
-            if (col >= 0 && this.#isPlaying && !this.#isPaused) {
+            if (col >= 0 && this.#playing && !this.#paused) {
               this.#judgementManager.checkRelease(this.getGameTiming(), col)
             }
             this.#keyStatus[key] = false
@@ -359,12 +372,12 @@ export class StageController extends Effect {
       return {
         ...acc,
         [key]: () => {
-          if (this.#isPaused || !this.#isPlaying) {
+          if (this.#paused || !this.#playing) {
             return
           }
           const col = hitObjectKeys.indexOf(key)
           this.#hitEffects.pressKey(col)
-          if (col >= 0 && this.#isPlaying && !this.#isPaused) {
+          if (col >= 0 && this.#playing && !this.#paused) {
             this.#judgementManager.checkHit(this.getGameTiming(), col)
             this.#keyStatus[key] = true
           }
@@ -406,33 +419,17 @@ export class StageController extends Effect {
     })
   }
 
-  /**
-   * @param quitCallback {Callback}
-   */
-  afterQuit (quitCallback) {
-    this.#quitCallback = quitCallback
-  }
-
   quit () {
     this.#delayStartTimer && clearTimeout(this.#delayStartTimer)
-    this.#isQuit = true
+    this.#quited = true
     this.#playingAudio?.abort()
     this.reset()
-    this.#quitCallback?.()
-  }
-
-  /**
-   * @param finishCallback {FinishCallback}
-   */
-  afterFinish (finishCallback) {
-    this.#finishCallback = finishCallback
+    this.#mainController.abortPlaying()
   }
 
   finish () {
     this.#finished = false
-    /**
-     * @type {RankingResult}
-     */
+    /** @type {RankingResult} */
     const results = {
       accuracy: this.#accuracyManager.acc,
       maxCombo: this.#judgementManager.maxCombo,
@@ -442,19 +439,19 @@ export class StageController extends Effect {
       score: this.#scoreManager.score,
       beatmap: this.#beatmap,
     }
-
-    this.#finishCallback(results)
+    this.#mainController.finish(results)
     this.reset()
   }
 
   /**
    * @return void
    */
-  async start () {
-    this.#isPlaying = true
+  start () {
+    this.#playing = true
     this.#finished = false
     this.#startTime = performance.now() + DEFAULT_DELAY_TIME
     this.#stageBoard.show()
+    this.#hpEffect.start()
     this.playAudio(false).then(() => {
       if (this.canSkip()) {
         this.#skipHeadEffect = new SkipHeadEffect()
@@ -479,11 +476,20 @@ export class StageController extends Effect {
       this.cancelTimeout(this.#resumeTimer)
       this.#resumeTimer = null
     } else {
-      this.#isPaused = true
+      this.#paused = true
       this.#lastPausedTime = performance.now()
       this.#playingAudio.pause()
       this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
     }
+  }
+
+  async fail () {
+    await this.waitTimeout(300)[0]
+    this.#keyboardEventManager.removeEvents()
+    this.#playingAudio.abort()
+    this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
+    this.#failed = true
+    this.#mainController.fail()
   }
 
   /**
@@ -494,7 +500,7 @@ export class StageController extends Effect {
     this.#resumeTimer = timer
     await task
     this.registerStageEvent()
-    this.#isPaused = false
+    this.#paused = false
     this.#frameSnapshot = null
     const now = performance.now()
     const currentPausedTime = now - this.#lastPausedTime
@@ -514,12 +520,13 @@ export class StageController extends Effect {
 
   renderFrame () {
     // TODO update 逻辑抽出
-    if (this.#isPlaying) {
+    if (this.#playing) {
       this.renderStageBoard()
       if (!this.#finished) {
         this.renderSectionLine()
         this.renderNotes()
         this.renderHitEffects()
+        this.renderHpEffect()
         this.renderCoverEffect()
         this.renderAccuracyEffect()
         this.renderProgressEffect()
@@ -534,8 +541,8 @@ export class StageController extends Effect {
 
   loopFrame () {
     // Quit 之后，下一帧重置状态，直接就退出 loopFrame 了
-    if (this.#isQuit) {
-      this.#isQuit = false
+    if (this.#quited) {
+      this.#quited = false
       return
     }
 
@@ -548,13 +555,17 @@ export class StageController extends Effect {
       this.#modEffect.combo = this.#judgementManager.combo
     }
     const gameTiming = this.getGameTiming()
-    if (this.#isPlaying && this.#playingMap.length < gameTiming || __FORCE_FINISH__) {
-      this.#isPaused = false
+    if (this.#playing && this.#playingMap.length < gameTiming || __FORCE_FINISH__) {
+      this.#paused = false
+      this.#failed = false
+
+      // 1200ms 后隐藏打击面板
       if (this.#stageBoard.visible && this.#playingMap.length < gameTiming - 1200) {
         this.#finished = true
         this.#stageBoard.hide()
       }
 
+      // 2000ms 后开始展示结果面板
       if (this.#playingMap.length < gameTiming - 2000 || __FORCE_FINISH__) {
         this.finish()
         return
@@ -563,15 +574,15 @@ export class StageController extends Effect {
 
     const now = performance.now()
     this.updateTimeout(now)
-    if (this.#isPlaying) {
+    if (this.#playing) {
       const timing = gameTiming
 
-      if (!this.#isPaused) {
+      if (!this.#paused && !this.#failed) {
         this.#renderEngine.setTiming(timing)
         this.#judgementManager.update(timing)
-
         this.#scoreManager.update(now)
         this.#accuracyManager.update()
+        this.#hpEffect.updateEffect(now)
       }
       this.#hitEffects.updateTransition(now)
     }
@@ -649,6 +660,10 @@ export class StageController extends Effect {
     this.#sectionLines.forEach((offset) => {
       this.#renderEngine.renderOffsetShape(new SectionLine(offset, this.#stageWidth))
     })
+  }
+
+  renderHpEffect () {
+    this.#renderEngine.renderShape(this.#hpEffect)
   }
 
   get frameSnapshot () {

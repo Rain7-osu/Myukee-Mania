@@ -10,6 +10,8 @@ export class BackButton extends BaseButton {
 
   #iconScale = 1
 
+  #translateY = 0
+
   constructor (container) {
     const { buttons: { back } } = Skin.config.rankingBoard
     super(container, {
@@ -55,6 +57,23 @@ export class BackButton extends BaseButton {
     await this.processColorTransition(hoverBackground, background, this.#currentBackground, (color) => this.#currentBackground = color)
   }
 
+  async hide () {
+    const { buttons: { back: { top } } } = Skin.config.rankingBoard
+    const target = CANVAS.HEIGHT - top
+    this.cancelTransitions()
+    await this.createTransition(this.#translateY, target, 100, 'easeOut', value => this.#translateY = value)
+  }
+
+  async show () {
+    this.cancelTransitions()
+    await this.createTransition(this.#translateY, 0, 100, 'easeOut', value => this.#translateY = value)
+  }
+
+  rect () {
+    const [x, y, w, h] = super.rect()
+    return [x, y + this.#translateY, w, h]
+  }
+
   render (context) {
     const [x, y, width, height] = this.rect()
 
@@ -71,7 +90,6 @@ export class BackButton extends BaseButton {
           font,
           fontSize,
           iconSize,
-          iconLeft,
         },
       },
     } = Skin.config.rankingBoard
