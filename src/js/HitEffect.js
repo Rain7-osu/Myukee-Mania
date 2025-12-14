@@ -63,12 +63,12 @@ export class HitEffect extends Shape {
   push () {
     const { height: HIT_EFFECT_HEIGHT } = Skin.config.stage.hitEffect
     this.cancelTransitions()
-    this.createTransition(this.#height, HIT_EFFECT_HEIGHT, 80, 'easeOut', (value) => this.#height = value)
+    this.createTransitionSync(this.#height, HIT_EFFECT_HEIGHT, 80, 'easeOut', (value) => this.#height = value)
   }
 
   shift () {
     this.cancelTransitions()
-    this.createTransition(this.#height, 0, 300, 'easeOut', (value) => this.#height = value)
+    this.createTransitionSync(this.#height, 0, 300, 'easeOut', (value) => this.#height = value)
   }
 
   /**

@@ -209,19 +209,17 @@ export class ScrollItem extends Shape {
   /** @type {() => void} */
   #cancelUpdate = () => {}
 
-  hoverIn () {
+  async hoverIn () {
     this.#hovered = true
     const distance = this.#hoverStyle.left - this.#style.left
-
-    this.createTransition(this.#translateX, distance, 800, 'easeOut', (value) => {
+    await this.createTransition(this.#translateX, distance, 800, 'easeOut', (value) => {
       this.#translateX = value
     })
   }
 
-  hoverOut () {
+  async hoverOut () {
     this.#hovered = false
-
-    this.createTransition(this.#translateX, 0, 800, 'easeOut', (value) => {
+    await this.createTransition(this.#translateX, 0, 800, 'easeOut', (value) => {
       this.#translateX = value
     })
   }

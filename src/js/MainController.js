@@ -21,6 +21,9 @@ import { FPS } from './FPS'
 import { RateChangeEffect } from './RateChangeEffect'
 import { MainFooter } from './MainFooter'
 import { ModsPanel } from './ModsPanel'
+import { ModsInfoEffect } from './ModsInfo'
+import { MAX_SPEED, MIN_SPEED } from './Config'
+import { SpeedChangeEffect } from './SpeedChangeEffect'
 
 /**
  * 主界面管理器
@@ -143,6 +146,9 @@ export class MainController {
    */
   #modsPanel
 
+  /** @type {SpeedChangeEffect} */
+  #speedChangeEffect = null
+
   /**
    * @param canvas {HTMLCanvasElement}
    * @param entry {HTMLElement}
@@ -246,14 +252,14 @@ export class MainController {
     })
   }
 
-  showModsPanel () {
-    this.#modsPanel.display = true
+  async showModsPanel () {
+    await this.#modsPanel.show()
     this.#beatmapListManager.beatmapList.disableEvents()
     this.removeEvents()
     this.#modsPanel.registerEvents({
-      onClose: (mods) => {
+      onClose: async (mods) => {
         this.#selectedMods = mods
-        this.#modsPanel.display = false
+        await this.#modsPanel.hide()
         this.registerEvents()
         this.#beatmapListManager.beatmapList.enableEvents()
         this.#modsPanel.removeEvents()
@@ -438,6 +444,9 @@ export class MainController {
           this.increaseRate()
         },
         [KeyCode.F2]: handleRandom,
+        [KeyCode.F1]: (e) => {
+          this.showModsPanel()
+        },
       },
     })
   }
@@ -615,6 +624,14 @@ export class MainController {
         this.#valueChangeEffect = null
       }
     }
+
+    if (this.#speedChangeEffect) {
+      this.#speedChangeEffect.update(now)
+
+      if (!this.#speedChangeEffect.active) {
+        this.#speedChangeEffect = null
+      }
+    }
   }
 
   renderFrame () {
@@ -638,6 +655,7 @@ export class MainController {
     } else {
       this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
       this.#layoutEngine.renderShape(this.#mainHeader)
+      this.renderModsInfo()
       this.#layoutEngine.renderShape(this.#mainFooter)
       this.#layoutEngine.renderShape(this.#backButton)
       this.#layoutEngine.renderShape(this.#modsPanel)
@@ -657,12 +675,41 @@ export class MainController {
       this.#layoutEngine.renderShape(this.#valueChangeEffect)
     }
     this.#layoutEngine.renderShape(this.#fps)
+    this.renderSpeedChangeEffects()
+  }
+
+  increaseSpeed () {
+    if (this.#layoutEngine.speed >= MAX_SPEED) {
+      return
+    }
+    this.#layoutEngine.speed++
+    this.#speedChangeEffect = new SpeedChangeEffect(this.#layoutEngine.speed, performance.now())
+  }
+
+  decreaseSpeed () {
+    if (this.#layoutEngine.speed <= MIN_SPEED) {
+      return
+    }
+    this.#layoutEngine.speed--
+    this.#speedChangeEffect = new SpeedChangeEffect(this.#layoutEngine.speed, performance.now())
+  }
+
+  renderSpeedChangeEffects () {
+    if (this.#speedChangeEffect && this.#speedChangeEffect.active) {
+      this.#layoutEngine.renderShape(this.#speedChangeEffect)
+    }
   }
 
   renderFrameSnapshot () {
     const frameSnapshot = this.#stageController.frameSnapshot
     if (frameSnapshot) {
       this.#layoutEngine.renderShape(frameSnapshot)
+    }
+  }
+
+  renderModsInfo () {
+    if (this.#selectedMods && this.#selectedMods.length) {
+      this.#layoutEngine.renderShape(new ModsInfoEffect(this.#selectedMods))
     }
   }
 

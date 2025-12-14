@@ -1,3 +1,6 @@
+import { KeyCode } from './KeyCode'
+import { DEFAULT_SPEED } from './Config'
+
 /**
  * @typedef {Object} KeyBinds
  * @property {Record<number, string>} keys4
@@ -6,8 +9,6 @@
  * @property {Record<number, string>} keys7
  * @property {Record<number, string>} keys8
  */
-
-import { KeyCode } from './KeyCode'
 
 /**
  * @typedef {Object} SettingsValue
@@ -27,7 +28,7 @@ export class Settings {
   constructor () {
     this.#value = {
       backgroundDark: 80,
-      speed: 32,
+      speed: DEFAULT_SPEED,
       hideObjects: false,
       maniaKeyBinds: {
         keys4: {
@@ -59,6 +60,16 @@ export class Settings {
           4: KeyCode.J,
           5: KeyCode.K,
           6: KeyCode.L,
+        },
+        keys8: {
+          0: KeyCode.S,
+          1: KeyCode.D,
+          2: KeyCode.F,
+          3: KeyCode.SPACE,
+          4: KeyCode.J,
+          5: KeyCode.K,
+          6: KeyCode.L,
+          7: KeyCode.Semicolon,
         },
       },
     }

@@ -237,18 +237,18 @@ export class PauseMenu extends Shape {
     })
   }
 
-  show () {
+  async show () {
     this.#currentSelect = null
     this.#currentSelectIndex = null
-    this.createTransition(0, 100, 800, 'easeOut', (value) => {
+    await this.createTransition(0, 100, 800, 'easeOut', (value) => {
       this.#alpha = value / 100
     })
   }
 
-  hide () {
+  async hide () {
     this.#currentSelect = null
     this.#currentSelectIndex = null
-    this.createTransition(100, 0, 600, 'easeOut', (value) => {
+    await this.createTransition(100, 0, 600, 'easeOut', (value) => {
       this.#alpha = value / 100
     })
   }

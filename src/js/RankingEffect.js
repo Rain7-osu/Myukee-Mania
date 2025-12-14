@@ -114,10 +114,8 @@ export class RankingEffect extends Shape {
     const targetScale = this.#size === 'large' ? Skin.config.rankingBoard.ranking.scale : Skin.config.stage.ranking.scale
     const startScale = Skin.config.rankingBoard.ranking.startScale
     this.cancelTransitions()
-    return new Promise(resolve => {
-      this.createTransition(startScale, targetScale, 2000, 'easeOut', (value) => {
-        this.#renderScale = value
-      }, () => resolve())
+    await this.createTransition(startScale, targetScale, 2000, 'easeOut', (value) => {
+      this.#renderScale = value
     })
   }
 

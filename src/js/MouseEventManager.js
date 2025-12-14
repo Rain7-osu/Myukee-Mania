@@ -17,6 +17,14 @@ export class MouseEventManager {
    * @type {MouseEventHandler[]}
    */
   #clickEvents = []
+  /**
+   * @type {MouseEventHandler[]}
+   */
+  #mousedownEvents = []
+  /**
+   * @type {MouseEventHandler[]}
+   */
+  #mouseupEvents = []
 
   /**
    * @type {Map<Shape, MouseEventHandler>}
@@ -65,6 +73,14 @@ export class MouseEventManager {
     }
     this.#clickEvents.forEach(handler => handler(e))
   }
+  #invokeMouseDownEventHandler = (e) => {
+    e.preventDefault()
+    this.#mousedownEvents.forEach(handler => handler(e))
+  }
+  #invokeMouseUpEventHandler = (e) => {
+    e.preventDefault()
+    this.#mouseupEvents.forEach(handler => handler(e))
+  }
 
   /**
    * @param shape {Shape}
@@ -90,24 +106,32 @@ export class MouseEventManager {
   }
 
   /**
-   * @param mousemoveEvents {MouseEventHandler[]}
-   * @param clickEvents {MouseEventHandler[]}
-   * @param wheelEvents {MouseEventHandler[]}
+   * @param mousemoveEvents {MouseEventHandler[]?}
+   * @param clickEvents {MouseEventHandler[]?}
+   * @param wheelEvents {MouseEventHandler[]?}
+   * @param mouseDownEvents {MouseEventHandler[]?}
+   * @param mouseupEvents {MouseEventHandler[]?}
    */
   registerEvents ({
     mousemoveEvents = [],
     clickEvents = [],
     wheelEvents = [],
+    mouseupEvents = [],
+    mousedownEvents = [],
   }) {
     this.#clickEvents = clickEvents
     this.#mousemoveEvents = mousemoveEvents
     this.#wheelEvents = wheelEvents
+    this.#mousedownEvents = mousedownEvents
+    this.#mouseupEvents = mouseupEvents
 
     if (!this.#hasRegistered) {
       const container = this.#container
       container.addEventListener('click', this.#invokeClickEventHandler)
       container.addEventListener('wheel', this.#invokeWheelEventHandler)
       container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
+      container.addEventListener('mouseup', this.#invokeMouseUpEventHandler)
+      container.addEventListener('mousedown', this.#invokeMouseDownEventHandler)
       this.#hasRegistered = true
     }
   }
@@ -121,6 +145,8 @@ export class MouseEventManager {
       container.addEventListener('click', this.#invokeClickEventHandler)
       container.addEventListener('wheel', this.#invokeWheelEventHandler)
       container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
+      container.addEventListener('mouseup', this.#invokeMousemoveEventHandler)
+      container.addEventListener('mousedown', this.#invokeMouseDownEventHandler)
       this.#hasRegistered = false
     }
   }

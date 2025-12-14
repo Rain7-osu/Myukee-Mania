@@ -91,7 +91,7 @@ export class Skin {
         columnCenter: CANVAS.WIDTH / 2.0,
         accuracy: {
           x: CANVAS.WIDTH - 10,
-          y: 140,
+          y: 100,
           font: 'bold 56px 微软雅黑',
           color: '#fff',
           textAlign: 'right',

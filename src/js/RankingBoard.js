@@ -123,10 +123,7 @@ export class RankingBoard extends Shape {
       return
     }
     this.cancelTransitions()
-    const showedBoard = new Promise(resolve => {
-      this.createTransition(this.#alpha, 100, 600, 'easeOut', value => this.#alpha = value, () => resolve())
-    })
-    await showedBoard
+    await this.createTransition(this.#alpha, 100, 600, 'easeOut', value => this.#alpha = value)
     this.#shown = true
     const { accuracy, score } = this.#rankingResult
     await Promise.all([
@@ -135,15 +132,13 @@ export class RankingBoard extends Shape {
     ])
   }
 
-  hide () {
+  async hide () {
     if (this.#alpha === 0) {
       return Promise.resolve()
     }
     this.cancelTransitions()
 
-    return new Promise(resolve => {
-      this.createTransition(this.#alpha, 0, 600, 'easeOut', value => this.#alpha = value, () => resolve())
-    })
+    await this.createTransition(this.#alpha, 0, 600, 'easeOut', value => this.#alpha = value)
   }
 
   /**

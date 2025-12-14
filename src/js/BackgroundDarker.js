@@ -7,11 +7,7 @@ export class BackgroundDarker extends Shape {
   async setValue (value, duration = 2000) {
     const target = Math.max(Math.min(value, 100), 0)
     this.cancelTransitions()
-    return new Promise(resolve => {
-      this.createTransition(this.#value, target, duration, 'easeOut', (v) => {
-        this.#value = v
-      }, () => resolve())
-    })
+    await this.createTransition(this.#value, target, duration, 'easeOut', (v) => this.#value = v)
   }
 
   reset () {

@@ -73,7 +73,7 @@ export class BeatmapListManager {
   /**
    * @return {BeatmapItem}
    */
-  random() {
+  random () {
     const beatmapIds = Array.from(this.#beatmapItemMap.keys())
     const randomId = selectRandomArrayItem(beatmapIds)
     return this.#beatmapItemMap.get(randomId)
@@ -104,37 +104,34 @@ export class BeatmapListManager {
   }
 
   async hide () {
-    return new Promise(resolve => {
-      const items = this.beatmapList.scrollItems()
-      // 临时用这个值代替，确保能大于每一项的宽度
-      const targetX = CANVAS.WIDTH / 2
-      this.#beatmapList.cancelTransitions()
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i]
-        const translateX = item.translateX
-        item.cancelTransitions()
-        this.#beatmapList.createTransition(translateX, translateX + targetX, 500, 'easeOut', (value) => {
-          item.translateX = value
-        })
-      }
-
-      this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => resolve())
-    })
+    const items = this.beatmapList.scrollItems()
+    // 临时用这个值代替，确保能大于每一项的宽度
+    const targetX = CANVAS.WIDTH / 2
+    this.#beatmapList.cancelTransitions()
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const translateX = item.translateX
+      item.cancelTransitions()
+      this.#beatmapList.createTransitionSync(translateX, translateX + targetX, 500, 'easeOut', (value) => {
+        item.translateX = value
+      })
+    }
+    const [task] = this.#beatmapList.waitTimeout(800)
+    await task
   }
 
   async show () {
-    return new Promise(resolve => {
-      const items = this.beatmapList.scrollItems()
-      this.#beatmapList.cancelTransitions()
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i]
-        const translateX = item.translateX
-        this.#beatmapList.createTransition(translateX, 0, 500, 'easeOut', (value) => {
-          item.translateX = value
-        })
-      }
-      this.#beatmapList.createTransition(0, 1000, 800, 'easeOut', () => {}, () => resolve())
-    })
+    const items = this.beatmapList.scrollItems()
+    this.#beatmapList.cancelTransitions()
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      const translateX = item.translateX
+      this.#beatmapList.createTransitionSync(translateX, 0, 500, 'easeOut', (value) => {
+        item.translateX = value
+      })
+    }
+    const [task] = this.#beatmapList.waitTimeout(800)
+    await task
   }
 
   /**

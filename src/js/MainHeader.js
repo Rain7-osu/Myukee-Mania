@@ -9,7 +9,6 @@ const LEFT_HEIGHT = RIGHT_HEIGHT + 100
 const BG_COLOR = 'rgb(0, 0, 0)'
 const BORDER_COLOR = 'rgb(0, 102, 255)'
 
-
 const RENDER_CONFIG = {
   color: 'rgba(255, 255, 255, 1)',
   top: 20,
@@ -76,19 +75,15 @@ export class MainHeader extends Shape {
     if (this.#translateY === -260) {
       return Promise.resolve()
     }
+    await this.createTransition(this.#translateY, -280, 600, 'easeOut', (value) => this.#translateY = value)
 
-    return new Promise(resolve => {
-      this.createTransition(this.#translateY, -280, 600, 'easeOut', (value) => this.#translateY = value, () => resolve())
-    })
   }
 
   async show () {
     if (this.#translateY === 0) {
       return Promise.resolve()
     }
-    return new Promise(resolve => {
-      this.createTransition(this.#translateY, 0, 600, 'easeOut', (value) => this.#translateY = value, () => resolve())
-    })
+    await this.createTransition(this.#translateY, 0, 600, 'easeOut', (value) => this.#translateY = value)
   }
 
   /**
@@ -102,8 +97,8 @@ export class MainHeader extends Shape {
     this.#beatmap = beatmap
     this.#leftMaskTop = LEFT_MASK_TOP
     await Promise.all([
-      this.createTransitionAsync(this.#leftMaskTop, LEFT_HEIGHT, TRANSITION_DURATION, 'linear', (value) => this.#leftMaskTop = value),
-      this.createTransitionAsync(this.#textAlpha, 100, TRANSITION_DURATION, 'linear', (value) => this.#textAlpha = value),
+      this.createTransition(this.#leftMaskTop, LEFT_HEIGHT, TRANSITION_DURATION, 'linear', (value) => this.#leftMaskTop = value),
+      this.createTransition(this.#textAlpha, 100, TRANSITION_DURATION, 'linear', (value) => this.#textAlpha = value),
     ])
     this.#switchingBeatmap = false
   }
@@ -113,6 +108,10 @@ export class MainHeader extends Shape {
     if (this.#switchingBeatmap) {
       this.renderTitleMask(context)
     }
+  }
+
+  renderSpeed () {
+
   }
 
   renderWithSnapshot (context) {

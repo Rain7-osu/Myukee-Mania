@@ -1,4 +1,4 @@
-import { DEFAULT_DELAY_TIME, MAX_SPEED, MIN_SPEED } from './Config'
+import { DEFAULT_DELAY_TIME } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
 import { HitEffectManager } from './HitEffectManager'
@@ -11,7 +11,6 @@ import { JudgementRecordEffect } from './JudgementRecordEffect'
 import { ProgressPercentEffect } from './ProgressEffect'
 import { AccuracyEffect } from './AccuracyEffect'
 import { AccuracyManager } from './AccuracyManager'
-import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { StageBoard } from './StageBoard'
 import { RankingEffect } from './RankingEffect'
 import { FrameSnapshot } from './FrameSnapshot'
@@ -22,6 +21,7 @@ import { Settings } from './Settings'
 import { Skin } from './Skin'
 import { SkipHeadEffect } from './SkipHeadEffect'
 import { MouseEventManager } from './MouseEventManager'
+import { Effect } from './Effect'
 
 /**
  * @callback Callback
@@ -29,7 +29,7 @@ import { MouseEventManager } from './MouseEventManager'
  * @param rankingResult {RankingResult}
  */
 
-export class StageController {
+export class StageController extends Effect {
   /**
    * @type {Settings}
    */
@@ -141,12 +141,14 @@ export class StageController {
   #duration = 0
 
   /**
+   * @type {MainController}
+   */
+  #mainController
+
+  /**
    * @return {boolean}
    */
   get realStarted () { return this.#realStarted }
-
-  /** @type {SpeedChangeEffect} */
-  #speedChangeEffect = null
 
   /**
    * @type {Callback}
@@ -183,9 +185,12 @@ export class StageController {
   /**
    * @constructor
    * @param canvas {HTMLCanvasElement} canvas node name
+   * @param mainController {MainController}
    */
-  constructor (canvas) {
+  constructor (canvas, mainController) {
+    super()
     this.#canvas = canvas
+    this.#mainController = mainController
     this.#renderEngine = new RenderEngine(canvas)
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#hitEffects = new HitEffectManager()
@@ -293,17 +298,16 @@ export class StageController {
 
   /**
    * @param flag {boolean} true: run in resume
-   * @return void
+   * @return Promise<void>
    */
   async playAudio (flag) {
     if (flag) {
       await this.#playingAudio.resume()
     } else {
-      // setTimeout 会与帧不同步，要优化
-      this.#delayStartTimer = setTimeout(() => {
-        this.#realStarted = true
-        this.#playingAudio.play()
-      }, DEFAULT_DELAY_TIME)
+      const [task] = this.waitTimeout(DEFAULT_DELAY_TIME)
+      await task
+      this.#realStarted = true
+      await this.#playingAudio.play()
     }
   }
 
@@ -353,11 +357,11 @@ export class StageController {
     const optionKeyEvents = {
       [KeyCode.F4]: (e) => {
         e.preventDefault()
-        this.increaseSpeed()
+        this.#mainController.increaseSpeed()
       },
       [KeyCode.F3]: (e) => {
         e.preventDefault()
-        this.decreaseSpeed()
+        this.#mainController.decreaseSpeed()
       },
       [KeyCode.TILED]: (e) => {
         e.preventDefault()
@@ -498,7 +502,6 @@ export class StageController {
         this.renderComboEffect()
         this.renderJudgementDeviations()
       }
-      this.renderSpeedChangeEffects()
       this.renderSkip()
     }
   }
@@ -530,6 +533,7 @@ export class StageController {
     }
 
     const now = performance.now()
+    this.updateTimeout(now)
     if (this.#isPlaying) {
       const timing = gameTiming
 
@@ -543,14 +547,6 @@ export class StageController {
       this.#hitEffects.updateTransition(now)
     }
 
-    if (this.#speedChangeEffect) {
-      this.#speedChangeEffect.update(now)
-
-      if (!this.#speedChangeEffect.active) {
-        this.#speedChangeEffect = null
-      }
-    }
-
     this.#stageBoard.updateEffect(now)
   }
 
@@ -560,12 +556,6 @@ export class StageController {
 
   renderStageBoard () {
     this.#renderEngine.renderShape(this.#stageBoard)
-  }
-
-  renderSpeedChangeEffects () {
-    if (this.#speedChangeEffect && this.#speedChangeEffect.active) {
-      this.#renderEngine.renderShape(this.#speedChangeEffect)
-    }
   }
 
   renderAccuracyEffect () {
@@ -620,22 +610,6 @@ export class StageController {
     this.#sectionLines.forEach((offset) => {
       this.#renderEngine.renderOffsetShape(new SectionLine(offset, this.#stageWidth))
     })
-  }
-
-  increaseSpeed () {
-    if (this.#renderEngine.speed >= MAX_SPEED) {
-      return
-    }
-    this.#renderEngine.speed++
-    this.#speedChangeEffect = new SpeedChangeEffect(this.#renderEngine.speed, performance.now())
-  }
-
-  decreaseSpeed () {
-    if (this.#renderEngine.speed <= MIN_SPEED) {
-      return
-    }
-    this.#renderEngine.speed--
-    this.#speedChangeEffect = new SpeedChangeEffect(this.#renderEngine.speed, performance.now())
   }
 
   get frameSnapshot () {

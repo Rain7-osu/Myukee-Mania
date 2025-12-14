@@ -75,8 +75,9 @@ export class FooterMenuButton extends BaseButton {
     const [her, heg, heb, hea] = rgba.toValues(this.#config.hoverEndColor)
     const [bcr, bcg, bcb, bca] = rgba.toValues(this.#currentBorderColor)
     const [hbcr, hbcg, hbcb, hbca] = rgba.toValues(HOVER_BORDER_COLOR)
-    await this.createTransitionAsync(this.#hoverPercent, 100, TRANSITION_DURATION, 'easeOut', (value) => {
+    await this.createTransition(this.#hoverPercent, 100, TRANSITION_DURATION, 'easeOut', (value) => {
       const progress = value / 100
+      this.#hoverPercent = value
       this.#currentBgStartColor = rgba.format([
         sr + (hsr - sr) * progress,
         sg + (hsg - sg) * progress,
@@ -107,7 +108,8 @@ export class FooterMenuButton extends BaseButton {
     const [der, deg, deb, dea] = rgba.toValues(DEFAULT_BG_END_COLOR)
     const [bcr, bcg, bcb, bca] = rgba.toValues(this.#currentBorderColor)
     const [dbcr, dbcg, dbcb, dbca] = rgba.toValues(this.#config.borderColor)
-    await this.createTransitionAsync(this.#hoverPercent, 0, TRANSITION_DURATION, 'easeOut', (value) => {
+    await this.createTransition(this.#hoverPercent, 0, TRANSITION_DURATION, 'easeOut', (value) => {
+      this.#hoverPercent = value
       const progress = 1 - value / 100
       this.#currentBgStartColor = rgba.format([
         sr + (dsr - sr) * progress,

@@ -17,6 +17,8 @@ export class KeyboardEventManager {
    */
   #keypressEventList = {}
 
+  #hasRegister = false
+
   /**
    * @param e {KeyboardEvent}
    */
@@ -69,14 +71,24 @@ export class KeyboardEventManager {
     this.#keyupEventList = keyupEventList
     this.#keypressEventList = keypressEventList
 
-    document.addEventListener('keydown', this.#invokeKeydownEventHandler)
-    document.addEventListener('keyup', this.#invokeKeyupEventHandler)
-    document.addEventListener('keypress', this.#invokeKeypressEventHandler)
+    if (!this.#hasRegister) {
+      document.addEventListener('keydown', this.#invokeKeydownEventHandler)
+      document.addEventListener('keyup', this.#invokeKeyupEventHandler)
+      document.addEventListener('keypress', this.#invokeKeypressEventHandler)
+    }
   }
 
   removeEvents () {
-    document.removeEventListener('keydown', this.#invokeKeydownEventHandler)
-    document.removeEventListener('keyup', this.#invokeKeyupEventHandler)
-    document.removeEventListener('keypress', this.#invokeKeypressEventHandler)
+    this.#keypressEventList = {}
+    this.#keydownEventList = {}
+    this.#keyupEventList = {}
+  }
+
+  dispose () {
+    if (this.#hasRegister) {
+      document.removeEventListener('keydown', this.#invokeKeydownEventHandler)
+      document.removeEventListener('keyup', this.#invokeKeyupEventHandler)
+      document.removeEventListener('keypress', this.#invokeKeypressEventHandler)
+    }
   }
 }

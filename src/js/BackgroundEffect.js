@@ -28,7 +28,7 @@ export class BackgroundEffect extends Shape {
     }
     this.#currentImage = image
     this.cancelTransitions()
-    await this.createTransitionAsync(0, 100, 300, 'easeOut', (value) => this.#alpha = value)
+    await this.createTransition(0, 100, 300, 'easeOut', (value) => this.#alpha = value)
     this.#lastImage = this.#currentImage
   }
 

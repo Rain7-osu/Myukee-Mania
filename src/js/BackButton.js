@@ -40,20 +40,8 @@ export class BackButton extends BaseButton {
     this.hovered = true
     this.cancelAnimations()
     const { hoverWidth, width, hoverBackground, background } = this.style()
-    const [rh, gh, bh, ah] = rgba.toValues(hoverBackground)
-    const [rb] = rgba.toValues(background)
-    const [r, g, b, a] = rgba.toValues(this.#currentBackground)
-    const startPercent = (r - rb) / (rh - rb)
     this.createAnimation(width, hoverWidth, 'spring', (value) => this.setStyle({ width: value }))
-    await this.createTransitionAsync(startPercent * 100, 100, 300 * startPercent, 'easeOut', (value) => {
-      const progress = value / 100
-      this.#currentBackground = rgba.format([
-        r + (rh - r) * progress,
-        g + (gh - g) * progress,
-        b + (bh - b) * progress,
-        a + (ah - a) * progress,
-      ])
-    })
+    await this.processColorTransition(background, hoverBackground, this.#currentBackground, (color) => this.#currentBackground = color)
   }
 
   /**
@@ -64,19 +52,7 @@ export class BackButton extends BaseButton {
     this.cancelAnimations()
     const { width, background, hoverBackground } = this.style()
     this.createAnimation(width, this.#defaultWidth, 'spring', (value) => this.setStyle({ width: value }))
-    const [rh, gh, bh, ah] = rgba.toValues(this.#currentBackground)
-    const [rb] = rgba.toValues(hoverBackground)
-    const [r, g, b, a] = rgba.toValues(background)
-    const startPercent = (rh - r) / (rb - r)
-    await this.createTransitionAsync(startPercent * 100, 100, 300 * startPercent, 'easeOut', (value) => {
-      const progress = value / 100
-      this.#currentBackground = rgba.format([
-        rh - (rh - r) * progress,
-        gh - (gh - g) * progress,
-        bh - (bh - b) * progress,
-        ah - (ah - a) * progress,
-      ])
-    })
+    await this.processColorTransition(hoverBackground, background, this.#currentBackground, (color) => this.#currentBackground = color)
   }
 
   render (context) {

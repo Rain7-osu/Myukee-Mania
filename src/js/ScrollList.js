@@ -402,7 +402,7 @@ export class ScrollList extends Shape {
     while (lastItem) {
       const currentItem = lastItem
       const update = (value) => currentItem.translateY = value
-      this.createTransition(currentItem.translateY, 0, DURATION, 'easeOut', update)
+      this.createTransitionSync(currentItem.translateY, 0, DURATION, 'easeOut', update)
       transformers.push(update)
       lastItem = lastItem.last
     }
@@ -410,13 +410,13 @@ export class ScrollList extends Shape {
     while (nextItem) {
       const currentItem = nextItem
       const update = (value) => currentItem.translateY = value
-      this.createTransition(currentItem.translateY, 0, DURATION, 'easeOut', update)
+      this.createTransitionSync(currentItem.translateY, 0, DURATION, 'easeOut', update)
       transformers.push(update)
       nextItem = nextItem.next
     }
 
     const update = (value) => hoverItem.translateY = value
-    this.createTransition(hoverItem.translateY, 0, DURATION, 'easeOut', update)
+    this.createTransitionSync(hoverItem.translateY, 0, DURATION, 'easeOut', update)
     transformers.push(update)
     this.#cancelHoverOutTransition = () => this.cancelTransitions(transformers)
   }
@@ -447,7 +447,7 @@ export class ScrollList extends Shape {
     while (lastItem) {
       const currentItem = lastItem
       const update = (value) => currentItem.translateY = value
-      this.createTransition(currentItem.translateY, -distance, DURATION, 'easeOut', update)
+      this.createTransitionSync(currentItem.translateY, -distance, DURATION, 'easeOut', update)
       transformers.push(update)
       lastItem = lastItem.last
     }
@@ -455,13 +455,13 @@ export class ScrollList extends Shape {
     while (nextItem) {
       const currentItem = nextItem
       const update = (value) => currentItem.translateY = value
-      this.createTransition(currentItem.translateY, distance, DURATION, 'easeOut', update)
+      this.createTransitionSync(currentItem.translateY, distance, DURATION, 'easeOut', update)
       transformers.push(update)
       nextItem = nextItem.next
     }
 
     const update = (value) => hoverItem.translateY = value
-    this.createTransition(hoverItem.translateY, 0, DURATION, 'easeOut', update)
+    this.createTransitionSync(hoverItem.translateY, 0, DURATION, 'easeOut', update)
     transformers.push(update)
     this.#cancelHoverInTransition = () => this.cancelTransitions(transformers)
   }
@@ -535,7 +535,7 @@ export class ScrollList extends Shape {
     const targetScrollY = typeof scrollY === 'function' ? scrollY(this.#scrollY) : scrollY
     const currentScrollY = this.#scrollY
     this.#cancelUpdate()
-    this.#cancelUpdate = this.createTransition(currentScrollY, targetScrollY, 800, 'easeOut',
+    this.#cancelUpdate = this.createTransitionSync(currentScrollY, targetScrollY, 800, 'easeOut',
       (value) => this.#scrollY = value,
       () => this.#status.wheelEvent && this._onMouseMove(this.#status.wheelEvent))
   }

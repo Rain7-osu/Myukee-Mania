@@ -1,11 +1,11 @@
 import { Shape } from './Shape'
 import { CANVAS } from './Config'
 import { BaseButton } from './BaseButton'
-import { vh, vw } from './utils'
+import { rgba, vh, vw } from './utils'
 import { ModButton } from './ModButton'
 import { FrameSnapshot } from './FrameSnapshot'
 
-const BACKGROUND_COLOR = 'rgba(0, 0, 0, 0.75)'
+const BACKGROUND_COLOR = 'rgba(0, 0, 0, 0.95)'
 const BUTTON_TEXT_COLOR = '#fff'
 const BUTTON_RESET_COLOR = 'rgb(233, 49, 0)'
 const BUTTON_CLOSE_COLOR = 'rgb(107, 107, 107)'
@@ -20,6 +20,7 @@ const DIFFICULTY_REDUCTION_LABEL_COLOR = 'rgb(73, 190, 67)'
 const DIFFICULTY_INCREASE_LABEL_COLOR = 'rgb(240, 78, 13)'
 const SPECIAL_LABEL_COLOR = 'rgb(255, 255, 255)'
 const LABEL_LEFT = 76 / 2560
+const LABEL_TOP = 396 / 1440
 const LABEL_GAP = 132 / 1440
 const LABEL_FONT_SIZE = 48 / 1440
 const TITLE_TEXT = 'Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.'
@@ -32,6 +33,7 @@ const MOD_WIDTH = 120 / 2560
 const MOD_X_GAP = 78 / 2560
 const MOD_Y_GAP = 64 / 1440
 const MOD_FONT_SIZE = 36 / 2560
+const BUTTON_ACTIVE_COLOR = 'rgba(255, 255, 255, 0.6)'
 
 /**
  * @readonly
@@ -61,7 +63,7 @@ const ConflictModsMap = [
   [Mod.EZ, Mod.HR],
   [Mod.HT, Mod.DT, Mod.NC],
   [Mod.HD, Mod.FD, Mod.FL],
-  [Mod.SD, Mod.PF, Mod.NF],
+  [Mod.SD, Mod.PF, Mod.NF, Mod.AT],
 ]
 
 export class ModsPanel extends Shape {
@@ -89,6 +91,11 @@ export class ModsPanel extends Shape {
    * @type {ModButton[]}
    */
   #modButtons = []
+
+  /**
+   * @type {number}
+   */
+  #alpha = 0
 
   /**
    * @param container {HTMLCanvasElement}
@@ -148,7 +155,9 @@ export class ModsPanel extends Shape {
       hoverBackground: BUTTON_RESET_HOVER_COLOR,
       font: '微软雅黑',
       fontSize: vh(BUTTON_FONT_SIZE),
+      activeBackground: BUTTON_ACTIVE_COLOR,
     })
+    // this.#resetButton.display = false
     this.#closeButton = new BaseButton(container, {
       text: '2. Close',
       left: CANVAS.WIDTH / 2 - vw(BUTTON_WIDTH) / 2,
@@ -160,7 +169,9 @@ export class ModsPanel extends Shape {
       hoverBackground: BUTTON_CLOSE_HOVER_COLOR,
       font: '微软雅黑',
       fontSize: vh(BUTTON_FONT_SIZE),
+      activeBackground: BUTTON_ACTIVE_COLOR,
     })
+    // this.#closeButton.display = false
   }
 
   /**
@@ -229,6 +240,20 @@ export class ModsPanel extends Shape {
     })
   }
 
+  async show () {
+    this.display = true
+    await this.createTransition(this.#alpha, 100, 300, 'easeOut', (v) => {
+      this.#alpha = v
+    })
+  }
+
+  async hide () {
+    await this.createTransition(this.#alpha, 0, 300, 'easeOut', (v) => {
+      this.#alpha = v
+    })
+    this.display = false
+  }
+
   removeEvents () {
     this.#closeButton.removeEvents()
     this.#resetButton.removeEvents()
@@ -244,6 +269,9 @@ export class ModsPanel extends Shape {
   }
 
   render (context) {
+    context.save()
+    context.globalAlpha = this.#alpha / 100
+
     const renderBg = () => {
       context.save()
       context.fillStyle = BACKGROUND_COLOR
@@ -252,13 +280,26 @@ export class ModsPanel extends Shape {
     }
 
     const renderLabel = () => {
-
+      let y = vh(LABEL_TOP)
+      const fontSize = vh(LABEL_FONT_SIZE)
+      context.save()
+      context.textBaseline = 'top'
+      context.fillStyle = DIFFICULTY_REDUCTION_LABEL_COLOR
+      context.font = `${fontSize}px 微软雅黑`
+      context.fillText('Difficulty Reduction', vw(LABEL_LEFT), y)
+      context.fillStyle = DIFFICULTY_INCREASE_LABEL_COLOR
+      context.fillText('Difficulty Increase', vw(LABEL_LEFT), y += vh(LABEL_FONT_SIZE + LABEL_GAP))
+      context.fillStyle = SPECIAL_LABEL_COLOR
+      context.fillText('Special', vw(LABEL_LEFT), y += vh(LABEL_FONT_SIZE + LABEL_GAP))
+      context.restore()
     }
 
     renderBg()
+    renderLabel()
     this.#modButtons.forEach(button => button.render(context))
     this.#closeButton.render(context)
     this.#resetButton.render(context)
+    context.restore()
   }
 }
 
@@ -266,13 +307,20 @@ export class ModsPanel extends Shape {
  * @return {(function(context: CanvasRenderingContext2D): void)}
  */
 const createRender = ({
-  fillStyle,
+  baseFill,
   fontSize,
   text,
   bottom = 6,
 }) => {
   return (context) => {
-    context.fillStyle = fillStyle
+    const [r, g, b, a] = rgba.toValues(baseFill)
+    const calc = (v, s) => Math.round((255 - v) * s + v)
+    const gradient = context.createLinearGradient(0, 0, 0, vh(MOD_HEIGHT))
+    gradient.addColorStop(0, rgba.format([calc(r, 0.1), calc(g, 0.1), calc(b, 0.1), a]))
+    gradient.addColorStop(0.5, rgba.format([r, g, b, a]))
+    gradient.addColorStop(0.8, rgba.format([r, g, b, a]))
+    gradient.addColorStop(1, rgba.format([calc(r, -0.15), calc(g, -0.15), calc(b, -0.15), a]))
+    context.fillStyle = gradient
     context.beginPath()
     context.roundRect(0, 0, vw(MOD_WIDTH), vh(MOD_HEIGHT), [8])
     context.fill()
@@ -283,13 +331,13 @@ const createRender = ({
       context.textBaseline = 'bottom'
       context.textAlign = 'center'
       context.shadowColor = 'rgb(255, 255, 255)'
-      context.shadowBlur = 4
+      context.shadowBlur = 6
       context.fillText(text, vw(MOD_WIDTH / 2), vh(MOD_HEIGHT) - bottom)
     } else {
       context.textBaseline = 'bottom'
       context.textAlign = 'left'
       context.shadowColor = 'rgb(255, 255, 255)'
-      context.shadowBlur = 4
+      context.shadowBlur = 6
       context.fillText(lines[0], 2, vh(MOD_HEIGHT) - bottom - fontSize)
       context.textBaseline = 'bottom'
       context.textAlign = 'right'
@@ -298,96 +346,96 @@ const createRender = ({
   }
 }
 
-const EZIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(68, 102, 28)',
+export const EZIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(68, 102, 28)',
   fontSize: vh(MOD_HEIGHT / 4),
   text: 'Easy',
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const NFIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(29, 34, 74)',
+export const NFIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(29, 34, 74)',
   fontSize: vh(MOD_HEIGHT / 5),
   text: 'No-Fail',
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const HTIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(49, 43, 53)',
+export const HTIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(49, 43, 53)',
   fontSize: vh(MOD_HEIGHT / 4),
   text: 'Half',
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const HRIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(108, 2, 32)',
+export const HRIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(108, 2, 32)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Hard\nRock',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const SDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(95, 44, 1)',
+export const SDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(95, 44, 1)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Sudden\nDeath',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const PFIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(113, 64, 22)',
+export const PFIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(113, 64, 22)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Perfect',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const DTIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(91, 51, 130)',
+export const DTIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(91, 51, 130)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Double',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const NCIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(57, 28, 154)',
+export const NCIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(57, 28, 154)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Nightcore',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const FDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(107, 68, 0)',
+export const FDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(107, 68, 0)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Fade',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const HDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(152, 116, 30)',
+export const HDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(152, 116, 30)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Hidden',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const FLIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(26, 26, 26)',
+export const FLIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(26, 26, 26)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Flashlight',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const MRIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(31, 62, 49)',
+export const MRIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(38,77,51)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Mirror',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const RDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(2, 96, 42)',
+export const RDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(2, 96, 42)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Random',
   bottom: 2,
 }), vw(MOD_WIDTH), vh(MOD_HEIGHT))
 
-const ATIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  fillStyle: 'rgb(0, 60, 125)',
+export const ATIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
+  baseFill: 'rgb(0, 60, 125)',
   fontSize: vh(MOD_HEIGHT / 4.2),
   text: 'Auto',
   bottom: 2,

@@ -3,6 +3,7 @@
  * @enum {string}
  */
 export const KeyCode = {
+  A: 'KeyA',
   S: 'KeyS',
   D: 'KeyD',
   F: 'KeyF',
@@ -25,4 +26,5 @@ export const KeyCode = {
   F8: 'F8',
   F9: 'F9',
   NUMPAD_ENTER: 'NumpadEnter',
+  Semicolon: 'Semicolon',
 }

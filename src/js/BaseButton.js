@@ -18,9 +18,16 @@ import { rgba } from './utils'
  * @property {string?} hoverBackground
  * @property {number?} hoverScale
  * @property {number?} hoverWidth
+ * @property {string?} activeBackground
+ * @property {number?} activeScale
+ * @property {number?} activeWidth
  * @property {number?} rotate
  * @property {number?} offsetPercentX
+ * @property {string?} shadowColor
+ * @property {number?} shadowBlur
  */
+
+const TRANSITION_DURATION = 100
 
 export class BaseButton extends Shape {
   /**
@@ -47,6 +54,12 @@ export class BaseButton extends Shape {
    * @type {boolean}
    */
   hovered = false
+
+  /**
+   * @protected
+   * @type {boolean}
+   */
+  active = false
 
   /**
    * @param container {HTMLCanvasElement}
@@ -109,7 +122,17 @@ export class BaseButton extends Shape {
 
   render (context) {
     let [x, y, width, height] = this.rect()
-    const { text, fontSize: initialFontSize, font, color, radius, backgroundImage, rotate } = this.style()
+    const {
+      text,
+      fontSize: initialFontSize,
+      font,
+      color,
+      radius,
+      backgroundImage,
+      rotate,
+      shadowColor,
+      shadowBlur,
+    } = this.style()
 
     context.save()
     if (rotate) {
@@ -118,6 +141,9 @@ export class BaseButton extends Shape {
       x = -width / 2
       y = -height / 2
     }
+
+    shadowColor && (context.shadowColor = shadowColor)
+    shadowBlur && (context.shadowBlur = shadowBlur)
 
     if (backgroundImage) {
       context.drawImage(backgroundImage, x, y, width, height)
@@ -152,50 +178,95 @@ export class BaseButton extends Shape {
     context.restore()
   }
 
-  hover () {
-    this.hovered = true
-    this.cancelTransitions()
-    const { hoverBackground, hoverScale } = this.#style
-
-    if (hoverBackground) {
-      const [rh, gh, bh, ah] = rgba.toValues(hoverBackground)
-      const [r, g, b, a] = rgba.toValues(this.#currentBackground)
-      this.createTransition(0, 100, 100, 'easeOut', (value) => {
-        const progress = value / 100
-        this.#currentBackground = rgba.format([
-          rh !== r ? r + (rh - r) * progress : r,
-          gh !== g ? g + (gh - g) * progress : g,
-          bh !== b ? b + (bh - b) * progress : b,
-          ah !== a ? a + (ah - a) * progress : a,
-        ])
-      })
-    }
-    if (hoverScale) {
-      this.createTransition(this.#currentScale, hoverScale, 100, 'easeOut', (value) => this.#currentScale = value)
-    }
+  /**
+   * @param start {string}
+   * @param end {string}
+   * @param current {string}
+   * @param update {(color: string) => void}
+   * @return {Promise<void>}
+   */
+  async processColorTransition (start, end, current, update) {
+    const [re, ge, be, ae] = rgba.toValues(end)
+    const [rs, gs, bs, as] = rgba.toValues(start)
+    const [r, g, b, a] = rgba.toValues(current)
+    const startPercent = (r - rs) / (re - rs)
+    await this.createTransition(startPercent, 100, TRANSITION_DURATION, 'easeOut', (value) => {
+      const progress = value / 100
+      update(rgba.format([
+        re !== rs ? rs + (re - rs) * progress : rs,
+        ge !== gs ? gs + (ge - gs) * progress : gs,
+        be !== bs ? bs + (be - bs) * progress : bs,
+        ae !== as ? as + (ae - as) * progress : as,
+      ]))
+    })
   }
 
-  hoverOut () {
+  /**
+   * @param fromColor {string}
+   * @param targetColor {string}
+   * @private
+   */
+  async _processColorTransition (fromColor, targetColor) {
+    await this.processColorTransition(fromColor, targetColor, this.#currentBackground, (color) => this.#currentBackground = color)
+  }
+
+  async hover () {
+    this.hovered = true
+    this.cancelTransitions()
+    const { hoverBackground, hoverScale, background } = this.#style
+    const results = []
+    if (hoverBackground) {
+      results.push(this._processColorTransition(background, hoverBackground))
+    }
+    if (hoverScale) {
+      results.push(this.createTransition(this.#currentScale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+    }
+    await Promise.all(results)
+  }
+
+  async hoverOut () {
     this.hovered = false
     this.cancelTransitions()
 
     const { hoverBackground, hoverScale, background } = this.#style
+    const results = []
     if (hoverBackground) {
-      const [rh, gh, bh, ah] = rgba.toValues(this.#currentBackground)
-      const [r, g, b, a] = rgba.toValues(background)
-      this.createTransition(0, 100, 100, 'easeOut', (value) => {
-        const progress = value / 100
-        this.#currentBackground = rgba.format([
-          rh !== r ? rh - (rh - r) * progress : rh,
-          gh !== g ? gh - (gh - g) * progress : gh,
-          bh !== b ? bh - (bh - b) * progress : bh,
-          ah !== a ? ah - (ah - a) * progress : ah,
-        ])
-      })
+      results.push(this._processColorTransition(hoverBackground, background))
     }
     if (hoverScale) {
-      this.createTransition(this.#currentScale, 100, 100, 'easeOut', (value) => this.#currentScale = value)
+      results.push(this.createTransition(this.#currentScale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
     }
+    await Promise.all(results)
+  }
+
+  async activeIn () {
+    this.hovered = true
+    this.cancelTransitions()
+    const { activeBackground, hoverScale, background, hoverBackground } = this.#style
+
+    const results = []
+    if (activeBackground) {
+      results.push(this._processColorTransition(this.hovered ? hoverBackground : background, activeBackground))
+    }
+    if (hoverScale) {
+      results.push(this.createTransition(this.#currentScale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+    }
+    await Promise.all(results)
+  }
+
+  async activeOut () {
+    this.hovered = false
+    this.cancelTransitions()
+
+    const { activeBackground, hoverScale, background, hoverBackground } = this.#style
+    const results = []
+    if (activeBackground) {
+      results.push(this._processColorTransition(activeBackground, this.hovered ? hoverBackground : background))
+    }
+    if (hoverScale) {
+      results.push(this.createTransition(this.#currentScale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+    }
+    await Promise.all(results)
   }
 
   /**
@@ -232,9 +303,23 @@ export class BaseButton extends Shape {
       ],
       wheelEvents: [],
       clickEvents: [
-        (e) => {
+        async (e) => {
           if (this.isMouseIn(e)) {
             onClick?.()
+          }
+        },
+      ],
+      mousedownEvents: [
+        (e) => {
+          if (this.isMouseIn(e)) {
+            this.activeIn()
+          }
+        },
+      ],
+      mouseupEvents: [
+        (e) => {
+          if (this.isMouseIn(e)) {
+            this.activeOut()
           }
         },
       ],

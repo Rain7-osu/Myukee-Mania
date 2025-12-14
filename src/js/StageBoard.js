@@ -52,25 +52,21 @@ export class StageBoard extends Shape {
     const [r, g, b, a] = rgba.toValues(background)
     const [cr, cg, cb, ca] = rgba.toValues(color)
     this.cancelTransitions()
-    return new Promise(resolve => {
-      this.createTransition(0, 100, DEFAULT_DELAY_TIME, 'easeOut', (value) => {
-        this.#background = rgba.format([r, g, b, a * value / 100])
-        this.#borderColor = rgba.format([cr, cg, cb, ca * value / 100])
-      }, () => resolve())
+    await this.createTransition(0, 100, DEFAULT_DELAY_TIME, 'easeOut', (value) => {
+      this.#background = rgba.format([r, g, b, a * value / 100])
+      this.#borderColor = rgba.format([cr, cg, cb, ca * value / 100])
     })
   }
 
-  hide () {
+  async hide () {
     this.#visible = false
     const { board: { background }, border: { color } } = Skin.config.stage
     const [r, g, b, a] = rgba.toValues(background)
     const [cr, cg, cb, ca] = rgba.toValues(color)
     this.cancelTransitions()
-    return new Promise(resolve => {
-      this.createTransition(100, 0, DEFAULT_DELAY_TIME, 'easeOut', (value) => {
-        this.#background = rgba.format([r, g, b, a * value / 100])
-        this.#borderColor = rgba.format([cr, cg, cb, ca * value / 100])
-      }, () => resolve())
+    await this.createTransition(100, 0, DEFAULT_DELAY_TIME, 'easeOut', (value) => {
+      this.#background = rgba.format([r, g, b, a * value / 100])
+      this.#borderColor = rgba.format([cr, cg, cb, ca * value / 100])
     })
   }
 

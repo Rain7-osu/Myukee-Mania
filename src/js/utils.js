@@ -75,10 +75,13 @@ export const rgba = {
    * @param r {number}
    * @param g {number}
    * @param b {number}
-   * @param a {number}
+   * @param a {number?}
    * @return {string}
    */
   format ([r, g, b, a]) {
+    if (a === undefined) {
+      return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`
+    }
     return `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`
   },
   /**

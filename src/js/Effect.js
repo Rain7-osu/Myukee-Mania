@@ -24,7 +24,6 @@
  * ]} StepToConfig
  */
 
-
 /**
  * @typedef {{
  *   params: [
@@ -38,7 +37,23 @@
  *
  */
 
+/**
+ * @typedef {{
+ *   time: number;
+ *   start: number;
+ *   resolve: () => void;
+ *   reject: () => void;
+ *   id: number;
+ * }} TimeoutAction
+ */
+
 export class Effect {
+  /**
+   * @type {number}
+   * @private
+   */
+  static _timeout_counter = 0
+
   /**
    * @private
    * @type {TransitionConfig[]}
@@ -56,6 +71,57 @@ export class Effect {
   #animations = []
 
   /**
+   * @type {TimeoutAction[]}
+   */
+  #timeouts = []
+
+  /**
+   * @param time {number}
+   * @return {[Promise<void>, number]} [Task, id]
+   */
+  waitTimeout (time) {
+    const id = ++Effect._timeout_counter
+    const task = new Promise((resolve, reject) => {
+      this.#timeouts.push({
+        id,
+        time,
+        start: performance.now(),
+        resolve,
+        reject,
+      })
+    })
+    return [task, id]
+  }
+
+  /**
+   * @param timeout {number}
+   */
+  cancelTimeout (timeout) {
+    if (timeout) {
+      this.#timeouts = this.#timeouts.filter(({ id }) => id !== timeout)
+    } else {
+      this.#timeouts.forEach(({ reject }) => reject())
+      this.#timeouts = []
+    }
+  }
+
+  /**
+   * @param now {number}
+   */
+  updateTimeout (now) {
+    if (!this.#timeouts.length) {
+      return
+    }
+    this.#timeouts = this.#timeouts.filter(({ start, time, resolve }) => {
+      if (now - start >= time) {
+        resolve()
+        return false
+      }
+      return true
+    })
+  }
+
+  /**
    * @public
    * @param startValue {number}
    * @param endValue {number}
@@ -64,7 +130,7 @@ export class Effect {
    * @param updateFn {(value: number) => void}
    * @param endFn {() => void?}
    */
-  createTransition (startValue, endValue, duration, type, updateFn, endFn) {
+  createTransitionSync (startValue, endValue, duration, type, updateFn, endFn) {
     /** @type {number} */
     const start = performance.now()
     const end = start + duration
@@ -94,18 +160,18 @@ export class Effect {
    * @param type {TransitionType}
    * @param updateFn {(value: number) => void}
    */
-  createTransitionAsync (startValue, endValue, duration, type, updateFn) {
+  createTransition (startValue, endValue, duration, type, updateFn) {
     return new Promise(resolve => {
-      this.createTransition(startValue, endValue, duration, type, updateFn, () => resolve())
+      this.createTransitionSync(startValue, endValue, duration, type, updateFn, () => resolve())
     })
   }
 
   /**
    * @public
-   * @param time {number?}
+   * @param now {number?}
    */
-  updateTransition (time) {
-    const current = time || performance.now()
+  updateTransition (now) {
+    const current = now || performance.now()
     this.#updates = this.#updates.filter(update => {
       if (update[0].end > current) {
         return true
@@ -261,8 +327,9 @@ export class Effect {
     this.#updates = this.#updates.filter((update) => !transformers.includes(update[1]))
   }
 
-  updateEffect (time) {
-    this.updateTransition(time)
+  updateEffect (now) {
+    this.updateTimeout(now)
+    this.updateTransition(now)
     this.updateStepTo()
     this.updateAnimation()
   }
@@ -271,6 +338,7 @@ export class Effect {
     this.cancelAnimations()
     this.cancelTransitions()
     this.cancelStepTos()
+    this.cancelTimeout()
   }
 
   /**
