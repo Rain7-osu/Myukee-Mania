@@ -189,12 +189,7 @@ export class PauseMenu extends Shape {
   registerEvents ({
     onEnterFullscreen,
   }) {
-    const {
-      onFullscreenChange,
-      onBack,
-      onRetry,
-      onResume,
-    } = {
+    const eventsMap = {
       onResume: async () => {
         await this.#mainController.resume()
       },
@@ -213,6 +208,12 @@ export class PauseMenu extends Shape {
         }
       },
     }
+    const {
+      onFullscreenChange,
+      onBack,
+      onRetry,
+      onResume,
+    } = eventsMap
     this.#showResume && this.#resumeButton.registerEvents({ onClick: onResume })
     this.#showRetry && this.#retryButton.registerEvents({ onClick: onRetry })
     this.#showBack && this.#backButton.registerEvents({ onClick: onBack })

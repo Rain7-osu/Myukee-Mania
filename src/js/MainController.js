@@ -47,7 +47,10 @@ export class MainController {
 
   #flashLightEffect = new FlashLightEffect()
 
-  #mainHeader = new MainHeader()
+  /**
+   * @type {MainHeader}
+   */
+  #mainHeader
 
   /**
    * @type {MainFooter}
@@ -154,22 +157,25 @@ export class MainController {
    * @param entry {HTMLElement}
    */
   constructor (canvas, entry) {
-    if (canvas) {
-      this.#canvas = canvas
-      this.#entry = entry
-      this.#layoutEngine = new LayoutRenderEngine(canvas)
+    if (!canvas) {
+      throw new Error('Canvas container can not be null.')
     }
 
+    this.#canvas = canvas
+    this.#entry = entry
+    this.#layoutEngine = new LayoutRenderEngine(canvas)
+    const speed = this.#settings.get('speed')
     this.#autoManager = new AudioManager()
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#mouseEventManager = new MouseEventManager(canvas, 'MainController')
-    this.#stageController = new StageController(canvas)
+    this.#stageController = new StageController(canvas, this, this.#layoutEngine)
     this.#rankingBoard = new RankingBoard(canvas)
     this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#backButton = new BackButton(canvas)
     this.#modsPanel = new ModsPanel(canvas)
     this.#pauseMenu = new PauseMenu(canvas, this)
     this.#mainFooter = new MainFooter(canvas, this)
+    this.#mainHeader = new MainHeader(speed)
     this.#cursor = new Cursor()
     this.#modsPanel.display = false
   }
@@ -312,7 +318,7 @@ export class MainController {
     this.#stageController.afterFinish((rankingResults) => {
       this.finish(rankingResults)
     })
-    await this.#stageController.init(beatmap, this.#settings, this.#currentRate)
+    await this.#stageController.init(beatmap, this.#settings, this.#currentRate, this.#selectedMods)
     this.#stageController.start()
     this.#playing = true
     this.#showResults = false
@@ -418,37 +424,54 @@ export class MainController {
       }
     }
 
-    this.#keyboardEventManager.registerEvents({
-      keydownEventList: {
-        [KeyCode.ENTER]: handleEnter,
-        [KeyCode.NUMPAD_ENTER]: handleEnter,
-        [KeyCode.ESCAPE]: () => {
-          if (this.#playing) {
-            if (this.#paused) {
-              this.resume()
-            } else {
-              this.pause()
-            }
+    /**
+     * @type {Record<KeyCode, KeyboardEventHandler>}
+     */
+    const keydownEventList = {
+      [KeyCode.ENTER]: handleEnter,
+      [KeyCode.NUMPAD_ENTER]: handleEnter,
+      [KeyCode.ESCAPE]: () => {
+        if (this.#playing) {
+          if (this.#paused) {
+            this.resume()
+          } else {
+            this.pause()
           }
-        },
-        [KeyCode.F6]: () => {
-          this.#autoManager.pause()
-        },
-        [KeyCode.F5]: () => {
-          this.#autoManager.resume()
-        },
-        [KeyCode.F7]: () => {
-          this.decreaseRate()
-        },
-        [KeyCode.F8]: () => {
-          this.increaseRate()
-        },
-        [KeyCode.F2]: handleRandom,
-        [KeyCode.F1]: (e) => {
-          this.showModsPanel()
-        },
+        }
       },
-    })
+      [KeyCode.F4]: (e) => {
+        if (this.#playing) return
+
+        if (e.ctrlKey) {
+          this.increaseSpeed()
+        }
+      },
+      [KeyCode.F3]: (e) => {
+        if (this.#playing) return
+
+        if (e.ctrlKey) {
+          this.decreaseSpeed()
+        }
+      },
+      [KeyCode.F6]: () => {
+        this.#autoManager.pause()
+      },
+      [KeyCode.F5]: () => {
+        this.#autoManager.resume()
+      },
+      [KeyCode.F7]: () => {
+        this.decreaseRate()
+      },
+      [KeyCode.F8]: () => {
+        this.increaseRate()
+      },
+      [KeyCode.F2]: handleRandom,
+      [KeyCode.F1]: () => {
+        this.showModsPanel()
+      },
+    }
+
+    this.#keyboardEventManager.registerEvents({ keydownEventList })
   }
 
   registerMouseEvents () {
@@ -683,6 +706,8 @@ export class MainController {
       return
     }
     this.#layoutEngine.speed++
+    this.#settings.set('speed', this.#layoutEngine.speed)
+    this.#mainHeader.speed = this.#layoutEngine.speed
     this.#speedChangeEffect = new SpeedChangeEffect(this.#layoutEngine.speed, performance.now())
   }
 
@@ -691,6 +716,8 @@ export class MainController {
       return
     }
     this.#layoutEngine.speed--
+    this.#settings.set('speed', this.#layoutEngine.speed)
+    this.#mainHeader.speed = this.#layoutEngine.speed
     this.#speedChangeEffect = new SpeedChangeEffect(this.#layoutEngine.speed, performance.now())
   }
 

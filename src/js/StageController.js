@@ -22,6 +22,8 @@ import { Skin } from './Skin'
 import { SkipHeadEffect } from './SkipHeadEffect'
 import { MouseEventManager } from './MouseEventManager'
 import { Effect } from './Effect'
+import { ModEffect } from './ModEffect'
+import { Mod } from './ModsPanel'
 
 /**
  * @callback Callback
@@ -183,15 +185,21 @@ export class StageController extends Effect {
   #skipHeadEffect = null
 
   /**
+   * @type {ModEffect}
+   */
+  #modEffect = null
+
+  /**
    * @constructor
    * @param canvas {HTMLCanvasElement} canvas node name
    * @param mainController {MainController}
+   * @param renderEngine {RenderEngine}
    */
-  constructor (canvas, mainController) {
+  constructor (canvas, mainController, renderEngine) {
     super()
     this.#canvas = canvas
     this.#mainController = mainController
-    this.#renderEngine = new RenderEngine(canvas)
+    this.#renderEngine = renderEngine
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#hitEffects = new HitEffectManager()
     this.#judgementManager = new JudgementManager()
@@ -225,39 +233,49 @@ export class StageController extends Effect {
    * @param beatmap {Beatmap}
    * @param settings {Settings}
    * @param rate {number}
+   * @param mods {Mod[]}
    * @return void
    */
-  async init (beatmap, settings, rate) {
+  async init (beatmap, settings, rate, mods) {
     const { keys } = Skin.config.stage
-
     this.#settings = settings
     this.reset()
+
+    // map
     this.#beatmap = beatmap
     const mapFile = await FileManager.loadMapFile(beatmap.filename)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     currentMap.setRate(rate)
-    const audio = new AudioManager()
+    mods.forEach(mod => currentMap.applyMod(mod))
+
+    // keys
     const { keys: keysCount, notes, overallDifficulty } = currentMap
     const { note: { width } } = keys[`keys${keysCount}`]
     this.#stageBoard.keys = keysCount
     this.#hitEffects.keys = keysCount
     this.#stageWidth = keysCount * width
+    const coverMod = mods.find(v => [Mod.FD, Mod.FL, Mod.HD].includes(v))
+    if (coverMod) {
+      this.#modEffect = new ModEffect(coverMod)
+      this.#modEffect.keys = keysCount
+    } else {
+      this.#modEffect = null
+    }
+
+    // audio
+    const audio = new AudioManager()
     await audio.load(beatmap.audioFile)
     audio.setRate(rate)
     this.#duration = audio.duration / rate
     this.#playingMap = currentMap
     this.#playingAudio = audio
+
+    // init
     this.initSectionLines()
     this.#judgementManager.init(notes, overallDifficulty)
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
     this.#mouseEventHandler.registerEvents({})
-    if (this.canSkip()) {
-      this.#skipHeadEffect = new SkipHeadEffect()
-      this.#mouseEventHandler.bind(this.#skipHeadEffect, () => {
-        this.skipHead()
-      })
-    }
   }
 
   initSectionLines () {
@@ -378,7 +396,7 @@ export class StageController extends Effect {
         ...hitObjectsDownEvents,
         ...optionKeyEvents,
         [KeyCode.SPACE]: () => {
-          if (this.canSkip()) {
+          if (this.canSkip() && this.#skipHeadEffect) {
             this.skipHead()
           } else {
             hitObjectsDownEvents[KeyCode.SPACE]?.()
@@ -432,13 +450,20 @@ export class StageController extends Effect {
   /**
    * @return void
    */
-  start () {
+  async start () {
     this.#isPlaying = true
     this.#finished = false
     this.#startTime = performance.now() + DEFAULT_DELAY_TIME
-    this.playAudio(false)
-    this.registerStageEvent()
     this.#stageBoard.show()
+    this.playAudio(false).then(() => {
+      if (this.canSkip()) {
+        this.#skipHeadEffect = new SkipHeadEffect()
+        this.#mouseEventHandler.bind(this.#skipHeadEffect, () => {
+          this.skipHead()
+        })
+      }
+    })
+    this.registerStageEvent()
   }
 
   /** @type {number | null} */
@@ -450,8 +475,8 @@ export class StageController extends Effect {
   pause () {
     this.#keyboardEventManager.removeEvents()
     // 有 resumeTimer，说明是暂停状态下，点了继续，但是还没开始继续下落，在 DELAY 状态，此时则不取消暂停状态，继续暂停就行
-    if (this.#resumeTimer !== null) {
-      clearTimeout(this.#resumeTimer)
+    if (this.#resumeTimer !== null && this.#resumeTimer > 0) {
+      this.cancelTimeout(this.#resumeTimer)
       this.#resumeTimer = null
     } else {
       this.#isPaused = true
@@ -464,19 +489,19 @@ export class StageController extends Effect {
   /**
    * @return void
    */
-  resume () {
-    this.#resumeTimer = setTimeout(() => {
-      this.registerStageEvent()
-      this.#isPaused = false
-      this.#frameSnapshot = null
-      const now = performance.now()
-      const currentPausedTime = now - this.#lastPausedTime
-      this.#totalPauseTime += currentPausedTime
-      this.playAudio(true)
-
-      clearTimeout(this.#resumeTimer)
-      this.#resumeTimer = null
-    }, DEFAULT_DELAY_TIME)
+  async resume () {
+    const [task, timer] = this.waitTimeout(DEFAULT_DELAY_TIME)
+    this.#resumeTimer = timer
+    await task
+    this.registerStageEvent()
+    this.#isPaused = false
+    this.#frameSnapshot = null
+    const now = performance.now()
+    const currentPausedTime = now - this.#lastPausedTime
+    this.#totalPauseTime += currentPausedTime
+    this.playAudio(true)
+    this.cancelTimeout(this.#resumeTimer)
+    this.#resumeTimer = null
   }
 
   retry () {
@@ -492,12 +517,13 @@ export class StageController extends Effect {
     if (this.#isPlaying) {
       this.renderStageBoard()
       if (!this.#finished) {
-        this.renderScoreEffect()
-        this.renderProgressEffect()
-        this.renderAccuracyEffect()
         this.renderSectionLine()
         this.renderNotes()
         this.renderHitEffects()
+        this.renderCoverEffect()
+        this.renderAccuracyEffect()
+        this.renderProgressEffect()
+        this.renderScoreEffect()
         this.renderJudgementEffects()
         this.renderComboEffect()
         this.renderJudgementDeviations()
@@ -518,6 +544,9 @@ export class StageController extends Effect {
   }
 
   updateFrame () {
+    if (this.#modEffect) {
+      this.#modEffect.combo = this.#judgementManager.combo
+    }
     const gameTiming = this.getGameTiming()
     if (this.#isPlaying && this.#playingMap.length < gameTiming || __FORCE_FINISH__) {
       this.#isPaused = false
@@ -548,6 +577,16 @@ export class StageController extends Effect {
     }
 
     this.#stageBoard.updateEffect(now)
+
+    if (this.#skipHeadEffect) {
+      if (!this.canSkip()) {
+        this.#skipHeadEffect = null
+      }
+    }
+  }
+
+  renderCoverEffect () {
+    this.#modEffect && this.#renderEngine.renderShape(this.#modEffect)
   }
 
   renderJudgementDeviations () {

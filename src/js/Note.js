@@ -25,6 +25,11 @@ export class Note extends OffsetShape {
   get col () { return this.#col }
 
   /**
+   * @param c {number}
+   */
+  set col (c) { this.#col = c }
+
+  /**
    * @type {NoteType}
    */
   #type
@@ -156,9 +161,7 @@ export class Note extends OffsetShape {
     const { columnCenter, keys } = Skin.config.stage
     const {
       note: {
-        width: NOTE_WIDTH,
-        height: NOTE_HEIGHT,
-        gap: NOTE_GAP,
+        width: NOTE_WIDTH, height: NOTE_HEIGHT, gap: NOTE_GAP,
       },
     } = keys[`keys${this.#keys}`]
     const halfWidth = this.#keys * NOTE_WIDTH / 2
@@ -174,13 +177,11 @@ export class Note extends OffsetShape {
     } else if (this.#type === NoteType.HOLD) {
       if (offsetY > 0) {
         const height = offsetY - endY
+        context.fillStyle = 'rgb(186, 191, 195)'
         if (this.#grayed) {
-          // add 50 alpha
-          // context.fillStyle = this.#color + '50'
-          context.fillStyle = 'rgb(186, 191, 195, 50)'
+          context.fillStyle = 'rgba(186, 191, 195, 0.5)'
         }
 
-        context.fillStyle = 'rgb(186, 191, 195)'
         const BODY_WIDTH = NOTE_WIDTH * 0.8
         const HIDE_LENGTH = NOTE_HEIGHT * 4
         const TAIL_HEIGHT = BODY_WIDTH / 2 * 1.732

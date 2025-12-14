@@ -86,9 +86,11 @@ export class ScoreEffect extends Shape {
   render (context) {
     const { font, fontSize, lineHeight, color, strokeColor, fontWeight } = Skin.config.stage.score
 
+    context.save()
     context.fillStyle = color
     context.strokeStyle = strokeColor
     context.textAlign = 'right'
+    context.textBaseline = 'top'
     context.lineWidth = 2
 
     this.drawText({
@@ -105,23 +107,6 @@ export class ScoreEffect extends Shape {
       textBaseline: 'top',
       stroke: true,
     })
-  }
-
-  /**
-   * @param context {CanvasRenderingContext2D}
-   */
-  renderImageNumbers (context) {
-    const NumberImageConfig = Skin.config.stage.score.assets || Skin.config.common.number.default
-    const width = Skin.config.common.number.width
-    const numbers = this.scoreNumbers().split('')
-
-    let offsetLeft = this.#left
-
-    const numList = numbers.map((name) => `default-${name}`)
-    numList.forEach((name) => {
-      const config = NumberImageConfig[name]
-      context.drawImage(config.image, offsetLeft, this.#top, config.width, config.y)
-      offsetLeft += width
-    })
+    context.restore()
   }
 }

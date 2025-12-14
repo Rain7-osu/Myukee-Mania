@@ -23,6 +23,7 @@ async function run () {
   await enterFullscreen()
   const entry = $('enter')
   const main = new MainController(canvas, entry)
+  window.__MAIN__ = main
   await main.start()
 }
 

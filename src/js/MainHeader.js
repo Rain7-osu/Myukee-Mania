@@ -2,6 +2,8 @@ import { Shape } from './Shape'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
 import { formatMapTime, rgba } from './utils'
+import { ModNameMap } from './ModsInfo'
+import { Settings } from './Settings'
 
 const TRANSITION_DURATION = 200
 const RIGHT_HEIGHT = 160
@@ -71,6 +73,26 @@ export class MainHeader extends Shape {
 
   #switchingBeatmap = false
 
+  /**
+   * @type {number}
+   */
+  #speed
+
+  /**
+   * @param speed {number}
+   */
+  constructor (speed) {
+    super()
+    this.#speed = speed
+  }
+
+  /**
+   * @param s {number}
+   */
+  set speed (s) {
+    this.#speed = s
+  }
+
   async hide () {
     if (this.#translateY === -260) {
       return Promise.resolve()
@@ -108,10 +130,22 @@ export class MainHeader extends Shape {
     if (this.#switchingBeatmap) {
       this.renderTitleMask(context)
     }
+    this.renderSpeed(context)
   }
 
-  renderSpeed () {
-
+  /**
+   * @param context {CanvasRenderingContext2D}
+   */
+  renderSpeed (context) {
+    const TOP = 12
+    const RIGHT = CANVAS.WIDTH - 12
+    context.save()
+    context.font = '48px 微软雅黑'
+    context.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    context.textBaseline = 'top'
+    context.textAlign = 'right'
+    context.fillText(`${this.#speed}(fixed)`, RIGHT, TOP + this.#translateY)
+    context.restore()
   }
 
   renderWithSnapshot (context) {

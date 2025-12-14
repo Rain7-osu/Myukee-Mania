@@ -1,6 +1,8 @@
 /**
  * @typedef {Array<{ offset: number; beatLen: number }>} TimingList
  */
+import { Mod } from './ModsPanel'
+import { shuffleArray } from './utils'
 
 export class PlayMap {
   /**
@@ -93,6 +95,33 @@ export class PlayMap {
 
   reset () {
     this.#notes.forEach((item) => item.reset())
+  }
+
+  /**
+   * @param mod {Mod}
+   */
+  applyMod (mod) {
+    if (mod === Mod.MR) {
+      this.#notes.forEach(note => note.col = this.#keys - note.col - 1)
+    } else if (mod === Mod.RD) {
+      const keyArr = new Array(this.#keys).fill(0).map((_, index) => index)
+      console.log(keyArr)
+      const targetColMap = shuffleArray(keyArr)
+      console.log(targetColMap)
+      this.#notes.forEach(note => note.col = targetColMap[note.col])
+    } else if (mod === Mod.HT) {
+      this.setRate(0.75)
+    } else if (mod === Mod.DT || mod === Mod.NC) {
+      this.setRate(1.5)
+    } else if (mod === Mod.EZ) {
+      this.#overallDifficulty *= 0.5
+      this.#hpDrainRate *= 0.5
+    } else if (mod === Mod.HR) {
+      this.#overallDifficulty *= 7 / 5
+      this.#hpDrainRate *= 7 / 5
+    } else if (mod === Mod.NF) {
+      this.#hpDrainRate = 0
+    }
   }
 
   /**
