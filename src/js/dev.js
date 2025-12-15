@@ -2,10 +2,21 @@ window.__FORCE_FINISH__ = false
 window.__DEV__ = false
 window.__MOUSE_MOVE__SOURCE__ = ''
 
-export function warn (...args) {
+function warn (...args) {
   if (__DEV__) {
     console.warn(performance.now(), ...args)
   }
+}
+
+function log(...args) {
+  if (__DEV__) {
+    console.log(performance.now(), ...args)
+  }
+}
+
+export const dev = {
+  warn,
+  log,
 }
 
 /**

@@ -1,3 +1,6 @@
+import { Mod } from './ModsPanel'
+import { shuffleArray } from './utils'
+
 export class AudioManager {
   /**
    * @type {HTMLAudioElement}
@@ -110,6 +113,19 @@ export class AudioManager {
     this.#playing = false
   }
 
+  /**
+   * @param mod {Mod}
+   */
+  applyMod(mod) {
+    if (mod === Mod.HT) {
+      this.setRate(0.75)
+    } else if (mod === Mod.DT) {
+      this.setRate(1.5)
+    } else if (mod === Mod.NC) {
+      this.setRate(1.5)
+    }
+  }
+
   async resume () {
     await this.#audio.play()
     this.#playing = true
@@ -125,5 +141,7 @@ export class AudioManager {
   /**
    * @return {boolean}
    */
-  get playing () { return this.#playing}
+  get playing () { return this.#playing }
+
+
 }

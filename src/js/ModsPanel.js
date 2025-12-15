@@ -4,6 +4,8 @@ import { BaseButton } from './BaseButton'
 import { rgba, vh, vw } from './utils'
 import { ModButton } from './ModButton'
 import { FrameSnapshot } from './FrameSnapshot'
+import { KeyboardEventManager } from './KeyboardEventManager'
+import { KeyCode } from './KeyCode'
 
 const BACKGROUND_COLOR = 'rgba(0, 0, 0, 0.95)'
 const BUTTON_TEXT_COLOR = '#fff'
@@ -98,10 +100,16 @@ export class ModsPanel extends Shape {
   #alpha = 0
 
   /**
+   * @type {KeyboardEventManager}
+   */
+  #keyboardEventManager
+
+  /**
    * @param container {HTMLCanvasElement}
    */
   constructor (container) {
     super()
+    this.#keyboardEventManager = new KeyboardEventManager()
     this.#container = container
     const baseModStyle = {
       width: vw(MOD_WIDTH),
@@ -109,25 +117,25 @@ export class ModsPanel extends Shape {
     }
     /**
      * @readonly
-     * @type {Array<Array<{ mod: Mod[] | Mod; backgroundImage: Shape | Shape[]; description?: string }>>}
+     * @type {Array<Array<{ mod: Mod[] | Mod; backgroundImage: Shape | Shape[]; description?: string; keyBind: KeyCode }>>}
      */
     const modConfig = [
       [
-        { mod: Mod.EZ, backgroundImage: EZIcon() },
-        { mod: Mod.NF, backgroundImage: NFIcon() },
-        { mod: Mod.HT, backgroundImage: HTIcon() },
+        { mod: Mod.EZ, backgroundImage: EZIcon(), keyBind: KeyCode.Q },
+        { mod: Mod.NF, backgroundImage: NFIcon(), keyBind: KeyCode.W },
+        { mod: Mod.HT, backgroundImage: HTIcon(), keyBind: KeyCode.E },
       ],
       [
-        { mod: Mod.HR, backgroundImage: HRIcon() },
-        { mod: [Mod.SD, Mod.PF], backgroundImage: [SDIcon(), PFIcon()] },
-        { mod: [Mod.DT, Mod.NC], backgroundImage: [DTIcon(), NCIcon()] },
-        { mod: [Mod.FD, Mod.HD], backgroundImage: [FDIcon(), HDIcon()] },
-        { mod: Mod.FL, backgroundImage: FLIcon() },
+        { mod: Mod.HR, backgroundImage: HRIcon(), keyBind: KeyCode.A },
+        { mod: [Mod.SD, Mod.PF], backgroundImage: [SDIcon(), PFIcon()], keyBind: KeyCode.S },
+        { mod: [Mod.DT, Mod.NC], backgroundImage: [DTIcon(), NCIcon()], keyBind: KeyCode.D },
+        { mod: [Mod.FD, Mod.HD], backgroundImage: [FDIcon(), HDIcon()], keyBind: KeyCode.F },
+        { mod: Mod.FL, backgroundImage: FLIcon(), keyBind: KeyCode.G },
       ],
       [
-        { mod: Mod.MR, backgroundImage: MRIcon() },
-        { mod: Mod.RD, backgroundImage: RDIcon() },
-        { mod: Mod.AT, backgroundImage: ATIcon() },
+        { mod: Mod.MR, backgroundImage: MRIcon(), keyBind: KeyCode.Z },
+        { mod: Mod.RD, backgroundImage: RDIcon(), keyBind: KeyCode.X },
+        { mod: Mod.AT, backgroundImage: ATIcon(), keyBind: KeyCode.C },
       ],
     ]
     this.#modButtons = modConfig.map((item, index) => {
@@ -138,6 +146,7 @@ export class ModsPanel extends Shape {
           mod: subItem.mod,
           backgroundImage: subItem.backgroundImage,
           description: subItem.description || '',
+          keyBind: subItem.keyBind,
           ...baseModStyle,
         })
       })
@@ -172,31 +181,6 @@ export class ModsPanel extends Shape {
       activeBackground: BUTTON_ACTIVE_COLOR,
     })
     // this.#closeButton.display = false
-  }
-
-  /**
-   * @param onClose {function(selectedMods: Mod[]): void}
-   */
-  registerEvents ({
-    onClose,
-  }) {
-    this.#resetButton.registerEvents({
-      onClick: () => {
-        this._reset()
-      },
-    })
-    this.#closeButton.registerEvents({
-      onClick: () => {
-        onClose(this.#selectedMods)
-      },
-    })
-    this.#modButtons.forEach(btn => {
-      btn.registerEvents({
-        onClick: () => {
-          this._updateMods(btn)
-        },
-      })
-    })
   }
 
   _reset () {
@@ -254,12 +238,53 @@ export class ModsPanel extends Shape {
     this.display = false
   }
 
+  /**
+   * @param onClose {function(selectedMods: Mod[]): void}
+   */
+  registerEvents ({
+    onClose,
+  }) {
+    this.#resetButton.registerEvents({
+      onClick: () => {
+        this._reset()
+      },
+    })
+    this.#closeButton.registerEvents({
+      onClick: () => {
+        onClose(this.#selectedMods)
+      },
+    })
+
+    /** @type {Record<KeyCode, () => void>} */
+    const modButtonKeyMaps = {}
+    this.#modButtons.forEach(btn => {
+      btn.registerEvents({ onClick: () => this._updateMods(btn) })
+      modButtonKeyMaps[btn.keyBind] = () => {
+        btn.click()
+        this._updateMods(btn)
+      }
+    })
+
+    this.#keyboardEventManager.registerEvents({
+      keydownEventList: {
+        [KeyCode.Digit1]: () => {
+          this._reset()
+        },
+        [KeyCode.Digit2]: () => {
+          onClose(this.#selectedMods)
+        },
+        ...modButtonKeyMaps,
+      },
+    })
+  }
+
   removeEvents () {
     this.#closeButton.removeEvents()
     this.#resetButton.removeEvents()
     this.#modButtons.forEach(btn => {
       btn.removeEvents()
     })
+    this.#keyboardEventManager.removeEvents()
   }
 
   updateEffect (time) {

@@ -1,7 +1,7 @@
 import { Shape } from './Shape'
 import { ScrollItem } from './ScrollItem'
 import { CANVAS } from './Config'
-import { createCollectMaxValues, createLimitLog, warn } from './dev'
+import { dev } from './dev'
 import { Skin } from './Skin'
 
 /**
@@ -39,6 +39,8 @@ export class ScrollList extends Shape {
    * @type {ScrollListStyle}
    */
   #style
+
+  #autoScrolling = false
 
   /**
    * @param container {HTMLElement}
@@ -156,7 +158,7 @@ export class ScrollList extends Shape {
    * @private
    * @return {{maxScrollY: number, minScrollY: number}}
    */
-  calcScrollYConfig () {
+  _calcScrollYConfig () {
     const listItems = this.scrollItems()
     if (typeof this.#maxScrollY === 'undefined') {
       // 临时先用列表项 + gap 直接计算出来
@@ -179,9 +181,10 @@ export class ScrollList extends Shape {
 
   /**
    * 检查是否补获事件
+   * @private
    * @param e {HTMLElementEventMap['canvas']}
    */
-  checkEventCapture (e) {
+  _checkEventCapture (e) {
     if (!this.#enableEvents) {
       return false
     }
@@ -204,16 +207,27 @@ export class ScrollList extends Shape {
     if (!this.#enableEvents) {
       return
     }
+    if (this.#autoScrolling) {
+      this.#cancelScrollTo()
+      this.#autoScrolling = false
+    }
     const wheelDirection = e.deltaY > 0 ? 1 : -1
     const wheelSpeed = 5
 
+    if (this.#status.velocity * wheelDirection < 0) {
+      // 方向不同，直接减速到 0
+      this.#status.velocity = 0
+    }
     this.#status.velocity += wheelDirection * wheelSpeed
     this.#status.velocity = Math.max(-160, Math.min(160, this.#status.velocity))
   }
 
+  /**
+   * @private
+   */
   _updateScroll () {
     this.#scrollY += this.#status.velocity
-    const { maxScrollY, minScrollY } = this.calcScrollYConfig()
+    const { maxScrollY, minScrollY } = this._calcScrollYConfig()
     this.#scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
     this.#status.velocity *= this.#listConfig.friction
 
@@ -225,12 +239,32 @@ export class ScrollList extends Shape {
   #mouseMoveTimer = -1
 
   /**
-   * @public
+   * @param x {number}
+   * @param y {number}
+   * @return {[T|null, number]}
+   * @private
+   */
+  _findCurrentHoverItem (x, y) {
+    const items = this.scrollItems()
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i]
+      const { left, top, width, height } = item.renderInfo()
+      const isInArea = x > left && x < left + width && y > top && y < top + height
+
+      if (isInArea) {
+        return [item, i]
+      }
+    }
+    return [null, -1]
+  }
+
+  /**
+   * @private
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
   _onMouseMove (e) {
-    if (!this.checkEventCapture(e)) {
+    if (!this._checkEventCapture(e)) {
       return
     }
 
@@ -250,26 +284,31 @@ export class ScrollList extends Shape {
     const items = this.scrollItems()
     /** @type {ScrollItem | null} */
     const hoveredItem = this.#hoveredItem
+
+    const [newHoverItem, index] = this._findCurrentHoverItem(x, y)
+    if (newHoverItem) {
+      if (!this.#hoveredItem) {
+        newHoverItem.hoverIn()
+        this.#hoveredItem = newHoverItem
+        this.#hoveredIndex = index
+        this.hoverInRefreshScrollItems()
+      } else if (this.#hoveredItem !== newHoverItem) {
+        this.#hoveredItem.hoverOut()
+        newHoverItem.hoverIn()
+        // 先处理数据，然后再存值
+        this.#hoveredItem = newHoverItem
+        this.#hoveredIndex = index
+        this.hoverInRefreshScrollItems()
+      } else {
+        // this.#hoverItem === items[i] don`t need process
+      }
+    }
+
     for (let i = items.length - 1; i >= 0; i--) {
       const { left, top, width, height } = items[i].renderInfo()
       const hovered = x > left && x < left + width && y > top && y < top + height
 
       if (hovered) {
-        if (!this.#hoveredItem) {
-          items[i].hoverIn()
-          this.#hoveredItem = items[i]
-          this.#hoveredIndex = i
-          this.hoverInRefreshScrollItems()
-        } else if (this.#hoveredItem !== items[i]) {
-          this.#hoveredItem.hoverOut()
-          items[i].hoverIn()
-          // 先处理数据，然后再存值
-          this.#hoveredItem = items[i]
-          this.#hoveredIndex = i
-          this.hoverInRefreshScrollItems()
-        } else {
-          // this.#hoverItem === items[i]
-        }
 
         return
       }
@@ -284,25 +323,31 @@ export class ScrollList extends Shape {
   }
 
   /**
-   * @public
+   * @private
    * @param e {HTMLElementEventMap['canvas']}
    * @return void
    */
   _onClick (e) {
-    if (!this.checkEventCapture(e)) {
+    if (!this._checkEventCapture(e)) {
       return
     }
 
     e.preventDefault()
     this.#status.wheelEvent = e
     clearTimeout(this.#mouseMoveTimer)
-    if (!this.#hoveredItem) {
+
+    const [clickItem, index] = this._findCurrentHoverItem(e.clientX, e.clientY)
+    if (!clickItem) {
       return
     }
 
-    this.#activeIndex = this.#hoveredIndex
-    this.#activeItem = this.#hoveredItem
-    this.#eventMaps.onClick(this.#hoveredItem)
+    if (this.#activeItem === clickItem) {
+      this.#eventMaps.onClick(clickItem)
+    } else {
+      this.#activeIndex = index
+      this.#activeItem = clickItem
+      this.#eventMaps.onClick(clickItem)
+    }
   }
 
   /**
@@ -351,7 +396,7 @@ export class ScrollList extends Shape {
       this.#hasRegistered = false
       this.#removeEventsHandler()
     } else {
-      warn('Please listenEvents firstly')
+      dev.warn('Please listenEvents firstly')
     }
   }
 
@@ -494,7 +539,7 @@ export class ScrollList extends Shape {
     }
 
     this.#scrollY = centeredItem.offsetY - CANVAS.HEIGHT / 2
-    const { maxScrollY, minScrollY } = this.calcScrollYConfig()
+    const { maxScrollY, minScrollY } = this._calcScrollYConfig()
     this.#scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
   }
 
@@ -526,7 +571,7 @@ export class ScrollList extends Shape {
     scrollItems.forEach((item, index) => item.render(context))
   }
 
-  #cancelUpdate = () => {}
+  #cancelScrollTo = () => {}
 
   /**
    * @param scrollY {number | ((prev: number) => number)}
@@ -534,11 +579,13 @@ export class ScrollList extends Shape {
   scrollTo (scrollY) {
     const targetScrollY = typeof scrollY === 'function' ? scrollY(this.#scrollY) : scrollY
     const currentScrollY = this.#scrollY
-    this.#cancelUpdate()
-    this.#cancelUpdate = this.createTransitionSync(currentScrollY, targetScrollY, 800, 'easeOut',
+    this.#cancelScrollTo()
+    this.#autoScrolling = true
+    this.#cancelScrollTo = this.createTransitionSync(currentScrollY, targetScrollY, 800, 'easeOut',
       (value) => this.#scrollY = value,
-      () => this.#status.wheelEvent && this._onMouseMove(this.#status.wheelEvent))
+      () => {
+        this.#status.wheelEvent && this._onMouseMove(this.#status.wheelEvent)
+        this.#autoScrolling = false
+      })
   }
 }
-
-const limitLog = createLimitLog(42)

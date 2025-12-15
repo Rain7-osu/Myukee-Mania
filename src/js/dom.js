@@ -1,4 +1,4 @@
-import { warn } from './dev'
+import { dev } from './dev'
 
 /**
  * @param time {number}
@@ -32,7 +32,7 @@ export async function enterFullscreen () {
       })
     }
   } catch (err) {
-    warn(err)
+    dev.warn(err)
   }
 }
 

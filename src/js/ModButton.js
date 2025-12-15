@@ -5,6 +5,7 @@ import { BaseButton } from './BaseButton'
  * @property {Mod | Mod[]} mod
  * @property {string | string[]} description
  * @property {CanvasImageSource | CanvasImageSource[]} backgroundImage
+ * @property {KeyCode} keyBind
  */
 
 export class ModButton extends BaseButton {
@@ -31,30 +32,45 @@ export class ModButton extends BaseButton {
   #currentIndex = 0
 
   /**
+   * @type {KeyCode}
+   */
+  #keyBind
+
+  /**
+   * @return {KeyCode}
+   */
+  get keyBind () { return this.#keyBind }
+
+  /**
    * @param container {HTMLCanvasElement}
    * @param config {ModButtonConfig}
    */
   constructor (container, config) {
-    const { mod, description, backgroundImage, ...style } = config
+    const { mod, description, backgroundImage, keyBind, ...style } = config
     super(container, style)
     this.#description = description
     this.#mod = mod
     this.#backgroundImage = backgroundImage
     this.#currentValue = null
+    this.#keyBind = keyBind
     this.setStyle({
       backgroundImage: Array.isArray(backgroundImage) ? backgroundImage[0] : backgroundImage,
     })
   }
 
-  registerEvents (eventMap) {
+  click() {
     const valueList = [null, ...(Array.isArray(this.#mod) ? this.#mod : [this.#mod])]
+    this.#currentIndex += 1
+    this.#currentIndex %= valueList.length
+    this.#currentValue = valueList[this.#currentIndex]
+    this._updateState()
+  }
+
+  registerEvents (eventMap) {
     super.registerEvents({
       onClick: () => {
-        this.#currentIndex += 1
-        this.#currentIndex %= valueList.length
-        this.#currentValue = valueList[this.#currentIndex]
-        this._updateState()
         eventMap.onClick?.()
+        this.click()
       },
     })
   }

@@ -2,7 +2,7 @@ import { Shape } from './Shape'
 import { JudgementType } from './Judgement'
 import { FileManager } from './FileManager'
 import { Skin } from './Skin'
-import { warn } from './dev'
+import { dev } from './dev'
 
 const loadImage = FileManager.loadImage
 
@@ -81,7 +81,7 @@ export class JudgementEffect extends Shape {
     let height = image.height * this.#scale
 
     if (width >= config.width * this.#maxScale || height >= config.height * this.#maxScale) {
-      warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`)
+      dev.warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`)
       width = config.width * this.#maxScale
       height = config.height * this.#maxScale
     }

@@ -3,7 +3,7 @@ import { JudgementEffect } from './JudgementEffect'
 import { NoteType } from './NoteType'
 import { JudgementDeviationEffect } from './JudgementDeviationEffect'
 import { JudgementDeviation } from './JudgementDeviation'
-import { warn } from './dev'
+import { dev } from './dev'
 import { HpManager } from './HpManager'
 
 const DEFAULT_OD = 7
@@ -262,7 +262,7 @@ export class JudgementManager {
           note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, currentTiming)
           if (!note.judgement) {
             // 默认直接判定为 meh，但是理论上不应该走到这里，进去的判定一定是在判定表中的
-            warn('JudgementManager: createJudgementByRelease returned null, defaulting to meh', {
+            dev.warn('JudgementManager: createJudgementByRelease returned null, defaulting to meh', {
               note, currentTiming,
             })
             note.judgement = new Judgement(JudgementType.MEH, currentTiming, note.hitTiming, currentTiming)
@@ -325,7 +325,7 @@ export class JudgementManager {
       if (noteType === NoteType.TAP) {
         note.judgement = this.createJudgementByHit(note.offset, hitTiming)
         if (!note.judgement) {
-          warn('JudgementManager: createJudgementByHit returned null, skipping hit', {
+          dev.warn('JudgementManager: createJudgementByHit returned null, skipping hit', {
             note, hitTiming,
           })
           // 理论上这里不可能是 null，因为前面已经判断过了，所以默认走 MISS
@@ -353,7 +353,7 @@ export class JudgementManager {
       } else if (noteType === NoteType.HOLD) {
         if (isHeld) {
           // 理论上这里不可能存在这个 note 被按下去了，在 held 状态不重置的情况下又被按一次
-          warn('JudgementManager: note is already held, skipping hit', {
+          dev.warn('JudgementManager: note is already held, skipping hit', {
             note, hitTiming,
           })
           continue
@@ -408,7 +408,7 @@ export class JudgementManager {
 
         // 理论上这里不可能存在 releaseTiming - note.end > mehTime 的情况（在到了 miss 区间还没松手），因为在 update 的时候已经判断过了
         if (releaseTiming - note.end > mehTime) {
-          warn('JudgementManager: releaseTiming is too late', {
+          dev.warn('JudgementManager: releaseTiming is too late', {
             note, releaseTiming,
           })
           note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
@@ -420,7 +420,7 @@ export class JudgementManager {
           note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, releaseTiming)
           if (!note.judgement) {
             // 理论上不存在这里为 null 的情况，因为前面已经判断过了在 meh 区间松开的情况
-            warn('JudgementManager: createJudgementByRelease returned null, skipping release', {
+            dev.warn('JudgementManager: createJudgementByRelease returned null, skipping release', {
               note, releaseTiming,
             })
             note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)

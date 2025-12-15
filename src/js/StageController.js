@@ -280,6 +280,7 @@ export class StageController extends Effect {
     const audio = new AudioManager()
     await audio.load(beatmap.audioFile)
     audio.setRate(rate)
+    mods.forEach(mod => audio.applyMod(mod))
     this.#duration = audio.duration / rate
     this.#playingMap = currentMap
     this.#playingAudio = audio

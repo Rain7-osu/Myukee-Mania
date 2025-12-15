@@ -2,6 +2,14 @@
  @callback KeyboardEventHandler
  @param {KeyboardEvent} e
  */
+import { dev } from './dev'
+import { KeyCode } from './KeyCode'
+
+const preventDefaultMaps = [
+  KeyCode.F1,
+  KeyCode.F2,
+  KeyCode.F3,
+]
 
 export class KeyboardEventManager {
   /**
@@ -23,44 +31,52 @@ export class KeyboardEventManager {
    * @param e {KeyboardEvent}
    */
   #invokeKeydownEventHandler = (e) => {
-    e.preventDefault()
     const key = e.code
-
+    dev.log(`[Keydown]: ${key}`)
+    if (preventDefaultMaps.includes(key)) {
+      e.preventDefault()
+    }
     if (this.#keydownEventList[key]) {
       this.#keydownEventList[key](e)
     } else {
-      // console.warn(`No keydown handler registered for key: ${key}`)
+      dev.warn(`No keydown handler registered for key: ${key}`)
     }
   }
   /**
    * @param e {KeyboardEvent}
    */
   #invokeKeyupEventHandler = (e) => {
-    e.preventDefault()
     const key = e.code
+    if (preventDefaultMaps.includes(key)) {
+      e.preventDefault()
+    }
+    dev.log(`[Keyup]: ${key}`)
     if (this.#keyupEventList[key]) {
       this.#keyupEventList[key](e)
     } else {
-      // console.warn(`No keyup handler registered for key: ${key}`)
+      dev.warn(`No keyup handler registered for key: ${key}`)
     }
   }
   /**
    * @param e {KeyboardEvent}
    */
   #invokeKeypressEventHandler = (e) => {
-    e.preventDefault()
     const key = e.code
+    if (preventDefaultMaps.includes(key)) {
+      e.preventDefault()
+    }
+    dev.log(`[Keypress]: ${key}`)
     if (this.#keypressEventList[key]) {
       this.#keypressEventList[key](e)
     } else {
-      // console.warn(`No keypress handler registered for key: ${key}`)
+      dev.warn(`No keypress handler registered for key: ${key}`)
     }
   }
 
   /**
-   * @param keydownEventList {Record<KeyCode, KeyboardEventHandler>}
-   * @param keyupEventList {Record<KeyCode, KeyboardEventHandler>}
-   * @param keypressEventList {Record<KeyCode, KeyboardEventHandler>}
+   * @param keydownEventList {Record<KeyCode, KeyboardEventHandler>?}
+   * @param keyupEventList {Record<KeyCode, KeyboardEventHandler>?}
+   * @param keypressEventList {Record<KeyCode, KeyboardEventHandler>?}
    */
   registerEvents ({
     keydownEventList = {},
