@@ -100,6 +100,9 @@ export const rgba = {
     }
     return [0, 0, 0, 0]
   },
+  isRgba(color) {
+    return color.match(rgba.regexp)
+  }
 }
 
 /**

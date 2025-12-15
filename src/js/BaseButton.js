@@ -186,19 +186,7 @@ export class BaseButton extends Shape {
    * @return {Promise<void>}
    */
   async processColorTransition (start, end, current, update) {
-    const [re, ge, be, ae] = rgba.toValues(end)
-    const [rs, gs, bs, as] = rgba.toValues(start)
-    const [r, g, b, a] = rgba.toValues(current)
-    const startPercent = (r - rs) / (re - rs)
-    await this.createTransition(startPercent, 100, TRANSITION_DURATION, 'easeOut', (value) => {
-      const progress = value / 100
-      update(rgba.format([
-        re !== rs ? rs + (re - rs) * progress : rs,
-        ge !== gs ? gs + (ge - gs) * progress : gs,
-        be !== bs ? bs + (be - bs) * progress : bs,
-        ae !== as ? as + (ae - as) * progress : as,
-      ]))
-    })
+    await this.createTransition(start, end, TRANSITION_DURATION, 'easeOut', update)
   }
 
   /**
@@ -207,7 +195,7 @@ export class BaseButton extends Shape {
    * @private
    */
   async _processColorTransition (fromColor, targetColor) {
-    await this.processColorTransition(fromColor, targetColor, this.#currentBackground, (color) => this.#currentBackground = color)
+    await this.createTransition(this.#currentBackground, targetColor, TRANSITION_DURATION, 'easeOut', (color) => this.#currentBackground = color)
   }
 
   async hover () {

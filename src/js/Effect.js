@@ -1,19 +1,26 @@
 /**
  * @typedef {'easeOut' | 'linear' | 'elastic' | 'elastic-strong' | 'elastic-medium' | 'elastic-weak' | 'elastic-bouncy'} TransitionType
- * @typedef {(startValue: number, endValue: number, start: number , end: number, current: number) => number} TransitionFunc
- * @typedef {[
- * {
+ */
+
+/**
+ * @typedef  {{
  *   startValue: number;
  *   endValue: number;
  *   start: number;
  *   end: number;
  *   type: TransitionType;
- * },
- * (value: number) => void,
- * () => void?
- * ]} TransitionConfig
- *
- * @typedef {[
+ * }} TransitionState
+ */
+
+/**
+ * @typedef {(startValue: number, endValue: number, start: number , end: number, current: number) => number} TransitionFunc
+ */
+
+/**
+ * @typedef {[TransitionState, (value: number) => void, (value: number) => void? ]} TransitionConfig
+ */
+
+/** @typedef {[
  *   {
  *     endValue: number;
  *     step: number;
@@ -36,6 +43,8 @@
  * }} AnimationConfig
  *
  */
+
+import { rgba } from './utils'
 
 /**
  * @typedef {{
@@ -123,29 +132,62 @@ export class Effect {
 
   /**
    * @public
-   * @param startValue {number}
-   * @param endValue {number}
+   * @param startValue {number | string}
+   * @param endValue {number | string}
    * @param duration {number}
    * @param type {TransitionType}
-   * @param updateFn {(value: number) => void}
-   * @param endFn {() => void?}
+   * @param update {(value: number | string) => void}
+   * @param endFn {(value?: number | string) => void?}
    */
-  createTransitionSync (startValue, endValue, duration, type, updateFn, endFn) {
+  createTransitionSync (startValue, endValue, duration, type, update, endFn) {
     /** @type {number} */
     const start = performance.now()
     const end = start + duration
 
-    this.#updates.push([
-      {
-        start,
-        end,
-        startValue,
-        endValue,
-        type,
-      },
-      updateFn,
-      endFn,
-    ])
+    /** @type {(value: number) => void} */
+    let updateFn = update
+    /** @type {(value: number) => void} */
+    let updateEnd = endFn
+    if (typeof startValue === 'string' || typeof endValue === 'string') {
+      if (rgba.isRgba(startValue) && rgba.isRgba(endValue)) {
+        const [rs, gs, bs, as] = rgba.toValues(startValue)
+        const [re, ge, be, ae] = rgba.toValues(endValue)
+        updateFn = (value) => {
+          const progress = value / 100
+          update(rgba.format([
+            re !== rs ? rs + (re - rs) * progress : rs,
+            ge !== gs ? gs + (ge - gs) * progress : gs,
+            be !== bs ? bs + (be - bs) * progress : bs,
+            ae !== as ? as + (ae - as) * progress : as,
+          ]))
+        }
+        this.#updates.push([
+          {
+            start,
+            end,
+            startValue: 0,
+            endValue: 100,
+            type,
+          },
+          updateFn,
+          updateEnd,
+        ])
+      } else {
+        throw new Error('The startValue and endValue must be number or rgba color string!')
+      }
+    } else {
+      this.#updates.push([
+        {
+          start,
+          end,
+          startValue,
+          endValue,
+          type,
+        },
+        updateFn,
+        updateEnd,
+      ])
+    }
 
     return () => {
       this.#updates = this.#updates.filter((u) => u[1] !== updateFn)
@@ -154,31 +196,31 @@ export class Effect {
 
   /**
    * @public
-   * @param startValue {number}
-   * @param endValue {number}
+   * @param startValue {number | string}
+   * @param endValue {number | string}
    * @param duration {number}
    * @param type {TransitionType}
-   * @param updateFn {(value: number) => void}
+   * @param updateFn {(value: number | string) => void}
    */
   createTransition (startValue, endValue, duration, type, updateFn) {
     return new Promise(resolve => {
-      this.createTransitionSync(startValue, endValue, duration, type, updateFn, () => resolve())
+      this.createTransitionSync(startValue, endValue, duration, type, updateFn, resolve)
     })
   }
 
   /**
    * @public
-   * @param now {number?}
+   * @param time {number?}
    */
-  updateTransition (now) {
-    const current = now || performance.now()
+  updateTransition (time) {
+    const now = time || performance.now()
     this.#updates = this.#updates.filter(update => {
-      if (update[0].end > current) {
+      if (update[0].end > now) {
         return true
       }
       const [{ endValue }, updateFn, endFn] = update
       updateFn(endValue)
-      endFn?.()
+      endFn?.(endValue)
       return false
     })
 
@@ -201,7 +243,7 @@ export class Effect {
           transformer = Effect.easeOut
       }
 
-      const value = transformer(startValue, endValue, start, end, current)
+      const value = transformer(startValue, endValue, start, end, now)
       updateFn(value)
     })
   }
@@ -212,7 +254,7 @@ export class Effect {
    * @param endValue {number}
    * @param step {number}
    * @param updateFn {(value: number) => void}
-   * @param endFn {() => void?}
+   * @param endFn {(value?: number) => void?}
    */
   createStepTo (startValue, endValue, step, updateFn, endFn) {
     this.#stepTos.push([
@@ -235,7 +277,7 @@ export class Effect {
       const [{ endValue, step, currentValue }, updateFn, endFn] = stepTo
       if (step > 0 && currentValue + step >= endValue || step < 0 && currentValue + step <= endValue) {
         updateFn(endValue)
-        endFn?.()
+        endFn?.(endValue)
         return false
       }
       return true

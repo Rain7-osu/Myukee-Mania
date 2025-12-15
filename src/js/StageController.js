@@ -221,10 +221,12 @@ export class StageController extends Effect {
   }
 
   skipHead () {
-    this.#skippedTiming = this.#playingMap.startTiming - this.getGameTiming() - 3000
-    this.#playingAudio.setCurrentTime(this.getGameTiming() / 1000)
-    this.#mouseEventHandler.remove(this.#skipHeadEffect)
-    this.#skipHeadEffect = null
+    if (this.canSkip()) {
+      this.#skippedTiming = this.#playingMap.startTiming - this.getGameTiming() - 3000
+      this.#playingAudio.setCurrentTime(this.getGameTiming() / 1000)
+      this.#mouseEventHandler.remove(this.#skipHeadEffect)
+      this.#skipHeadEffect = null
+    }
   }
 
   /**
@@ -409,7 +411,7 @@ export class StageController extends Effect {
         ...hitObjectsDownEvents,
         ...optionKeyEvents,
         [KeyCode.SPACE]: () => {
-          if (this.canSkip() && this.#skipHeadEffect) {
+          if (this.#skipHeadEffect) {
             this.skipHead()
           } else {
             hitObjectsDownEvents[KeyCode.SPACE]?.()
@@ -456,6 +458,7 @@ export class StageController extends Effect {
       if (this.canSkip()) {
         this.#skipHeadEffect = new SkipHeadEffect()
         this.#mouseEventHandler.bind(this.#skipHeadEffect, () => {
+          this.#mouseEventHandler.remove(this.#skipHeadEffect)
           this.skipHead()
         })
       }
