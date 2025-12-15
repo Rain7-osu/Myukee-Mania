@@ -286,7 +286,7 @@ export class StageController extends Effect {
 
     // init
     this.initSectionLines()
-    this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect,() => this.fail())
+    this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect, () => this.fail())
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
     this.#mouseEventHandler.registerEvents({})
@@ -322,6 +322,7 @@ export class StageController extends Effect {
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
     this.#skippedTiming = 0
+    this.#hitEffects.reset()
     this.#playingMap?.reset()
     this.#judgementManager.reset()
     this.#scoreManager.reset()

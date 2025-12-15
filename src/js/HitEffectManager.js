@@ -11,6 +11,10 @@ export class HitEffectManager extends Shape {
 
   #keys = 4
 
+  reset() {
+    this.#activeEffectList = []
+  }
+
   /**
    * @param keys {number}
    */
