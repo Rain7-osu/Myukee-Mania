@@ -1,6 +1,5 @@
 import { BaseButton } from './BaseButton'
 import { Skin } from './Skin'
-import { rgba } from './utils'
 import { CANVAS } from './Config'
 
 export class BackButton extends BaseButton {
@@ -41,8 +40,8 @@ export class BackButton extends BaseButton {
   async hover () {
     this.hovered = true
     this.cancelAnimations()
-    const { hoverWidth, width, hoverBackground, background } = this.style()
-    this.createAnimation(width, hoverWidth, 'spring', (value) => this.setStyle({ width: value }))
+    const { hoverWidth, width, hoverBackground, background } = this.style
+    this.createAnimation(width, hoverWidth, 'spring', (value) => this.style.width = value)
     await this.processColorTransition(background, hoverBackground, this.#currentBackground, (color) => this.#currentBackground = color)
   }
 
@@ -52,8 +51,8 @@ export class BackButton extends BaseButton {
   async hoverOut () {
     this.hovered = false
     this.cancelAnimations()
-    const { width, background, hoverBackground } = this.style()
-    this.createAnimation(width, this.#defaultWidth, 'spring', (value) => this.setStyle({ width: value }))
+    const { width, background, hoverBackground } = this.style
+    this.createAnimation(width, this.#defaultWidth, 'spring', (value) => this.style.width = value)
     await this.processColorTransition(hoverBackground, background, this.#currentBackground, (color) => this.#currentBackground = color)
   }
 

@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 
-export class ComboEffect extends Shape {
+export class ComboEffect extends RenderObject {
   /** @type {number} */
   #value
 

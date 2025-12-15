@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { BaseButton } from './BaseButton'
 import { rgba, vh, vw } from './utils'
@@ -6,6 +6,7 @@ import { ModButton } from './ModButton'
 import { FrameSnapshot } from './FrameSnapshot'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { KeyCode } from './KeyCode'
+import { ModsPanelButton } from './ModsPanelButton'
 
 const BACKGROUND_COLOR = 'rgba(0, 0, 0, 0.95)'
 const BUTTON_TEXT_COLOR = '#fff'
@@ -68,19 +69,19 @@ const ConflictModsMap = [
   [Mod.SD, Mod.PF, Mod.NF, Mod.AT],
 ]
 
-export class ModsPanel extends Shape {
+export class ModsPanel extends RenderObject {
   /**
    * @type {HTMLCanvasElement}
    */
   #container
 
   /**
-   * @type {BaseButton}
+   * @type {ModsPanelButton}
    */
   #resetButton
 
   /**
-   * @type {BaseButton}
+   * @type {ModsPanelButton}
    */
   #closeButton
 
@@ -117,7 +118,7 @@ export class ModsPanel extends Shape {
     }
     /**
      * @readonly
-     * @type {Array<Array<{ mod: Mod[] | Mod; backgroundImage: Shape | Shape[]; description?: string; keyBind: KeyCode }>>}
+     * @type {Array<Array<{ mod: Mod[] | Mod; backgroundImage: RenderObject | RenderObject[]; description?: string; keyBind: KeyCode }>>}
      */
     const modConfig = [
       [
@@ -153,7 +154,7 @@ export class ModsPanel extends Shape {
     }).reduce((prev, current) => {
       return [...prev, ...current]
     }, [])
-    this.#resetButton = new BaseButton(container, {
+    this.#resetButton = new ModsPanelButton(container, {
       text: '1. Reset All Mods',
       left: CANVAS.WIDTH / 2 - vw(BUTTON_WIDTH) / 2,
       top: CANVAS.HEIGHT - vh(BUTTON_BOTTOM + BUTTON_HEIGHT * 2 + BUTTON_GAP),
@@ -166,8 +167,7 @@ export class ModsPanel extends Shape {
       fontSize: vh(BUTTON_FONT_SIZE),
       activeBackground: BUTTON_ACTIVE_COLOR,
     })
-    // this.#resetButton.display = false
-    this.#closeButton = new BaseButton(container, {
+    this.#closeButton = new ModsPanelButton(container, {
       text: '2. Close',
       left: CANVAS.WIDTH / 2 - vw(BUTTON_WIDTH) / 2,
       top: CANVAS.HEIGHT - vh(BUTTON_BOTTOM + BUTTON_HEIGHT),
@@ -180,7 +180,6 @@ export class ModsPanel extends Shape {
       fontSize: vh(BUTTON_FONT_SIZE),
       activeBackground: BUTTON_ACTIVE_COLOR,
     })
-    // this.#closeButton.display = false
   }
 
   _reset () {
@@ -226,15 +225,17 @@ export class ModsPanel extends Shape {
 
   async show () {
     this.display = true
-    await this.createTransition(this.#alpha, 100, 300, 'easeOut', (v) => {
-      this.#alpha = v
-    })
+    this.#resetButton.initTranslateDirection = -1
+    this.#closeButton.initTranslateDirection = 1
+    await Promise.all([
+      this.createTransition(this.#alpha, 100, 300, 'easeOut', (v) => this.#alpha = v),
+      this.#resetButton.show(),
+      this.#closeButton.show(),
+    ])
   }
 
   async hide () {
-    await this.createTransition(this.#alpha, 0, 300, 'easeOut', (v) => {
-      this.#alpha = v
-    })
+    await this.createTransition(this.#alpha, 0, 300, 'easeOut', (v) => this.#alpha = v)
     this.display = false
   }
 
@@ -281,10 +282,22 @@ export class ModsPanel extends Shape {
   removeEvents () {
     this.#closeButton.removeEvents()
     this.#resetButton.removeEvents()
-    this.#modButtons.forEach(btn => {
-      btn.removeEvents()
-    })
+    this.#modButtons.forEach(btn => btn.removeEvents())
     this.#keyboardEventManager.removeEvents()
+  }
+
+  disableEvents(){
+    this.#closeButton.disableEvents()
+    this.#resetButton.disableEvents()
+    this.#modButtons.forEach(btn => btn.disableEvents())
+    this.#keyboardEventManager.disableEvents()
+  }
+
+  enableEvents() {
+    this.#closeButton.enableEvents()
+    this.#resetButton.enableEvents()
+    this.#modButtons.forEach(btn => btn.enableEvents())
+    this.#keyboardEventManager.enableEvents()
   }
 
   updateEffect (time) {

@@ -1,10 +1,10 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS, DEFAULT_DELAY_TIME } from './Config'
 import { Skin } from './Skin'
 import { rgba } from './utils'
 import { JudgementLineEffect } from './JudgementLineEffect'
 
-export class StageBoard extends Shape {
+export class StageBoard extends RenderObject {
   /**
    * @type {string}
    */

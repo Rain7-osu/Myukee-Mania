@@ -1,5 +1,6 @@
 import { CANVAS } from './Config'
 import { FileManager } from './FileManager'
+import { vh } from './utils'
 
 const YELLOW_NOTE = '#fed336'
 const BLUE_NOTE = '#00dbff'
@@ -315,6 +316,7 @@ export class Skin {
           base: {
             width: 600,
             height: 100,
+            top: vh(0.4),
             gap: 80,
             left: (CANVAS.WIDTH - 600) / 2,
             font: '微软雅黑',
@@ -358,18 +360,6 @@ export class Skin {
             color: '#fff',
             text: 'Back to Menu',
             background: 'rgba(255, 100, 100, 0.85)',
-          },
-          fullscreen: {
-            width: 600,
-            height: 100,
-            gap: 80,
-            left: (CANVAS.WIDTH - 600) / 2,
-            font: '微软雅黑',
-            fontSize: 36,
-            radius: 0,
-            color: '#fff',
-            background: 'rgba(255, 255, 255, 0.85)',
-            text: 'Enter Fullscreen',
           },
         },
         arrow: {
@@ -521,7 +511,7 @@ export class Skin {
             color: '#fff',
             background: 'rgb(238, 52, 153, 1)',
             hoverBackground: 'rgb(187, 16, 118, 1)',
-            text: 'Back',
+            text: 'back',
             hoverWidth: 260,
             iconLeft: 12,
             iconSize: 32,

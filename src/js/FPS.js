@@ -1,8 +1,8 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 import { CANVAS } from './Config'
 
-export class FPS extends Shape {
+export class FPS extends RenderObject {
   /** @type {string} */
   #value
 

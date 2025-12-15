@@ -1,8 +1,8 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 import { CANVAS } from './Config'
 
-export class ScoreEffect extends Shape {
+export class ScoreEffect extends RenderObject {
   #score = 0
 
   #targetScore = 0

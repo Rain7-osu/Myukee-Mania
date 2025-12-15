@@ -1,9 +1,9 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { KeyCode } from './KeyCode'
 import { HitEffect } from './HitEffect'
 import { Skin } from './Skin'
 
-export class HitEffectManager extends Shape {
+export class HitEffectManager extends RenderObject {
   /**
    * @type {HitEffect[]}
    */
@@ -11,8 +11,8 @@ export class HitEffectManager extends Shape {
 
   #keys = 4
 
-  reset() {
-    this.#activeEffectList = []
+  reset () {
+    this.#activeEffectList.forEach(effect => effect.reset())
   }
 
   /**

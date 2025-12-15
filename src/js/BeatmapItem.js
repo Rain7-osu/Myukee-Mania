@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Beatmap } from './Beatmap'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'

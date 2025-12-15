@@ -10,7 +10,6 @@ import { BackgroundDarker } from './BackgroundDarker'
 import { StageController } from './StageController'
 import { MouseEventManager } from './MouseEventManager'
 import { Cursor } from './Cursor'
-import { enterFullscreen, exitFullscreen, isFullscreen, listenFullscreenChange } from './dom'
 import { PauseMenu } from './PauseMenu'
 import { BackgroundEffect } from './BackgroundEffect'
 import { RankingBoard } from './RankingBoard'
@@ -126,10 +125,6 @@ export class MainController {
   /**
    * @type {boolean}
    */
-  #interrupt = false
-  /**
-   * @type {boolean}
-   */
   #backgroundFading = false
 
   /**
@@ -151,6 +146,11 @@ export class MainController {
 
   /** @type {SpeedChangeEffect} */
   #speedChangeEffect = null
+
+  /**
+   * @type {number}
+   */
+  #cancelAnimation = -1
 
   /**
    * @param canvas {HTMLCanvasElement}
@@ -203,17 +203,9 @@ export class MainController {
   exit () {
     this.#canvas.style.display = 'none'
     this.#entry.style.display = 'flex'
-    this.removeEvents()
     this.#autoManager.abort()
-  }
-
-  registerMainBackButtonEvents () {
-    this.#backButton.registerEvents({
-      onClick: async () => {
-        await this.fadeOut(0, 2000)
-        this.exit()
-      },
-    })
+    this.removeEvents()
+    cancelAnimationFrame(this.#cancelAnimation)
   }
 
   /**
@@ -231,46 +223,59 @@ export class MainController {
       this.#backgroundEffect.setImage(selectItem.beatmap.bgImage),
       this.run(),
     ]).then()
-    this.registerEvents()
+    this._registerModsPanelEvents()
+    this._registerBackButtonEvents()
+    this._registerKeyboardEvents()
+    this._registerMouseEvents()
+    this._registerFooterEvents()
     this.loopFrame()
+  }
 
-    listenFullscreenChange((fullscreen) => {
-      if (!fullscreen) {
-        if (this.#playing) {
-          if (!this.#stageController.realStarted) {
-            // 没有真正开始，则直接退出到主屏幕
-            this.interrupt()
-            this.#stageController.quit()
-            return
-          }
-
-          if (!this.#paused) {
-            this.pause()
-          } else {
-            // has pause
-          }
+  _registerBackButtonEvents () {
+    this.#backButton.registerEvents({
+      onClick: async () => {
+        if (this.#showResults) {
+          await this.fadeOut()
+          this.#rankingBoard.hide()
+          await this.backMain()
         } else {
-          if (!this.#interrupt) {
-            this.interrupt()
-          }
+          await this.fadeOut(0, 2000)
+          this.exit()
         }
-      }
+      },
     })
   }
 
-  async showModsPanel () {
-    await this.#modsPanel.show()
-    this.#beatmapListManager.beatmapList.disableEvents()
-    this.removeEvents()
+  /**
+   * @private
+   */
+  _registerModsPanelEvents () {
     this.#modsPanel.registerEvents({
       onClose: async (mods) => {
         this.#selectedMods = mods
         await this.#modsPanel.hide()
-        this.registerEvents()
+        this.#mouseEventManager.enableEvents()
+        this.#keyboardEventManager.enableEvents()
+        this.#backButton.enableEvents()
+        this.#mainFooter.enableEvents()
         this.#beatmapListManager.beatmapList.enableEvents()
-        this.#modsPanel.removeEvents()
+        this.#modsPanel.disableEvents()
       },
     })
+  }
+
+  _registerFooterEvents () {
+    this.#mainFooter.registerEvents()
+  }
+
+  async showModsPanel () {
+    this.#beatmapListManager.beatmapList.disableEvents()
+    this.#keyboardEventManager.disableEvents()
+    this.#mouseEventManager.disableEvents()
+    this.#backButton.disableEvents()
+    this.#mainFooter.disableEvents()
+    await this.#modsPanel.show()
+    this.#modsPanel.enableEvents()
   }
 
   async lastRandom () {
@@ -307,6 +312,11 @@ export class MainController {
   async abortPlaying () {
     this.#playing = false
     this.run()
+    this.#keyboardEventManager.enableEvents()
+    this.#beatmapListManager.beatmapList.enableEvents()
+    this.#mainFooter.enableEvents()
+    this.#backButton.enableEvents()
+    this.#mouseEventManager.enableEvents()
     this.#backgroundDarker.reset()
   }
 
@@ -330,9 +340,11 @@ export class MainController {
    */
   async preparePlay (beatmap) {
     this.#backButton.cancelAnimations()
-    this.#backButton.removeEvents()
-    this.#mainFooter.removeEvents()
-    this.#beatmapListManager.beatmapList.removeEvents()
+    this.#backButton.disableEvents()
+    this.#mainFooter.disableEvents()
+    this.#keyboardEventManager.disableEvents()
+    this.#mouseEventManager.disableEvents()
+    this.#beatmapListManager.beatmapList.disableEvents()
     this.#autoManager.abort()
     this.#autoManager.abort()
     await Promise.all([
@@ -341,19 +353,8 @@ export class MainController {
       this.#mainFooter.hide(),
       this.#backButton.hide(),
     ])
-    if (!this.#interrupt) {
-      await this.play(beatmap)
-      this.#keyboardEventManager.removeEvents()
-      this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
-    } else {
-      this.#playing = false
-      await Promise.all([
-        this.#beatmapListManager.show(),
-        this.#mainHeader.show(),
-        this.#mainFooter.show(),
-        this.#backButton.show(),
-      ])
-    }
+    await this.play(beatmap)
+    await this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
   }
 
   /**
@@ -389,13 +390,11 @@ export class MainController {
       }
     }
 
-    if (!this.#interrupt) {
-      this.registerKeyboardEvents()
-      this.registerMouseEvents()
-      this.#beatmapListManager.beatmapList.registerEvents({
-        onClick: handleClick,
-      })
-    }
+    this._registerKeyboardEvents()
+    this._registerMouseEvents()
+    this.#beatmapListManager.beatmapList.registerEvents({
+      onClick: handleClick,
+    })
 
     await Promise.all([
       this.playAuto(this.#beatmapListManager.selectedItem.beatmap),
@@ -406,17 +405,13 @@ export class MainController {
     ])
   }
 
-  registerKeyboardEvents () {
+  _registerKeyboardEvents () {
     /** @type {KeyboardEventHandler} */
     const handleEnter = async (e) => {
       e.preventDefault()
-      if (!document.fullscreenElement) {
-        await enterFullscreen()
-      }
       if (!this.#playing) {
         await this.preparePlay(this.#beatmapListManager.selectedItem.beatmap)
       } else if (this.#playing && this.#paused) {
-        await this.resume()
       }
     }
     /** @type {KeyboardEventHandler} */
@@ -434,6 +429,8 @@ export class MainController {
     const keydownEventList = {
       [KeyCode.ENTER]: handleEnter,
       [KeyCode.NUMPAD_ENTER]: handleEnter,
+      // [KeyCode.ARROW_UP]: () => this.#beatmapListManager.selectPrev(),
+      // [KeyCode.ARROW_DOWN]: () => this.#beatmapListManager.selectNext(),
       [KeyCode.ESCAPE]: () => {
         if (this.#playing) {
           if (this.#paused) {
@@ -443,42 +440,32 @@ export class MainController {
           }
         }
       },
-      [KeyCode.F4]: (e) => {
-        if (this.#playing) return
-
-        if (e.ctrlKey) {
-          this.increaseSpeed()
-        }
-      },
+      [KeyCode.F1]: () => this.showModsPanel(),
+      [KeyCode.F2]: handleRandom,
       [KeyCode.F3]: (e) => {
         if (this.#playing) return
-
         if (e.ctrlKey) {
           this.decreaseSpeed()
         }
       },
-      [KeyCode.F6]: () => {
-        this.#autoManager.pause()
+      [KeyCode.F4]: (e) => {
+        if (this.#playing) return
+        if (e.ctrlKey) {
+          this.increaseSpeed()
+        }
       },
-      [KeyCode.F5]: () => {
-        this.#autoManager.resume()
-      },
-      [KeyCode.F7]: () => {
-        this.decreaseRate()
-      },
-      [KeyCode.F8]: () => {
-        this.increaseRate()
-      },
-      [KeyCode.F2]: handleRandom,
-      [KeyCode.F1]: () => {
-        this.showModsPanel()
-      },
+      [KeyCode.F5]: () => this.#autoManager.resume(),
+      [KeyCode.F6]: () => this.#autoManager.pause(),
+      [KeyCode.F7]: () => this.decreaseRate(),
+      [KeyCode.F8]: () => this.increaseRate(),
     }
 
-    this.#keyboardEventManager.registerEvents({ keydownEventList })
+    this.#keyboardEventManager.registerEvents({
+      keydownEventList,
+    })
   }
 
-  registerMouseEvents () {
+  _registerMouseEvents () {
     let cursorTimer = -1
     this.#mouseEventManager.registerEvents({
       mousemoveEvents: [
@@ -505,33 +492,8 @@ export class MainController {
     })
   }
 
-  registerFooterEvents () {
-    this.#mainFooter.registerEvents({})
-  }
-
-  interrupt () {
-    this.#interrupt = true
-    this.#pauseMenu.removeEvents()
-    this.#pauseMenu.showBack = false
-    this.#pauseMenu.showRetry = false
-    this.#pauseMenu.showResume = false
-    this.#pauseMenu.show()
-    this.#beatmapListManager.beatmapList.removeEvents()
-    this.#keyboardEventManager.removeEvents()
-    this.#mouseEventManager.removeEvents()
-    this.#pauseMenu.registerEvents({
-      onEnterFullscreen: async () => {
-        this.#interrupt = false
-        this.registerEvents()
-        this.#pauseMenu.hide()
-        this.run()
-      },
-    })
-  }
-
   pause () {
     this.#paused = true
-    this.#stageController.pause()
     this.#cursor.show()
     this.#pauseMenu.showResume = true
     this.#pauseMenu.showBack = true
@@ -551,22 +513,20 @@ export class MainController {
     this.#cursor.show()
     this.#rankingBoard.registerEvents({
       onRetry: async () => {
-        await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
+        await this.fadeOut()
+        this.#rankingBoard.hide()
         await this.retry()
       },
       onWatchReplay: async () => {
         console.log('Not implements')
       },
     })
-    this.#backButton.registerEvents({
-      onClick: async () => {
-        await Promise.all([this.#rankingBoard.hide(), this.fadeOut()])
-        this.#backButton.removeEvents()
-        await this.backMain()
-      },
-    })
+    this.#backButton.enableEvents()
     await this.fadeIn()
-    await this.#rankingBoard.show()
+    await Promise.all([
+      this.#backButton.show(),
+      this.#rankingBoard.show(),
+    ])
   }
 
   async fail () {
@@ -574,7 +534,7 @@ export class MainController {
     this.#pauseMenu.showRetry = true
     this.#pauseMenu.showBack = true
     this.#pauseMenu.showResume = false
-    this.#keyboardEventManager.removeEvents()
+    this.#keyboardEventManager.disableEvents()
     this.#pauseMenu.registerEvents({})
     await this.#pauseMenu.show()
   }
@@ -583,21 +543,21 @@ export class MainController {
     this.#showResults = false
     this.#playing = false
     this.#paused = false
-    await enterFullscreen()
     this.#pauseMenu.hide()
     this.#stageController.quit()
     this.#pauseMenu.removeEvents()
     this.#rankingBoard.removeEvents()
     this.#backButton.cancelAnimations()
-    this.registerMainBackButtonEvents()
-    this.registerFooterEvents()
+    this.#beatmapListManager.beatmapList.enableEvents()
+    this.#keyboardEventManager.enableEvents()
+    this.#mouseEventManager.enableEvents()
+    this.#mainFooter.enableEvents()
   }
 
   async resume () {
     this.#paused = false
-    await enterFullscreen()
-    this.#pauseMenu.hide()
     this.#stageController.resume()
+    this.#pauseMenu.hide()
     this.#pauseMenu.removeEvents()
   }
 
@@ -605,7 +565,6 @@ export class MainController {
     this.#playing = true
     this.#paused = false
     this.#showResults = false
-    await enterFullscreen()
     this.#pauseMenu.hide()
     this.#stageController.retry()
     this.#pauseMenu.removeEvents()
@@ -615,23 +574,19 @@ export class MainController {
 
   removeEvents () {
     this.#keyboardEventManager.removeEvents()
+    this.#keyboardEventManager.dispose()
     this.#mouseEventManager.removeEvents()
     this.#backButton.removeEvents()
     this.#mainFooter.removeEvents()
-  }
-
-  registerEvents () {
-    this.registerKeyboardEvents()
-    this.registerMouseEvents()
-    this.registerMainBackButtonEvents()
-    this.registerFooterEvents()
+    this.#beatmapListManager.beatmapList.removeEvents()
+    this.#modsPanel.removeEvents()
   }
 
   /**
    * @private
    */
   loopFrame () {
-    requestAnimationFrame(() => {
+    this.#cancelAnimation = requestAnimationFrame(() => {
       this.updateFrame()
       this.renderFrame()
       this.loopFrame()
@@ -699,10 +654,6 @@ export class MainController {
     }
 
     this.#layoutEngine.renderShape(this.#flashLightEffect)
-
-    if (this.#interrupt) {
-      this.#layoutEngine.renderShape(this.#pauseMenu)
-    }
 
     if (this.#backgroundFading) {
       this.#layoutEngine.renderShape(this.#backgroundDarker)

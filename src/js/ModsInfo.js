@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { Mod } from './ModsPanel'
 
@@ -22,7 +22,7 @@ export const ModNameMap = {
   [Mod.FD]: 'FadeIn',
 }
 
-export class ModsInfoEffect extends Shape {
+export class ModsInfoEffect extends RenderObject {
   /**
    * @type {Mod[]}
    */

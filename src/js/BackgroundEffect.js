@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
-export class BackgroundEffect extends Shape {
+export class BackgroundEffect extends RenderObject {
   /**
    * @type {HTMLImageElement | null}
    */

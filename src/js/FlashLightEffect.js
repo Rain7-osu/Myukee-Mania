@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
-export class FlashLightEffect extends Shape {
+export class FlashLightEffect extends RenderObject {
   #value = 0
 
   /**

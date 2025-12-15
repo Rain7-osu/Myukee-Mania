@@ -3,6 +3,7 @@
  */
 import { Mod } from './ModsPanel'
 import { shuffleArray } from './utils'
+import { HpManager } from './HpManager'
 
 export class PlayMap {
   /**
@@ -121,6 +122,8 @@ export class PlayMap {
       this.#hpDrainRate = Math.min(10, this.#hpDrainRate)
     } else if (mod === Mod.NF) {
       this.#hpDrainRate = 0
+    } else if (mod === Mod.SD) {
+      this.#hpDrainRate = HpManager.MAX
     }
   }
 

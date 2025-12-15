@@ -27,11 +27,14 @@ export class KeyboardEventManager {
 
   #hasRegister = false
 
+  #disabled = false
+
   /**
    * @param e {KeyboardEvent}
    */
   #invokeKeydownEventHandler = (e) => {
     const key = e.code
+    if (this.#disabled) return
     dev.log(`[Keydown]: ${key}`)
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
@@ -47,6 +50,7 @@ export class KeyboardEventManager {
    */
   #invokeKeyupEventHandler = (e) => {
     const key = e.code
+    if (this.#disabled) return
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
@@ -62,6 +66,7 @@ export class KeyboardEventManager {
    */
   #invokeKeypressEventHandler = (e) => {
     const key = e.code
+    if (this.#disabled) return
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
@@ -98,6 +103,14 @@ export class KeyboardEventManager {
     this.#keypressEventList = {}
     this.#keydownEventList = {}
     this.#keyupEventList = {}
+  }
+
+  disableEvents () {
+    this.#disabled = true
+  }
+
+  enableEvents () {
+    this.#disabled = false
   }
 
   dispose () {

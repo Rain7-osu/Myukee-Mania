@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
-export class BackgroundDarker extends Shape {
+export class BackgroundDarker extends RenderObject {
   #value = 0
 
   async setValue (value, duration = 2000) {

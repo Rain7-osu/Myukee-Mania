@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { ScrollItem } from './ScrollItem'
 import { CANVAS } from './Config'
 import { dev } from './dev'
@@ -30,7 +30,7 @@ const DURATION = 800
  * @template {ScrollItem} T
  * @abstract
  */
-export class ScrollList extends Shape {
+export class ScrollList extends RenderObject {
   /**
    * @type {HTMLElement}
    */
@@ -577,7 +577,9 @@ export class ScrollList extends Shape {
    * @param scrollY {number | ((prev: number) => number)}
    */
   scrollTo (scrollY) {
-    const targetScrollY = typeof scrollY === 'function' ? scrollY(this.#scrollY) : scrollY
+    let targetScrollY = typeof scrollY === 'function' ? scrollY(this.#scrollY) : scrollY
+    const { minScrollY, maxScrollY } = this._calcScrollYConfig()
+    targetScrollY = Math.min(Math.max(minScrollY, targetScrollY), maxScrollY)
     const currentScrollY = this.#scrollY
     this.#cancelScrollTo()
     this.#autoScrolling = true

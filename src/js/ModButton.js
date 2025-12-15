@@ -53,42 +53,37 @@ export class ModButton extends BaseButton {
     this.#backgroundImage = backgroundImage
     this.#currentValue = null
     this.#keyBind = keyBind
-    this.setStyle({
-      backgroundImage: Array.isArray(backgroundImage) ? backgroundImage[0] : backgroundImage,
-    })
+    this.style.backgroundImage = Array.isArray(backgroundImage) ? backgroundImage[0] : backgroundImage
   }
 
-  click() {
+  click () {
     const valueList = [null, ...(Array.isArray(this.#mod) ? this.#mod : [this.#mod])]
     this.#currentIndex += 1
     this.#currentIndex %= valueList.length
     this.#currentValue = valueList[this.#currentIndex]
-    this._updateState()
-  }
 
-  registerEvents (eventMap) {
-    super.registerEvents({
-      onClick: () => {
-        eventMap.onClick?.()
-        this.click()
-      },
-    })
+    this._updateState()
   }
 
   _updateState () {
     /** @type {CanvasImageSource[]} */
     const bg = Array.isArray(this.#backgroundImage) ? this.#backgroundImage : [this.#backgroundImage]
     const bgList = [bg[0], ...bg]
-    this.setStyle({
-      backgroundImage: bgList[this.#currentIndex],
-    })
+    this.style.backgroundImage = bgList[this.#currentIndex]
     if (this.#currentValue) {
-      this.setStyle({
-        rotate: Math.PI / 24,
-      })
+      this.style.rotate = Math.PI / 24
     } else {
-      this.setStyle({ rotate: 0 })
+      this.style.rotate = 0
     }
+  }
+
+  registerEvents (eventMap) {
+    super.registerEvents({
+      onClick: () => {
+        this.click()
+        eventMap.onClick?.()
+      },
+    })
   }
 
   /**

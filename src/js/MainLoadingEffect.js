@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
-export class MainLoadingEffect extends Shape {
+export class MainLoadingEffect extends RenderObject {
   #rotate = 0
 
   #lastTiming = 0

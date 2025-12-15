@@ -1,8 +1,8 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 
-export class JudgementLineEffect extends Shape {
+export class JudgementLineEffect extends RenderObject {
   #left = 0
 
   #width = 0

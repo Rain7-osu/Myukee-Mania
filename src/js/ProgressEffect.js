@@ -1,10 +1,10 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
 const RADIUS = 25
 const LINE_WIDTH = 3
 
-export class ProgressPercentEffect extends Shape {
+export class ProgressPercentEffect extends RenderObject {
   /** @type {number} */
   #percent
 

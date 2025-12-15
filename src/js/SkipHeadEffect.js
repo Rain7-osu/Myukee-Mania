@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
-export class SkipHeadEffect extends Shape {
+export class SkipHeadEffect extends RenderObject {
   constructor () {
     super()
     this.clickArea = [CANVAS.WIDTH - 500, CANVAS.HEIGHT - 300, 500, 300]

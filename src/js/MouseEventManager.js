@@ -2,7 +2,8 @@
  * @callback MouseEventHandler
  * @param {MouseEvent} e
  */
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
+import { dev } from './dev'
 
 export class MouseEventManager {
   /**
@@ -27,7 +28,7 @@ export class MouseEventManager {
   #mouseupEvents = []
 
   /**
-   * @type {Map<Shape, MouseEventHandler>}
+   * @type {Map<RenderObject, MouseEventHandler>}
    */
   #shapeEvents
 
@@ -39,6 +40,8 @@ export class MouseEventManager {
   #hasRegistered = false
 
   #source = 'global'
+
+  #disabled = false
 
   /**
    * @param container {HTMLElement}
@@ -54,6 +57,8 @@ export class MouseEventManager {
    */
   #invokeMousemoveEventHandler = (e) => {
     e.preventDefault()
+    if (this.#disabled) return
+    dev.log(this.#source, 'mousemove', e)
     this.#mousemoveEvents.forEach(handler => handler(e))
   }
   /**
@@ -61,6 +66,8 @@ export class MouseEventManager {
    */
   #invokeWheelEventHandler = (e) => {
     e.preventDefault()
+    if (this.#disabled)  return
+    dev.log(this.#source, 'wheel', e)
     this.#wheelEvents.forEach(handler => handler(e))
   }
   /**
@@ -68,6 +75,8 @@ export class MouseEventManager {
    */
   #invokeClickEventHandler = (e) => {
     e.preventDefault()
+    if (this.#disabled) return
+    dev.log(this.#source, 'click', e)
     if (this.#shapeEvents) {
       ![...this.#shapeEvents.values()].forEach(handler => handler(e))
     }
@@ -75,15 +84,19 @@ export class MouseEventManager {
   }
   #invokeMouseDownEventHandler = (e) => {
     e.preventDefault()
+    if (this.#disabled) return
+    dev.log(this.#source, 'mousedown', e)
     this.#mousedownEvents.forEach(handler => handler(e))
   }
   #invokeMouseUpEventHandler = (e) => {
     e.preventDefault()
+    if (this.#disabled) return
+    dev.log(this.#source, 'mouseup', e)
     this.#mouseupEvents.forEach(handler => handler(e))
   }
 
   /**
-   * @param shape {Shape}
+   * @param shape {RenderObject}
    * @param handler {MouseEventHandler}
    */
   bind (shape, handler) {
@@ -99,7 +112,7 @@ export class MouseEventManager {
   }
 
   /**
-   * @param shape {Shape}
+   * @param shape {RenderObject}
    */
   remove (shape) {
     this.#shapeEvents.delete(shape)
@@ -141,6 +154,7 @@ export class MouseEventManager {
       this.#clickEvents = []
       this.#mousemoveEvents = []
       this.#wheelEvents = []
+
       const container = this.#container
       container.addEventListener('click', this.#invokeClickEventHandler)
       container.addEventListener('wheel', this.#invokeWheelEventHandler)
@@ -149,5 +163,17 @@ export class MouseEventManager {
       container.addEventListener('mousedown', this.#invokeMouseDownEventHandler)
       this.#hasRegistered = false
     }
+  }
+
+  dispose() {
+
+  }
+
+  disableEvents() {
+    this.#disabled = true
+  }
+
+  enableEvents() {
+    this.#disabled = false
   }
 }

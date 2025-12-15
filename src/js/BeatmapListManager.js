@@ -109,6 +109,20 @@ export class BeatmapListManager {
     })
   }
 
+  selectPrev () {
+    const last = this.#selectedBeatmapItem.last
+    if (last) {
+      this.selectItem(last)
+    }
+  }
+
+  selectNext () {
+    const next = this.#selectedBeatmapItem.next
+    if (next) {
+      this.selectItem(next)
+    }
+  }
+
   async hide () {
     const items = this.beatmapList.scrollItems()
     // 临时用这个值代替，确保能大于每一项的宽度

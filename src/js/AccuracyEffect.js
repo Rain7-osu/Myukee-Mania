@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 
 /**
@@ -13,7 +13,7 @@ const formatPercentage = value => {
   return (value * 100).toFixed(2) + '%'
 }
 
-export class AccuracyEffect extends Shape {
+export class AccuracyEffect extends RenderObject {
   /**
    * @param acc {number}
    */

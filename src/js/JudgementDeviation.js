@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { JudgementType } from './Judgement'
 import { CANVAS } from './Config'
 
@@ -12,7 +12,7 @@ const YELLOW_COLOR = (a) => `rgba(222, 173, 80, ${a})`
 /**
  * 打击偏差
  */
-export class JudgementDeviation extends Shape {
+export class JudgementDeviation extends RenderObject {
   /** @type {number} */
   #judgeTiming = 0
   /** @type {number} */

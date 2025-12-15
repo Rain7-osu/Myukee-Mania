@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { FileManager } from './FileManager'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
@@ -48,7 +48,7 @@ const LargeResource = [
   FileManager.loadImage('./skin/ranking-D.png'),
 ]
 
-export class RankingEffect extends Shape {
+export class RankingEffect extends RenderObject {
   /**
    * @type {'small' | 'large'}
    */

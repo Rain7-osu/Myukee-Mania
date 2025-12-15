@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { JudgementAreaCalculators, JudgementType } from './Judgement'
 import { CANVAS } from './Config'
 
@@ -15,7 +15,7 @@ const COLOR_HEIGHT = 8
 /**
  * 打击偏差动效
  */
-export class JudgementDeviationEffect extends Shape {
+export class JudgementDeviationEffect extends RenderObject {
   /**
    * @type {import('./JudgementDeviation').JudgementDeviation[]}
    */

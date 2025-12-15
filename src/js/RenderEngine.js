@@ -55,7 +55,7 @@ export class RenderEngine {
 
   /**
    * @public
-   * @param shape {Shape}
+   * @param shape {RenderObject}
    */
   renderShape (shape) {
     if (shape.display) {

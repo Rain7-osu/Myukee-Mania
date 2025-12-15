@@ -1,9 +1,9 @@
-import { Effect } from './Effect'
+import { ActiveEffect } from './ActiveEffect'
 
 /**
  * @abstract
  */
-export class Shape extends Effect {
+export class RenderObject extends ActiveEffect {
   #display = true
 
   /**

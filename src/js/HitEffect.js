@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 
@@ -6,20 +6,9 @@ import { Skin } from './Skin'
  * press key beautiful effect
  * 打击特效
  */
-export class HitEffect extends Shape {
+export class HitEffect extends RenderObject {
   /** @type {number} */
   #col
-
-  /**
-   * @type {'rising' | 'holding' | 'falling'}
-   */
-  #phase
-
-  /** @type {number} */
-  #alpha
-
-  /** @type {boolean} */
-  #held
 
   /**
    * @type {'yellow' | 'red' | 'blue'}}
@@ -43,20 +32,22 @@ export class HitEffect extends Shape {
   constructor (col, color, style) {
     super()
     this.#col = col
-    this.#phase = 'rising'
-    this.#alpha = 1.0
-    this.#held = true
     this.#color = color
     this.#width = style.width
     this.#height = 0
     this.#left = style.x
   }
 
+  reset () {
+    this.#height = 0
+    this.cancelTransitions()
+  }
+
   /**
    * @param context {CanvasRenderingContext2D}
    */
   render (context) {
-    context.fillStyle = this.createGradiant(context)
+    context.fillStyle = this._createGradiant(context)
     context.fillRect(this.#left, CANVAS.HEIGHT - this.#height, this.#width, this.#height)
   }
 
@@ -73,21 +64,23 @@ export class HitEffect extends Shape {
 
   /**
    * @param context {CanvasRenderingContext2D}
+   * @private
    */
-  createGradiant (context) {
+  _createGradiant (context) {
     if (this.#color === 'yellow') {
-      return this.createYellowGradiant(context)
+      return this._createYellowGradiant(context)
     } else if (this.#color === 'blue') {
-      return this.createBlueGradiant(context)
+      return this._createBlueGradiant(context)
     } else {
-      return this.createRedGradiant(context)
+      return this._createRedGradiant(context)
     }
   }
 
   /**
    * @param context {CanvasRenderingContext2D}
+   * @private
    */
-  createRedGradiant (context) {
+  _createRedGradiant (context) {
     const { x, y, height } = {
       x: this.#left,
       y: CANVAS.HEIGHT,
@@ -105,8 +98,9 @@ export class HitEffect extends Shape {
 
   /**
    * @param context {CanvasRenderingContext2D}
+   * @private
    */
-  createBlueGradiant (context) {
+  _createBlueGradiant (context) {
     const { x, y, height } = {
       x: this.#left,
       y: CANVAS.HEIGHT,
@@ -124,8 +118,9 @@ export class HitEffect extends Shape {
 
   /**
    * @param context {CanvasRenderingContext2D}
+   * @private
    */
-  createYellowGradiant (context) {
+  _createYellowGradiant (context) {
     const { x, y, height } = {
       x: this.#left,
       y: CANVAS.HEIGHT,

@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { MouseEventManager } from './MouseEventManager'
 import { rgba } from './utils'
 
@@ -13,6 +13,7 @@ import { rgba } from './utils'
  * @property {number?} fontSize
  * @property {string?} color
  * @property {number?} radius
+ * @property {number?} rotate
  * @property {string?} background
  * @property {CanvasImageSource?} backgroundImage
  * @property {string?} hoverBackground
@@ -21,15 +22,15 @@ import { rgba } from './utils'
  * @property {string?} activeBackground
  * @property {number?} activeScale
  * @property {number?} activeWidth
- * @property {number?} rotate
- * @property {number?} offsetPercentX
+ * @property {number?} offsetPercentX x 方向的偏移百分比 0.5 表示相对于 left 点向左偏移 0.5, scale 计算使用
+ * @property {number?} offsetPercentY y 方向的偏移百分比 0.5 表示相对于 top 点想上偏移 0.5, scale 计算使用
  * @property {string?} shadowColor
  * @property {number?} shadowBlur
  */
 
 const TRANSITION_DURATION = 100
 
-export class BaseButton extends Shape {
+export class BaseButton extends RenderObject {
   /**
    * @type {MouseEventManager}
    */
@@ -42,12 +43,12 @@ export class BaseButton extends Shape {
   /**
    * @type {number}
    */
-  #currentScale
+  #scale
 
   /**
    * @type {string}
    */
-  #currentBackground
+  #background
 
   /**
    * @protected
@@ -67,6 +68,18 @@ export class BaseButton extends Shape {
    */
   constructor (container, style) {
     super()
+    this.#style = {
+      left: 0,
+      top: 0,
+      width: 0,
+      height: 0,
+      hoverScale: 100,
+      rotate: 0,
+      offsetPercentX: 0.5,
+      offsetPercentY: 0.5,
+      font: '微软雅黑',
+      fontSize: 24,
+    }
     this.setStyle(style)
     this.#mouseEventHandler = new MouseEventManager(container, 'button')
   }
@@ -75,38 +88,26 @@ export class BaseButton extends Shape {
    * @param style {Partial<ButtonStyle>}
    */
   setStyle (style) {
-    this.#style = {
-      left: 0,
-      top: 0,
-      width: 0,
-      height: 0,
-      hoverScale: 100,
-      offsetPercentX: 0.5,
-      font: '微软雅黑',
-      fontSize: 24,
-      ...this.#style,
-      ...style,
-    }
-    const { background } = style
-    this.#currentBackground = this.#currentBackground || background
-    this.#currentScale = this.#currentScale || 100
+    Object.assign(this.#style, style)
+    this.#background = this.#background || style.background
+    this.#scale = this.#scale || 100
   }
 
   /**
    * @private
    */
   background () {
-    return this.#currentBackground
+    return this.#background
   }
 
   /**
    * @return {number[]}
    */
   rect () {
-    const { left, top, width, height, offsetPercentX } = this.style()
-    const scale = this.#currentScale / 100
+    const { left, top, width, height, offsetPercentX, offsetPercentY } = this.#style
+    const scale = this.#scale / 100
     const x = left + (1 - scale) * width * offsetPercentX
-    const y = top + (1 - scale) * height
+    const y = top + (1 - scale) * height * offsetPercentY
     const w = width * scale
     const h = height * scale
 
@@ -116,7 +117,7 @@ export class BaseButton extends Shape {
   /**
    * @return {ButtonStyle}
    */
-  style () {
+  get style () {
     return this.#style
   }
 
@@ -132,7 +133,7 @@ export class BaseButton extends Shape {
       rotate,
       shadowColor,
       shadowBlur,
-    } = this.style()
+    } = this.style
 
     context.save()
     if (rotate) {
@@ -162,7 +163,7 @@ export class BaseButton extends Shape {
     }
 
     if (text) {
-      const fontSize = initialFontSize * this.#currentScale / 100
+      const fontSize = initialFontSize * this.#scale / 100
       this.drawText({
         context,
         text,
@@ -195,7 +196,7 @@ export class BaseButton extends Shape {
    * @private
    */
   async _processColorTransition (fromColor, targetColor) {
-    await this.createTransition(this.#currentBackground, targetColor, TRANSITION_DURATION, 'easeOut', (color) => this.#currentBackground = color)
+    await this.createTransition(this.#background, targetColor, TRANSITION_DURATION, 'easeOut', (color) => this.#background = color)
   }
 
   async hover () {
@@ -207,7 +208,7 @@ export class BaseButton extends Shape {
       results.push(this._processColorTransition(background, hoverBackground))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#currentScale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -222,7 +223,7 @@ export class BaseButton extends Shape {
       results.push(this._processColorTransition(hoverBackground, background))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#currentScale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -237,7 +238,7 @@ export class BaseButton extends Shape {
       results.push(this._processColorTransition(this.hovered ? hoverBackground : background, activeBackground))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#currentScale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -252,7 +253,7 @@ export class BaseButton extends Shape {
       results.push(this._processColorTransition(activeBackground, this.hovered ? hoverBackground : background))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#currentScale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#currentScale = value))
+      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -312,6 +313,14 @@ export class BaseButton extends Shape {
         },
       ],
     })
+  }
+
+  disableEvents() {
+    this.#mouseEventHandler.disableEvents()
+  }
+
+  enableEvents() {
+    this.#mouseEventHandler.enableEvents()
   }
 
   removeEvents () {

@@ -21,7 +21,7 @@ import { Settings } from './Settings'
 import { Skin } from './Skin'
 import { SkipHeadEffect } from './SkipHeadEffect'
 import { MouseEventManager } from './MouseEventManager'
-import { Effect } from './Effect'
+import { ActiveEffect } from './ActiveEffect'
 import { ModEffect } from './ModEffect'
 import { Mod } from './ModsPanel'
 import { HpEffect } from './HpEffect'
@@ -32,7 +32,7 @@ import { HpEffect } from './HpEffect'
  * @param rankingResult {RankingResult}
  */
 
-export class StageController extends Effect {
+export class StageController extends ActiveEffect {
   /**
    * @type {Settings}
    */
@@ -200,6 +200,8 @@ export class StageController extends Effect {
    */
   #mouseEventHandler
 
+  #pf = false
+
   /**
    * @constructor
    * @param canvas {HTMLCanvasElement} canvas node name
@@ -286,6 +288,7 @@ export class StageController extends Effect {
     this.#playingAudio = audio
 
     // init
+    if (mods.includes(Mod.PF)) this.#pf = true
     this.initSectionLines()
     this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect, () => this.fail())
     this.#scoreManager.init(notes)
@@ -402,6 +405,23 @@ export class StageController extends Effect {
         e.preventDefault()
         this.retry()
       },
+      [KeyCode.SPACE]: () => {
+        if (this.#skipHeadEffect) {
+          this.skipHead()
+        } else {
+          hitObjectsDownEvents[KeyCode.SPACE]?.()
+        }
+      },
+      [KeyCode.ESCAPE]: () => {
+        if (!this.#realStarted) {
+          this.quit()
+        }
+        if (this.#paused) {
+          this.resume()
+        } else {
+          this.pause()
+        }
+      },
     }
 
     this.#keyboardEventManager.registerEvents({
@@ -412,13 +432,6 @@ export class StageController extends Effect {
       keydownEventList: {
         ...hitObjectsDownEvents,
         ...optionKeyEvents,
-        [KeyCode.SPACE]: () => {
-          if (this.#skipHeadEffect) {
-            this.skipHead()
-          } else {
-            hitObjectsDownEvents[KeyCode.SPACE]?.()
-          }
-        },
       },
     })
   }
@@ -486,6 +499,7 @@ export class StageController extends Effect {
       this.#playingAudio.pause()
       this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
     }
+    this.#mainController.pause()
   }
 
   async fail () {
@@ -494,7 +508,7 @@ export class StageController extends Effect {
     this.#playingAudio.abort()
     this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
     this.#failed = true
-    this.#mainController.fail()
+    await this.#mainController.fail()
   }
 
   /**
@@ -587,6 +601,10 @@ export class StageController extends Effect {
         this.#judgementManager.update(timing)
         this.#scoreManager.update(now)
         this.#accuracyManager.update()
+        if (this.#pf && this.#accuracyManager.acc < 1) {
+          this.retry()
+          return
+        }
         this.#hpEffect.updateEffect(now)
       }
       this.#hitEffects.updateTransition(now)

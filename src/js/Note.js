@@ -1,5 +1,5 @@
 import { NoteType } from './NoteType'
-import { OffsetShape } from './Shape'
+import { OffsetShape } from './RenderObject'
 import { Skin } from './Skin'
 
 /**

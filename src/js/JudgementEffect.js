@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { JudgementType } from './Judgement'
 import { FileManager } from './FileManager'
 import { Skin } from './Skin'
@@ -34,7 +34,7 @@ export const JudgementAssets = {
   },
 }
 
-export class JudgementEffect extends Shape {
+export class JudgementEffect extends RenderObject {
   /** @type {import('./Judgement').Judgement} */
   #judgement
 

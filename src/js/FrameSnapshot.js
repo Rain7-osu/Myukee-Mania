@@ -1,7 +1,7 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
-export class FrameSnapshot extends Shape {
+export class FrameSnapshot extends RenderObject {
   /**
    * @type {HTMLCanvasElement}
    */

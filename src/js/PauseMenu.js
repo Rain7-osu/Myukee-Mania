@@ -1,12 +1,11 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { BaseButton } from './BaseButton'
 import { CANVAS } from './Config'
 import { KeyCode } from './KeyCode'
 import { Skin } from './Skin'
-import { enterFullscreen, exitFullscreen, isFullscreen } from './dom'
 
-export class PauseMenu extends Shape {
+export class PauseMenu extends RenderObject {
   #keyboardEventManager = new KeyboardEventManager()
   /**
    * @type {BaseButton}
@@ -20,10 +19,6 @@ export class PauseMenu extends Shape {
    * @type {BaseButton}
    */
   #backButton
-  /**
-   * @type {BaseButton}
-   */
-  #fullscreenButton
 
   #alpha = 0
 
@@ -37,7 +32,7 @@ export class PauseMenu extends Shape {
   #mainController
 
   /**
-   * @type {null | 'Resume' | 'Retry' | 'Back' | 'FullscreenChange'}
+   * @type {null | 'Resume' | 'Retry' | 'Back'}
    */
   #currentSelect = null
 
@@ -47,7 +42,7 @@ export class PauseMenu extends Shape {
   #currentSelectIndex = null
 
   /**
-   * @type {Array<'Resume', 'Retry', 'Back', 'FullscreenChange'>}
+   * @type {Array<'Resume', 'Retry', 'Back'>}
    */
   #currentMenus
 
@@ -85,18 +80,16 @@ export class PauseMenu extends Shape {
       'Resume',
       'Retry',
       'Back',
-      'FullscreenChange',
     ]
 
     const {
-      base: { width, height, font, left, gap, fontSize, radius, color },
+      base: { width, height, font, left, gap, fontSize, radius, color, top },
       resume,
       retry,
       back,
-      fullscreen,
     } = Skin.config.pauseMenu.buttons
 
-    let offsetY = (CANVAS.HEIGHT - 4 * height - 3 * gap) / 2
+    let offsetY = top
     this.#resumeButton = new BaseButton(container, {
       left,
       top: offsetY,
@@ -138,20 +131,6 @@ export class PauseMenu extends Shape {
       text: back.text,
       hoverScale: 105,
     })
-    offsetY += gap + height
-    this.#fullscreenButton = new BaseButton(container, {
-      left,
-      top: offsetY,
-      width,
-      height,
-      font,
-      fontSize,
-      radius,
-      color,
-      background: fullscreen.background,
-      text: fullscreen.text,
-      hoverScale: 105,
-    })
   }
 
   /**
@@ -183,12 +162,7 @@ export class PauseMenu extends Shape {
     }
   }
 
-  /**
-   * @param onEnterFullscreen {() => void?}
-   */
-  registerEvents ({
-    onEnterFullscreen,
-  }) {
+  registerEvents () {
     const eventsMap = {
       onResume: async () => {
         await this.#mainController.resume()
@@ -199,17 +173,8 @@ export class PauseMenu extends Shape {
       onBack: async () => {
         await this.#mainController.backMain()
       },
-      onFullscreenChange: async () => {
-        if (isFullscreen()) {
-          await exitFullscreen()
-        } else {
-          await enterFullscreen()
-          onEnterFullscreen?.()
-        }
-      },
     }
     const {
-      onFullscreenChange,
       onBack,
       onRetry,
       onResume,
@@ -217,7 +182,6 @@ export class PauseMenu extends Shape {
     this.#showResume && this.#resumeButton.registerEvents({ onClick: onResume })
     this.#showRetry && this.#retryButton.registerEvents({ onClick: onRetry })
     this.#showBack && this.#backButton.registerEvents({ onClick: onBack })
-    this.#fullscreenButton.registerEvents({ onClick: onFullscreenChange })
 
     this.#keyboardEventManager.registerEvents({
       keydownEventList: {
@@ -259,7 +223,7 @@ export class PauseMenu extends Shape {
     this.#retryButton.removeEvents()
     this.#backButton.removeEvents()
     this.#resumeButton.removeEvents()
-    this.#fullscreenButton.removeEvents()
+    // this.#fullscreenButton.removeEvents()
   }
 
   updateTransition (time) {
@@ -267,7 +231,6 @@ export class PauseMenu extends Shape {
     this.#resumeButton.updateTransition(time)
     this.#retryButton.updateTransition(time)
     this.#backButton.updateTransition(time)
-    this.#fullscreenButton.updateTransition(time)
   }
 
   render (context) {
@@ -278,14 +241,6 @@ export class PauseMenu extends Shape {
     this.#showResume && this.#resumeButton.render(context)
     this.#showRetry && this.#retryButton.render(context)
     this.#showBack && this.#backButton.render(context)
-
-    if (isFullscreen()) {
-      this.#fullscreenButton.setStyle({ text: 'Exit Fullscreen' })
-    } else {
-      this.#fullscreenButton.setStyle({ text: 'Enter Fullscreen' })
-    }
-
-    this.#fullscreenButton.render(context)
 
     context.globalAlpha = 1
 
@@ -300,12 +255,12 @@ export class PauseMenu extends Shape {
   renderArrow (context) {
     const {
       buttons: {
-        base: { height, gap },
+        base: { height, gap, top },
       },
       arrow: { left, right, size, color },
     } = Skin.config.pauseMenu
 
-    let offsetY = (CANVAS.HEIGHT - 4 * height - 3 * gap) / 2
+    let offsetY = top
     offsetY += (gap + height) * this.#currentSelectIndex
 
     context.save()

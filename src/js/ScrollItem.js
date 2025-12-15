@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
 /**
@@ -18,7 +18,7 @@ import { CANVAS } from './Config'
  * }} RenderInfo
  */
 
-export class ScrollItem extends Shape {
+export class ScrollItem extends RenderObject {
   /**
    * @type {Style}
    */

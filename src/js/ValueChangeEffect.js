@@ -1,9 +1,9 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
 const HEIGHT = 80
 
-export class ValueChangeEffect extends Shape {
+export class ValueChangeEffect extends RenderObject {
   /** @type {string} */
   #value
   /** @type {number} */

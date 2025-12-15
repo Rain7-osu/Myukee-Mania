@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
 const RESULT_WIDTH = 100
@@ -8,7 +8,7 @@ const RESULT_TOP = 200
  * @typedef {Record<JudgementType, number>} JudgementRecord
  */
 
-export class JudgementRecordEffect extends Shape {
+export class JudgementRecordEffect extends RenderObject {
   /** @type {JudgementRecord} */
   #record
 

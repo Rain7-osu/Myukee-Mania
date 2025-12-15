@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Mod } from './ModsPanel'
 import { vh } from './utils'
 import { Skin } from './Skin'
@@ -13,7 +13,7 @@ const FADE_MAX_HEIGHT = 0.6
 const FADE_START_HEIGHT = 0.2
 const FL_HEIGHT = 0.4
 
-export class ModEffect extends Shape {
+export class ModEffect extends RenderObject {
   /**
    * @type {Mod}
    */

@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FooterMenuButton } from './FooterMenuButton'
 
@@ -7,7 +7,7 @@ const BORDER_WIDTH = 6
 const BORDER_COLOR = 'rgb(0, 102, 255)'
 const BG_COLOR = 'rgb(0, 0, 0)'
 
-export class MainFooter extends Shape {
+export class MainFooter extends RenderObject {
   /**
    * @type {HTMLCanvasElement}
    */
@@ -92,6 +92,7 @@ export class MainFooter extends Shape {
     this.#modsButton.registerEvents({
       onClick: () => {
         this.#mainController.showModsPanel()
+        this.#modsButton.hoverOut()
       },
     })
     this.#randomButton.registerEvents({
@@ -111,6 +112,20 @@ export class MainFooter extends Shape {
     this.#modsButton.removeEvents()
     this.#randomButton.removeEvents()
     this.#beatmapOptionButton.removeEvents()
+  }
+
+  disableEvents () {
+    this.#modeButton.disableEvents()
+    this.#modsButton.disableEvents()
+    this.#randomButton.disableEvents()
+    this.#beatmapOptionButton.disableEvents()
+  }
+
+  enableEvents () {
+    this.#modeButton.enableEvents()
+    this.#modsButton.enableEvents()
+    this.#randomButton.enableEvents()
+    this.#beatmapOptionButton.enableEvents()
   }
 
   updateEffect (time) {

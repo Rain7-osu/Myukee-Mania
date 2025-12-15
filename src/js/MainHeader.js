@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
 import { formatMapTime, rgba } from './utils'
@@ -49,7 +49,7 @@ const RENDER_CONFIG = {
 
 const LEFT_MASK_TOP = RENDER_CONFIG.title.lineHeight
 
-export class MainHeader extends Shape {
+export class MainHeader extends RenderObject {
   /**
    * @type {Beatmap}
    */

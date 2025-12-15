@@ -1,5 +1,5 @@
 /**
- * @typedef {'easeOut' | 'linear' | 'elastic' | 'elastic-strong' | 'elastic-medium' | 'elastic-weak' | 'elastic-bouncy'} TransitionType
+ * @typedef {'easeOut' | 'linear' | 'easeOutBounce'} TransitionType
  */
 
 /**
@@ -44,8 +44,6 @@
  *
  */
 
-import { rgba } from './utils'
-
 /**
  * @typedef {{
  *   time: number;
@@ -56,7 +54,9 @@ import { rgba } from './utils'
  * }} TimeoutAction
  */
 
-export class Effect {
+import { rgba } from './utils'
+
+export class ActiveEffect {
   /**
    * @type {number}
    * @private
@@ -89,7 +89,7 @@ export class Effect {
    * @return {[Promise<void>, number]} [Task, id]
    */
   waitTimeout (time) {
-    const id = ++Effect._timeout_counter
+    const id = ++ActiveEffect._timeout_counter
     const task = new Promise((resolve, reject) => {
       this.#timeouts.push({
         id,
@@ -234,13 +234,13 @@ export class Effect {
       let transformer
       switch (type) {
         case 'easeOut':
-          transformer = Effect.easeOut
+          transformer = ActiveEffect.easeOut
           break
         case 'linear':
-          transformer = Effect.linear
+          transformer = ActiveEffect.linear
           break
         default:
-          transformer = Effect.easeOut
+          transformer = ActiveEffect.easeOut
       }
 
       const value = transformer(startValue, endValue, start, end, now)
@@ -327,10 +327,10 @@ export class Effect {
       let animation
       switch (type) {
         case 'spring':
-          animation = Effect.spring
+          animation = ActiveEffect.spring
           break
         default:
-          animation = Effect.spring
+          animation = ActiveEffect.spring
       }
       const value = animation(startValue, endValue, status)
       update(value)

@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 import { formatTime } from './utils'
 import { CANVAS } from './Config'
@@ -21,7 +21,7 @@ import { BackButton } from './BackButton'
  * @property {number} finishTime
  */
 
-export class RankingBoard extends Shape {
+export class RankingBoard extends RenderObject {
   /**
    * @type {RankingResult}
    */
@@ -123,7 +123,7 @@ export class RankingBoard extends Shape {
       return
     }
     this.cancelTransitions()
-    await this.createTransition(this.#alpha, 100, 600, 'easeOut', value => this.#alpha = value)
+    await this.createTransition(this.#alpha, 100, 500, 'easeOut', value => this.#alpha = value)
     this.#shown = true
     const { accuracy, score } = this.#rankingResult
     await Promise.all([
@@ -132,13 +132,14 @@ export class RankingBoard extends Shape {
     ])
   }
 
-  async hide () {
-    if (this.#alpha === 0) {
-      return Promise.resolve()
-    }
-    this.cancelTransitions()
-
-    await this.createTransition(this.#alpha, 0, 600, 'easeOut', value => this.#alpha = value)
+  hide () {
+    this.#alpha = 0
+    // if (this.#alpha === 0) {
+    //   return Promise.resolve()
+    // }
+    // this.cancelTransitions()
+    //
+    // await this.createTransition(this.#alpha, 0, 500, 'easeOut', value => this.#alpha = value)
   }
 
   /**

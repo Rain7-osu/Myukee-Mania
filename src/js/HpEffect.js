@@ -1,4 +1,4 @@
-import { Shape } from './Shape'
+import { RenderObject } from './RenderObject'
 import { HpManager } from './HpManager'
 import { vh } from './utils'
 import { CANVAS } from './Config'
@@ -12,7 +12,7 @@ const WIDTH = 30
 const INNER_WIDTH = 10
 const INNER_BOTTOM = 20
 
-export class HpEffect extends Shape {
+export class HpEffect extends RenderObject {
   #value = 0
   #left = 0
 
