@@ -9,6 +9,8 @@ const preventDefaultMaps = [
   KeyCode.F1,
   KeyCode.F2,
   KeyCode.F3,
+  KeyCode.F4,
+  KeyCode.F5,
 ]
 
 export class KeyboardEventManager {

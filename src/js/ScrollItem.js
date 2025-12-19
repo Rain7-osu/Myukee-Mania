@@ -88,6 +88,13 @@ export class ScrollItem extends RenderObject {
 
   #translateXEffect = new ActiveEffect()
 
+  #offsetXEffect = new ActiveEffect()
+
+  /**
+   * @return {ActiveEffect}
+   */
+  get offsetXEffect() { return this.#offsetXEffect }
+
   /**
    * @param y {number}
    */
@@ -312,12 +319,14 @@ export class ScrollItem extends RenderObject {
     super.updateEffect(now)
     this.#flashLight.updateEffect(now)
     this.#translateXEffect.updateEffect(now)
+    this.#offsetXEffect.updateEffect(now)
   }
 
   cancelEffect () {
     super.cancelEffect()
     this.#flashLight.cancelEffect()
     this.#translateXEffect.cancelEffect()
+    this.#offsetXEffect.cancelEffect()
   }
 
   render (context) {

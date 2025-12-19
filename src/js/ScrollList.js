@@ -95,9 +95,6 @@ export class ScrollList extends RenderObject {
    * @param scrollY {number}
    */
   set scrollY (scrollY) {
-    if (Number.isNaN(scrollY)) {
-      debugger
-    }
     this.#scrollY = scrollY
   }
 
@@ -216,9 +213,7 @@ export class ScrollList extends RenderObject {
     if (!this.#enableEvents) {
       return
     }
-    // if (!this._checkEventCapture(e)) {
-    //   return;
-    // }
+
     if (this.#autoScrolling) {
       this.#cancelTransitionManager.cancelScrollTo()
       this.#autoScrolling = false
@@ -234,18 +229,6 @@ export class ScrollList extends RenderObject {
     }
     this.#status.velocity += wheelDirection * wheelSpeed
     this.#status.velocity = Math.max(-this.#listConfig.maxVelocity, Math.min(this.#listConfig.maxVelocity, this.#status.velocity))
-    this.#activeEffects.inertia.cancelTransitions()
-    const target = Math.min(this.#status.inertiaX + (Math.abs(this.#status.velocity) ** 0.5) * 10, this.#listConfig.maxOffsetX)
-    await this.#activeEffects.inertia.createTransition(
-      this.#status.inertiaX, target,
-      80, 'easeOut',
-      v => this.#status.inertiaX = v,
-    )
-    await this.#activeEffects.inertia.createTransition(
-      this.#status.inertiaX, 0,
-      (this.#status.inertiaX / this.#listConfig.maxOffsetX) * 1000, 'easeOut',
-      v => this.#status.inertiaX = v,
-    )
   }
 
   #mouseMoveTimer = -1
@@ -538,7 +521,7 @@ export class ScrollList extends RenderObject {
    * @param item {ScrollItem}
    * @private
    */
-  _setOffsetX(item) {
+  async _scrollSetOffsetX (item) {
     const targetX = item.style.left + Math.abs(item.y - CANVAS.HEIGHT / 2) / 6
     item.offsetX = Math.min(this.#listConfig.maxOffsetX, targetX)
   }
@@ -567,7 +550,7 @@ export class ScrollList extends RenderObject {
       scrollItem.translateX = scrollItem.currentStyle.left - scrollItem.style.left
       scrollItem.offsetY = offsetY
       scrollItem.scrollY = this.#scrollY
-      this._setOffsetX(scrollItem)
+      this._scrollSetOffsetX(scrollItem)
       offsetY += height + marginBottom
     }
 
@@ -599,7 +582,7 @@ export class ScrollList extends RenderObject {
     const scrollItems = this.scrollItems()
     for (const scrollItem of scrollItems) {
       scrollItem.scrollY = this.#scrollY
-      this._setOffsetX(scrollItem)
+      this._scrollSetOffsetX(scrollItem)
     }
     this.#status.mouseEvent && this._refreshHoverStatus(this.#status.mouseEvent)
   }
@@ -608,7 +591,9 @@ export class ScrollList extends RenderObject {
    * @param now {number}
    */
   updateTransition (now) {
-    this._updateScroll()
+    if (this.#status.velocity) {
+      this._updateScroll()
+    }
     super.updateTransition(now)
     this.#activeEffects.inertia.updateTransition(now)
     if (this.#scrollY !== this.#lastScrollY) {
@@ -616,19 +601,20 @@ export class ScrollList extends RenderObject {
       this.#lastScrollY = this.#scrollY
     }
     const scrollItems = this.scrollItems()
-    scrollItems.forEach((item) => item.updateEffect(now))
+    scrollItems.forEach(item => item.updateEffect(now))
   }
 
   render (context) {
     const scrollItems = this.scrollItems()
     scrollItems.forEach((item, index) => item.render(context))
-    this.renderScrollBar(context)
+    this._renderScrollBar(context)
   }
 
   /**
    * @param context {CanvasRenderingContext2D}
+   * @private
    */
-  renderScrollBar (context) {
+  _renderScrollBar (context) {
     const { left: listLeft, top: listTop, height: listHeight, width: listWidth, bottom: listBottom } = this.#style
     const BAR_WIDTH = 8
     context.fillStyle = 'rgba(0, 0, 0, 0.2)'
@@ -636,7 +622,7 @@ export class ScrollList extends RenderObject {
     context.fillStyle = 'rgba(255, 255, 255, 1)'
     const items = this.scrollItems()
     const itemHeight = items[0].style.height
-    const scrollHeight = itemHeight * items.length + this.#listConfig.maxDeltaScrollY + this.#listConfig.minDeltaScrollY;
+    const scrollHeight = itemHeight * items.length + this.#listConfig.maxDeltaScrollY + this.#listConfig.minDeltaScrollY
     const top = (this.#scrollY + this.#listConfig.maxDeltaScrollY) / scrollHeight * listHeight + listTop
     const height = listHeight / scrollHeight * listHeight
     context.fillRect(listLeft + listWidth, top, -BAR_WIDTH, height)
