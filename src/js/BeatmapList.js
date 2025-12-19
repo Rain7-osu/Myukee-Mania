@@ -3,7 +3,7 @@ import { ScrollList } from './ScrollList'
 import { CANVAS } from './Config'
 import { vw } from './utils'
 
-const MAX_OFFSET_X_VW = 0.25
+const MAX_OFFSET_X_VW = 0.8
 const MAX_SPEED = 50
 const ITEM_HEIGHT = 160 / 1440
 const TOP = 164

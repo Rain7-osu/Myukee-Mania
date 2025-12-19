@@ -276,7 +276,7 @@ export class Skin {
               title: {
                 color: '#212529',
               },
-              left: 1400 / 2500,
+              left: 1460 / 2560,
             },
             hover: {
               gap: 30,
@@ -285,7 +285,7 @@ export class Skin {
               title: {
                 color: '#212529',
               },
-              left: 1560 / 2560
+              left: 1480 / 2560
             },
             base: {
               gap: -12,
@@ -300,12 +300,12 @@ export class Skin {
               subtitle: {
                 font: 'bold 24px 微软雅黑',
               },
-              width: 1200 / 2560,
+              width: 1280 / 2560,
               height: 140 / 1440,
               left: 1580 / 2560,
             },
             selectHover: {
-              left: 1380 / 2500
+              left: 1380 / 2560
             },
             sameGroup: {
               bgColor: 'rgba(140, 217, 242, 0.5)',

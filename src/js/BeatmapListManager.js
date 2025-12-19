@@ -90,8 +90,7 @@ export class BeatmapListManager {
    * @return BeatmapItem
    */
   firstSelect () {
-    // const randomBeatmap = this.random()
-    const randomBeatmap = this.beatmapList.scrollItems()[2]
+    const randomBeatmap = this.random()
     randomBeatmap.select()
     this.#beatmapList.select(randomBeatmap)
     this.#selectedBeatmapItem = randomBeatmap

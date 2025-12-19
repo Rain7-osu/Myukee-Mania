@@ -66,7 +66,17 @@ export class BeatmapItem extends ScrollItem {
     }
   }
 
-  renderByStyle (context, x, originY, width, originHeight) {
+  rect () {
+    const {
+      base: {
+        gap: BASE_GAP,
+      },
+    } = Skin.config.main.beatmap.item
+    const [x, y, w, h] = super.rect()
+    return [x, y + BASE_GAP / 2, w, h - BASE_GAP]
+  }
+
+  renderByStyle (context, x, y, width, height) {
     const {
       select: { bgColor: SELECTED_BG },
       hover: { bgColor: HOVER_BG },
@@ -75,12 +85,8 @@ export class BeatmapItem extends ScrollItem {
         title: { color: TITLE_COLOR, font: TITLE_FONT },
         description: { font: DESC_FONT },
         subtitle: { font: SUBTITLE_FONT },
-        gap: BASE_GAP,
       },
     } = Skin.config.main.beatmap.item
-
-    const y = originY + BASE_GAP / 2
-    const height = originHeight - BASE_GAP
 
     if (y + height <= 0 || y >= CANVAS.HEIGHT) {
       // 在屏幕外

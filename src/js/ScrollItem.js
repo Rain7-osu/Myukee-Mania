@@ -3,7 +3,7 @@ import { CANVAS } from './Config'
 import { ActiveEffect } from './ActiveEffect'
 import { FlashLightEffect } from './FlashLightEffect'
 
-const DURATION = 400
+const DURATION = 600
 
 /**
  * @typedef {{
@@ -249,13 +249,7 @@ export class ScrollItem extends RenderObject {
     const currentStyle = this.currentStyle.left
     const target = currentStyle - this.style.left
     this.#translateXEffect.cancelTransitions()
-
     const update = value => this.translateX = value
-
-    if (this.active) {
-      update.__debug__ = true
-      console.log('update', update.__debug__)
-    }
 
     await this.#translateXEffect.createTransition(
       this.translateX, target,
@@ -414,8 +408,8 @@ export class ScrollItem extends RenderObject {
    */
   rect () {
     return [
-      this.#offsetX + this.translateX,
-      this.#offsetY - this.#scrollY + this.translateY,
+      Math.round(this.#offsetX + this.translateX),
+      Math.round(this.#offsetY - this.#scrollY + this.translateY),
       this.currentStyle.width,
       this.currentStyle.height,
     ]

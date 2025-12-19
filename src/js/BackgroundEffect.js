@@ -1,6 +1,8 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
+const DURATION = 600
+
 export class BackgroundEffect extends RenderObject {
   /**
    * @type {HTMLImageElement | null}
@@ -28,7 +30,7 @@ export class BackgroundEffect extends RenderObject {
     }
     this.#currentImage = image
     this.cancelTransitions()
-    await this.createTransition(0, 100, 300, 'easeOut', (value) => this.#alpha = value)
+    await this.createTransition(0, 100, DURATION, 'easeOut', value => this.#alpha = value)
     this.#lastImage = this.#currentImage
   }
 

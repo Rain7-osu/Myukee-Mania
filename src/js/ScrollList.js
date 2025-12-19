@@ -26,6 +26,7 @@ import { ActiveEffect } from './ActiveEffect'
  */
 
 const DURATION = 600
+const SCROLL_TO_DURATION = 300
 const MAX_SPEED = 75
 
 /**
@@ -247,24 +248,6 @@ export class ScrollList extends RenderObject {
     )
   }
 
-  /**
-   * @private
-   */
-  _updateScroll () {
-    if (Math.abs(this.#status.velocity) > 0) {
-      this.#scrollY += this.#status.velocity
-      const { maxScrollY, minScrollY } = this._calcScrollYConfig()
-      this.scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
-      this.#status.velocity *= this.#listConfig.friction
-
-      if (Math.abs(this.#status.velocity) < 0.1) {
-        this.#status.velocity = 0
-      }
-
-      this.#status.mouseEvent && this._refreshHoverStatus(this.#status.mouseEvent)
-    }
-  }
-
   #mouseMoveTimer = -1
 
   /**
@@ -293,10 +276,6 @@ export class ScrollList extends RenderObject {
    * @return void
    */
   _onMouseMove (e) {
-    if (!this._checkEventCapture(e)) {
-      return
-    }
-
     e.preventDefault()
     this.#status.mouseEvent = e
     this.#status.mouseMoving = true
@@ -556,6 +535,15 @@ export class ScrollList extends RenderObject {
   }
 
   /**
+   * @param item {ScrollItem}
+   * @private
+   */
+  _setOffsetX(item) {
+    const targetX = item.style.left + Math.abs(item.y - CANVAS.HEIGHT / 2) / 6
+    item.offsetX = Math.min(this.#listConfig.maxOffsetX, targetX)
+  }
+
+  /**
    * @param centeredItem {ScrollItem}
    */
   initScrollItems (centeredItem) {
@@ -579,7 +567,7 @@ export class ScrollList extends RenderObject {
       scrollItem.translateX = scrollItem.currentStyle.left - scrollItem.style.left
       scrollItem.offsetY = offsetY
       scrollItem.scrollY = this.#scrollY
-      scrollItem.offsetX = scrollItem.style.left
+      this._setOffsetX(scrollItem)
       offsetY += height + marginBottom
     }
 
@@ -588,11 +576,30 @@ export class ScrollList extends RenderObject {
     this.scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
   }
 
+  /**
+   * @private
+   */
+  _updateScroll () {
+    if (Math.abs(this.#status.velocity) > 0) {
+      this.#scrollY += this.#status.velocity
+      const { maxScrollY, minScrollY } = this._calcScrollYConfig()
+      this.scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
+      this.#status.velocity *= this.#listConfig.friction
+
+      if (Math.abs(this.#status.velocity) < 0.1) {
+        this.#status.velocity = 0
+      }
+
+      this.#status.mouseEvent && this._refreshHoverStatus(this.#status.mouseEvent)
+    }
+  }
+
   _refreshItemsScrollY () {
     /** @type {ScrollItem[]} */
     const scrollItems = this.scrollItems()
     for (const scrollItem of scrollItems) {
       scrollItem.scrollY = this.#scrollY
+      this._setOffsetX(scrollItem)
     }
     this.#status.mouseEvent && this._refreshHoverStatus(this.#status.mouseEvent)
   }
@@ -645,8 +652,8 @@ export class ScrollList extends RenderObject {
     const currentScrollY = this.#scrollY
     this.#cancelTransitionManager.cancelScrollTo()
     this.#autoScrolling = true
-    this.#cancelTransitionManager.cancelScrollTo = this.createTransitionSync(currentScrollY, targetScrollY, 800, 'easeOut',
-      (value) => this.scrollY = value,
+    this.#cancelTransitionManager.cancelScrollTo = this.createTransitionSync(currentScrollY, targetScrollY, SCROLL_TO_DURATION, 'easeOut',
+      value => this.scrollY = value,
       () => {
         this.#status.mouseEvent && this._onMouseMove(this.#status.mouseEvent)
         this.#autoScrolling = false
