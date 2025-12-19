@@ -5,15 +5,36 @@ export class FlashLightEffect extends RenderObject {
   #value = 0
 
   /**
-   * @param maxValue {number}
-   * @param duration {number}
+   * @type number[] [x, y, w, h]
+   */
+  #area
+
+  /**
+   * @param area {number[]?}
+   */
+  constructor (area) {
+    super()
+    this.#area = area || [0, 0, CANVAS.WIDTH, CANVAS.HEIGHT]
+  }
+
+  /**
+   * @param {number[]} area
+   */
+  set area (area) {
+    this.#area = area
+  }
+
+  /**
+   * @param maxValue {number} max Alpha of flash, max=100, min=0
+   * @param duration {number} flash duration
+   * @param mode {TransitionType}
    * @return {Promise<unknown>}
    */
-  async flash(maxValue = 5, duration = 60) {
-    const target = Math.min(maxValue, 100)
+  async flash (maxValue = 5, duration = 60, mode = 'easeOut') {
+    const target = Math.max(Math.min(maxValue, 100), 0)
     this.cancelTransitions()
-    await this.createTransition(this.#value, target, duration, 'easeOut', (v) => this.#value = v)
-    await this.createTransition(this.#value, 0, duration, 'easeOut', (v) => this.#value = v)
+    await this.createTransition(this.#value, target, duration, mode, (v) => this.#value = v)
+    await this.createTransition(this.#value, 0, duration, mode, (v) => this.#value = v)
   }
 
   reset () {
@@ -26,6 +47,6 @@ export class FlashLightEffect extends RenderObject {
     }
     const alpha = this.#value
     context.fillStyle = `rgba(255, 255, 255, ${alpha / 100})`
-    context.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
+    context.fillRect(...this.#area)
   }
 }

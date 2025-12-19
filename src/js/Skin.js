@@ -270,24 +270,25 @@ export class Skin {
         beatmap: {
           item: {
             select: {
-              gap: 16,
+              gap: 20,
               extra: 200,
               bgColor: 'rgba(255,249,235,0.5)',
               title: {
                 color: '#212529',
               },
+              left: 1400 / 2500,
             },
             hover: {
+              gap: 30,
               extra: 80,
-              gap: 16,
               bgColor: 'rgba(255,191,128,0.5)',
               title: {
                 color: '#212529',
               },
+              left: 1560 / 2560
             },
             base: {
-              height: 160,
-              gap: -16,
+              gap: -12,
               bgColor: 'rgba(255,191,128,0.5)',
               title: {
                 color: '#212529',
@@ -299,6 +300,12 @@ export class Skin {
               subtitle: {
                 font: 'bold 24px 微软雅黑',
               },
+              width: 1200 / 2560,
+              height: 140 / 1440,
+              left: 1580 / 2560,
+            },
+            selectHover: {
+              left: 1380 / 2500
             },
             sameGroup: {
               bgColor: 'rgba(140, 217, 242, 0.5)',
@@ -306,8 +313,6 @@ export class Skin {
             neverPlayed: {
               bgColor: 'rgba(140, 217, 242, 0.5)',
             },
-            baseLeft: CANVAS.WIDTH / 2 + 200,
-            width: CANVAS.WIDTH,
           },
         },
       },

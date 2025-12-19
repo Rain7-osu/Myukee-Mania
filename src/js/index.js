@@ -2,6 +2,9 @@ import { CANVAS, setCanvasSize } from './Config'
 import { MainController } from './MainController'
 import { $, bindClick } from './dom'
 import { Skin } from './Skin'
+import { dev } from './dev'
+
+dev.log('start...')
 
 function createStageCanvas (id = 'stage') {
   const canvas = document.createElement('canvas')

@@ -1,6 +1,17 @@
+const urlSearch = new URLSearchParams(location.search)
+
+/**
+ * @param key {string}
+ * @param expect {string}
+ */
+const initDebugParams = (key, expect) => {
+  return urlSearch.get(key) === expect && window.location.host === 'localhost'
+}
+
 window.__FORCE_FINISH__ = false
-window.__DEV__ = false
+window.__DEV__ = initDebugParams('__DEV__', 'true') || false
 window.__MOUSE_MOVE__SOURCE__ = ''
+window.__SHOW_SCROLL_BOX__ = initDebugParams('__SHOW_SCROLL_BOX__', 'true') || false
 
 function warn (...args) {
   if (__DEV__) {
@@ -8,7 +19,7 @@ function warn (...args) {
   }
 }
 
-function log(...args) {
+function log (...args) {
   if (__DEV__) {
     console.log(performance.now(), ...args)
   }

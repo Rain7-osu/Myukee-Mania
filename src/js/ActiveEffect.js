@@ -55,6 +55,7 @@
  */
 
 import { rgba } from './utils'
+import { dev } from './dev'
 
 export class ActiveEffect {
   /**
@@ -62,6 +63,12 @@ export class ActiveEffect {
    * @private
    */
   static _timeout_counter = 0
+
+  /**
+   * @type {number}
+   * @private
+   */
+  static _interval_counter = 0
 
   /**
    * @private
@@ -85,10 +92,80 @@ export class ActiveEffect {
   #timeouts = []
 
   /**
+   * @type {Array<{
+   *   resolve: (v: unknown) => void;
+   *   reject: (v: unknown) => void;
+   *   interval: number;
+   *   callback: () => void;
+   *   endCondition: () => boolean;
+   *   lastTime: () => boolean;
+   * }>}
+   */
+  #intervals = []
+
+  /**
+   * @param callback {() => void}
+   * @param interval {number}
+   * @param endCondition {() => boolean}
+   */
+  createInterval (callback, interval, endCondition = () => false) {
+    const id = ++ActiveEffect._interval_counter
+    const task = new Promise((resolve, reject) => {
+      this.#intervals.push({
+        reject,
+        resolve,
+        callback,
+        interval,
+        endCondition,
+        lastTime: performance.now(),
+      })
+    })
+    return [task, id]
+  }
+
+  updateInterval (now) {
+    if (!this.#intervals.length) {
+      return
+    }
+    this.#intervals = this.#intervals.filter(({ resolve, callback, endCondition }) => {
+      if (endCondition()) {
+        callback()
+        resolve()
+        return false
+      }
+      return true
+    })
+    this.#intervals.forEach((config) => {
+      if (now - config.lastTime >= config.interval) {
+        config.callback()
+        config.lastTime = now
+      }
+    })
+  }
+
+  /**
+   * @param timer {number}
+   */
+  cancelInterval (timer) {
+    if (timer) {
+      this.#intervals = this.#intervals.filter(({ id, reject }) => {
+        if (id !== timer) {
+          reject()
+          return false
+        }
+        return true
+      })
+    } else {
+      this.#intervals.forEach(({ reject }) => reject())
+      this.#intervals = []
+    }
+  }
+
+  /**
    * @param time {number}
    * @return {[Promise<void>, number]} [Task, id]
    */
-  waitTimeout (time) {
+  createTimeout (time) {
     const id = ++ActiveEffect._timeout_counter
     const task = new Promise((resolve, reject) => {
       this.#timeouts.push({
@@ -103,11 +180,17 @@ export class ActiveEffect {
   }
 
   /**
-   * @param timeout {number}
+   * @param timer {number?}
    */
-  cancelTimeout (timeout) {
-    if (timeout) {
-      this.#timeouts = this.#timeouts.filter(({ id }) => id !== timeout)
+  cancelTimeout (timer) {
+    if (timer) {
+      this.#timeouts = this.#timeouts.filter(({ id, reject }) => {
+        if (id !== timer) {
+          reject()
+          return false
+        }
+        return true
+      })
     } else {
       this.#timeouts.forEach(({ reject }) => reject())
       this.#timeouts = []
@@ -143,6 +226,8 @@ export class ActiveEffect {
     /** @type {number} */
     const start = performance.now()
     const end = start + duration
+
+    console.log('update debug', update.__debug__)
 
     /** @type {(value: number) => void} */
     let updateFn = update
@@ -196,11 +281,12 @@ export class ActiveEffect {
 
   /**
    * @public
-   * @param startValue {number | string}
-   * @param endValue {number | string}
+   * @template {string | number} T
+   * @param startValue {T}
+   * @param endValue {T}
    * @param duration {number}
    * @param type {TransitionType}
-   * @param updateFn {(value: number | string) => void}
+   * @param updateFn {(value: T) => void}
    */
   createTransition (startValue, endValue, duration, type, updateFn) {
     return new Promise(resolve => {
@@ -221,6 +307,9 @@ export class ActiveEffect {
       const [{ endValue }, updateFn, endFn] = update
       updateFn(endValue)
       endFn?.(endValue)
+      if (updateFn.__debug__) {
+        dev.log('end transition', endValue)
+      }
       return false
     })
 
@@ -244,6 +333,9 @@ export class ActiveEffect {
       }
 
       const value = transformer(startValue, endValue, start, end, now)
+      if (updateFn.__debug__) {
+        dev.log('update transition', value)
+      }
       updateFn(value)
     })
   }

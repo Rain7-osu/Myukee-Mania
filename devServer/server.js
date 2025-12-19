@@ -60,10 +60,11 @@ const server = http.createServer((req, res) => {
   // 记录请求日志（带颜色）
   console.log(`${colors.dim}[${new Date().toISOString()}]${colors.reset} ` + `${methodColor}${req.method.padEnd(7)}${colors.reset} ${req.url}`)
 
-  if (req.url === '/') {
+  const [urlPath, search] = req.url.split('?')
+  if (urlPath === '/') {
     serveFile(res, INDEX_HTML, 'text/html')
   } else {
-    let realPath = decodeURIComponent(path.join(SRC_DIR, req.url))
+    let realPath = decodeURIComponent(path.join(SRC_DIR, urlPath))
     if (path.extname(realPath) === '') {
       realPath += '.js'
     }

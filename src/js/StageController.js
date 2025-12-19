@@ -342,7 +342,7 @@ export class StageController extends ActiveEffect {
     if (flag) {
       await this.#playingAudio.resume()
     } else {
-      const [task] = this.waitTimeout(DEFAULT_DELAY_TIME)
+      const [task] = this.createTimeout(DEFAULT_DELAY_TIME)
       await task
       this.#realStarted = true
       await this.#playingAudio.play()
@@ -503,7 +503,7 @@ export class StageController extends ActiveEffect {
   }
 
   async fail () {
-    await this.waitTimeout(300)[0]
+    await this.createTimeout(300)[0]
     this.#keyboardEventManager.removeEvents()
     this.#playingAudio.abort()
     this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
@@ -515,7 +515,7 @@ export class StageController extends ActiveEffect {
    * @return void
    */
   async resume () {
-    const [task, timer] = this.waitTimeout(DEFAULT_DELAY_TIME)
+    const [task, timer] = this.createTimeout(DEFAULT_DELAY_TIME)
     this.#resumeTimer = timer
     await task
     this.registerStageEvent()

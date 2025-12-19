@@ -2,8 +2,6 @@ import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
 import { formatMapTime, rgba } from './utils'
-import { ModNameMap } from './ModsInfo'
-import { Settings } from './Settings'
 
 const TRANSITION_DURATION = 200
 const RIGHT_HEIGHT = 160

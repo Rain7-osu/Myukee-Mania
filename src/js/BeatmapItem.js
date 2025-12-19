@@ -1,9 +1,12 @@
-import { RenderObject } from './RenderObject'
 import { Beatmap } from './Beatmap'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 import { ScrollItem } from './ScrollItem'
+import { vh, vw } from './utils'
 
+/**
+ * @extends ScrollItem
+ */
 export class BeatmapItem extends ScrollItem {
   /**
    * @type {Beatmap}
@@ -17,50 +20,53 @@ export class BeatmapItem extends ScrollItem {
     super()
     this.#beatmap = beatmap
     const {
-      select: { extra: SELECT_EXTRA, gap: SELECT_GAP },
-      hover: { extra: HOVER_EXTRA, gap: HOVER_GAP },
-      base: { height: HEIGHT, gap: BASE_GAP },
-      width,
-      baseLeft,
+      select: { gap: SELECT_GAP, left: SELECT_LEFT },
+      hover: { gap: HOVER_GAP, left: HOVER_LEFT },
+      base: { width: WIDTH, left: LEFT, height: HEIGHT },
+      selectHover: { left: SELECT_HOVER_LEFT },
     } = Skin.config.main.beatmap.item
 
+    const width = vw(WIDTH)
+    const height = vh(HEIGHT)
+    const left = vw(LEFT)
+    const hoverLeft = vw(HOVER_LEFT)
+    const activeLeft = vw(SELECT_LEFT)
+    const activeHoverLeft = vw(SELECT_HOVER_LEFT)
+
     this.style = {
-      marginTop: BASE_GAP,
+      marginTop: 0,
       marginBottom: 0,
       width,
-      height: HEIGHT,
-      left: baseLeft,
+      height,
+      left,
     }
 
     this.hoverStyle = {
       marginTop: HOVER_GAP,
-      marginBottom: HOVER_GAP - BASE_GAP,
+      marginBottom: HOVER_GAP,
       width,
-      height: HEIGHT,
-      left: baseLeft - HOVER_EXTRA,
+      height,
+      left: hoverLeft,
     }
 
-    this.activeStyle = this.style
-    this.activeHoverStyle = this.hoverStyle
+    this.activeStyle = {
+      marginTop: SELECT_GAP,
+      marginBottom: SELECT_GAP,
+      width,
+      height,
+      left: activeLeft,
+    }
 
-    // this.activeStyle = {
-    //   marginTop: HOVER_GAP,
-    //   marginBottom: SELECT_GAP - BASE_GAP,
-    //   width,
-    //   height: HEIGHT,
-    //   left: baseLeft - SELECT_EXTRA,
-    // }
-
-    // this.activeHoverStyle = {
-    //   marginTop: SELECT_GAP + HOVER_GAP,
-    //   marginBottom: SELECT_GAP + HOVER_GAP - BASE_GAP,
-    //   width,
-    //   height: HEIGHT,
-    //   left: baseLeft - (SELECT_EXTRA + HOVER_EXTRA),
-    // }
+    this.activeHoverStyle = {
+      marginTop: SELECT_GAP + HOVER_GAP,
+      marginBottom: SELECT_GAP + HOVER_GAP,
+      width,
+      height,
+      left: activeHoverLeft,
+    }
   }
 
-  renderByStyle (context, generalLeft, generalTop, generalWidth, height) {
+  renderByStyle (context, x, originY, width, originHeight) {
     const {
       select: { bgColor: SELECTED_BG },
       hover: { bgColor: HOVER_BG },
@@ -69,10 +75,14 @@ export class BeatmapItem extends ScrollItem {
         title: { color: TITLE_COLOR, font: TITLE_FONT },
         description: { font: DESC_FONT },
         subtitle: { font: SUBTITLE_FONT },
+        gap: BASE_GAP,
       },
     } = Skin.config.main.beatmap.item
 
-    if (generalTop + height <= 0 || generalTop >= CANVAS.HEIGHT) {
+    const y = originY + BASE_GAP / 2
+    const height = originHeight - BASE_GAP
+
+    if (y + height <= 0 || y >= CANVAS.HEIGHT) {
       // 在屏幕外
       return
     }
@@ -85,24 +95,15 @@ export class BeatmapItem extends ScrollItem {
     }
 
     context.fillStyle = bg
+    context.fillRect(x, y, width, height)
 
-    super.roundRect({
-      context,
-      x: generalLeft,
-      y: generalTop,
-      width: generalWidth,
-      height,
-      radius: 0,
-      fill: bg,
-    })
-
-    const paddingLeft = generalLeft + 25
-    let offsetY = generalTop
+    const paddingLeft = x + 25
+    let offsetY = y
 
     context.fillStyle = TITLE_COLOR
     context.font = TITLE_FONT
     context.textAlign = 'left'
-    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 50)
+    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 36)
 
     context.font = DESC_FONT
     context.fillStyle = TITLE_COLOR
@@ -162,10 +163,10 @@ export class BeatmapItem extends ScrollItem {
   }
 
   select () {
-    this.active = true
+    this.activeIn()
   }
 
   cancelSelect () {
-    this.active = false
+    this.activeOut()
   }
 }

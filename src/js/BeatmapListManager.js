@@ -90,8 +90,10 @@ export class BeatmapListManager {
    * @return BeatmapItem
    */
   firstSelect () {
-    const randomBeatmap = this.random()
+    // const randomBeatmap = this.random()
+    const randomBeatmap = this.beatmapList.scrollItems()[2]
     randomBeatmap.select()
+    this.#beatmapList.select(randomBeatmap)
     this.#selectedBeatmapItem = randomBeatmap
     return randomBeatmap
   }
@@ -102,9 +104,10 @@ export class BeatmapListManager {
   selectItem (beatmapItem) {
     this.#selectedBeatmapItem?.cancelSelect()
     beatmapItem.select()
+    this.#beatmapList.select(beatmapItem)
     this.#selectedBeatmapItem = beatmapItem
     this.#beatmapList.scrollTo((prev) => {
-      const { top, height } = beatmapItem.renderInfo()
+      const [_, top, __, height] = beatmapItem.rect()
       return prev + top + height - CANVAS.HEIGHT / 2
     })
   }
@@ -130,13 +133,12 @@ export class BeatmapListManager {
     this.#beatmapList.cancelTransitions()
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
-      const translateX = item.translateX
-      item.cancelTransitions()
-      this.#beatmapList.createTransitionSync(translateX, translateX + targetX, 500, 'easeOut', (value) => {
+      item.cancelEffect()
+      this.#beatmapList.createTransitionSync(item.translateX, item.translateX + targetX, 500, 'easeOut', (value) => {
         item.translateX = value
       })
     }
-    const [task] = this.#beatmapList.waitTimeout(800)
+    const [task] = this.#beatmapList.createTimeout(800)
     await task
   }
 
@@ -145,12 +147,12 @@ export class BeatmapListManager {
     this.#beatmapList.cancelTransitions()
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
-      const translateX = item.translateX
-      this.#beatmapList.createTransitionSync(translateX, 0, 500, 'easeOut', (value) => {
+      item.cancelEffect()
+      this.#beatmapList.createTransitionSync(item.translateX, item.currentStyle.left - item.style.left, 500, 'easeOut', (value) => {
         item.translateX = value
       })
     }
-    const [task] = this.#beatmapList.waitTimeout(800)
+    const [task] = this.#beatmapList.createTimeout(800)
     await task
   }
 

@@ -1,5 +1,9 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
+import { ActiveEffect } from './ActiveEffect'
+import { FlashLightEffect } from './FlashLightEffect'
+
+const DURATION = 400
 
 /**
  * @typedef {{
@@ -19,6 +23,11 @@ import { CANVAS } from './Config'
  */
 
 export class ScrollItem extends RenderObject {
+  /**
+   * @type {FlashLightEffect}
+   */
+  #flashLight = new FlashLightEffect()
+
   /**
    * @type {Style}
    */
@@ -63,11 +72,6 @@ export class ScrollItem extends RenderObject {
     left: 0,
   }
 
-  /**
-   * @type {RenderInfo}
-   */
-  #renderInfo = {}
-
   #hovered = false
 
   #active = false
@@ -82,11 +86,20 @@ export class ScrollItem extends RenderObject {
 
   #translateX = 0
 
+  #translateXEffect = new ActiveEffect()
+
   /**
    * @param y {number}
    */
   set translateY (y) {
     this.#translateY = y
+  }
+
+  /**
+   * @return {number}
+   */
+  get translateY () {
+    return this.#translateY
   }
 
   /**
@@ -96,10 +109,9 @@ export class ScrollItem extends RenderObject {
     this.#translateX = x
   }
 
-  get translateY () {
-    return this.#translateY
-  }
-
+  /**
+   * @return {number}
+   */
   get translateX () {
     return this.#translateX
   }
@@ -174,15 +186,22 @@ export class ScrollItem extends RenderObject {
    * @param offsetY {number}
    */
   set offsetY (offsetY) {
-    if (offsetY !== this.#offsetY) {
-      this.#offsetY = offsetY
-    }
+    this.#offsetY = Math.round(offsetY)
   }
 
   set scrollY (scrollY) {
-    if (scrollY !== this.#scrollY) {
-      this.#scrollY = scrollY
-    }
+    this.#scrollY = Math.round(scrollY)
+  }
+
+  /**
+   * @return {number}
+   */
+  get y () {
+    return this.#offsetY - this.#scrollY
+  }
+
+  get x () {
+    return this.#offsetX + this.#style.left
   }
 
   /**
@@ -206,22 +225,11 @@ export class ScrollItem extends RenderObject {
     return this.#hovered
   }
 
-  /** @type {() => void} */
-  #cancelUpdate = () => {}
-
-  async hoverIn () {
-    this.#hovered = true
-    const distance = this.#hoverStyle.left - this.#style.left
-    await this.createTransition(this.#translateX, distance, 800, 'easeOut', (value) => {
-      this.#translateX = value
-    })
-  }
-
-  async hoverOut () {
-    this.#hovered = false
-    await this.createTransition(this.#translateX, 0, 800, 'easeOut', (value) => {
-      this.#translateX = value
-    })
+  /**
+   * @param val {boolean}
+   */
+  set active (val) {
+    this.#active = val
   }
 
   /**
@@ -232,17 +240,71 @@ export class ScrollItem extends RenderObject {
   }
 
   /**
-   * @param active {boolean}
+   * @param duration {number}
+   * @param phase {string}
+   * @return {Promise<void>}
+   * @private
    */
-  set active (active) {
-    this.#active = active
+  async _processTransition (duration = DURATION, phase) {
+    const currentStyle = this.currentStyle.left
+    const target = currentStyle - this.style.left
+    this.#translateXEffect.cancelTransitions()
+
+    const update = value => this.translateX = value
+
+    if (this.active) {
+      update.__debug__ = true
+      console.log('update', update.__debug__)
+    }
+
+    await this.#translateXEffect.createTransition(
+      this.translateX, target,
+      duration, 'easeOut',
+      update,
+    )
+  }
+
+  async hoverIn () {
+    if (!this.hovered) {
+      this.hovered = true
+      await Promise.all([
+        this._processTransition(DURATION, 'hoverIn'),
+        !this.active && this.#flashLight.flash(10),
+      ])
+    }
+  }
+
+  async hoverOut () {
+    if (this.hovered) {
+      this.hovered = false
+      await this._processTransition(2 * DURATION, 'hoverOut')
+    }
+  }
+
+  /**
+   * @return {Promise<void>}
+   */
+  async activeIn () {
+    if (!this.active) {
+      console.log('activeIn')
+      this.active = true
+      await this._processTransition(DURATION, 'activeIn')
+    }
+  }
+
+  async activeOut () {
+    if (this.active) {
+      console.log('activeOut')
+      this.active = false
+      await this._processTransition(2 * DURATION, 'activeOut')
+    }
   }
 
   /**
    * @param offsetX {number}
    */
   set offsetX (offsetX) {
-    this.#offsetX = offsetX
+    this.#offsetX = Math.round(offsetX)
   }
 
   /**
@@ -252,13 +314,40 @@ export class ScrollItem extends RenderObject {
     return this.#offsetX
   }
 
+  updateEffect (now) {
+    super.updateEffect(now)
+    this.#flashLight.updateEffect(now)
+    this.#translateXEffect.updateEffect(now)
+  }
+
+  cancelEffect () {
+    super.cancelEffect()
+    this.#flashLight.cancelEffect()
+    this.#translateXEffect.cancelEffect()
+  }
+
   render (context) {
-    const { left, top, height, width } = this.renderInfo()
-    if (top > CANVAS.HEIGHT || top + height < 0) {
+    const rect = this.rect()
+    const [x, y, w, h] = rect
+    if (y > CANVAS.HEIGHT || y + h < 0) {
       return
     }
 
-    this.renderByStyle(context, left, top, width, height)
+    this.renderByStyle(context, x, y, w, h)
+    this.#flashLight.area = rect
+    this.#flashLight.render(context)
+
+    if (__SHOW_SCROLL_BOX__) {
+      context.save()
+      context.strokeStyle = '#f00'
+      context.lineWidth = 2
+      context.strokeRect(this.x, this.y, w, h)
+
+      context.strokeStyle = '#00f'
+      context.strokeRect(this.x - 2, this.y + this.translateY - 2, w + 4, h + 4)
+      context.strokeStyle = undefined
+      context.restore()
+    }
   }
 
   /**
@@ -279,11 +368,11 @@ export class ScrollItem extends RenderObject {
    */
   get currentStyle () {
     let style
-    if (this.#active && this.#hovered) {
+    if (this.active && this.hovered) {
       style = this.#activeHoverStyle
-    } else if (this.#active) {
+    } else if (this.active) {
       style = this.#activeStyle
-    } else if (this.#hovered) {
+    } else if (this.hovered) {
       style = this.#hoverStyle
     } else {
       style = this.#style
@@ -294,12 +383,22 @@ export class ScrollItem extends RenderObject {
   /**
    * @return {Style}
    */
-  get hoverStyle () {
-    return this.#hoverStyle
+  get activeStyle () {
+    return this.#activeStyle
   }
 
-  get renderedStyle () {
-    return this.currentStyle
+  /**
+   * @return {Style}
+   */
+  get activeHoverStyle () {
+    return this.#activeHoverStyle
+  }
+
+  /**
+   * @return {Style}
+   */
+  get hoverStyle () {
+    return this.#hoverStyle
   }
 
   /**
@@ -310,18 +409,15 @@ export class ScrollItem extends RenderObject {
   }
 
   /**
-   * @return {RenderInfo}
+   *
+   * @return {number[]} [x, y, w, h]
    */
-  renderInfo () {
-    const style = this.style
-
-    this.#renderInfo = {
-      left: this.#offsetX + style.left + this.#translateX,
-      top: this.#offsetY - this.#scrollY + this.#translateY,
-      width: style.width,
-      height: style.height,
-    }
-
-    return this.#renderInfo
+  rect () {
+    return [
+      this.#offsetX + this.translateX,
+      this.#offsetY - this.#scrollY + this.translateY,
+      this.currentStyle.width,
+      this.currentStyle.height,
+    ]
   }
 }
