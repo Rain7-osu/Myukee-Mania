@@ -180,7 +180,7 @@ export class StageController extends ActiveEffect {
   /**
    * @return {boolean}
    */
-  get realStarted () { return this.#realStarted }
+  get realStarted () { return this.realStarted }
 
   /**
    * @type {HTMLCanvasElement}
@@ -201,6 +201,8 @@ export class StageController extends ActiveEffect {
   #mouseEventHandler
 
   #pf = false
+
+  #auto = false
 
   /**
    * @constructor
@@ -288,7 +290,8 @@ export class StageController extends ActiveEffect {
     this.#playingAudio = audio
 
     // init
-    if (mods.includes(Mod.PF)) this.#pf = true
+    this.#pf = mods.includes(Mod.PF)
+    this.#auto = mods.includes(Mod.AT)
     this.initSectionLines()
     this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect, () => this.fail())
     this.#scoreManager.init(notes)
@@ -413,7 +416,7 @@ export class StageController extends ActiveEffect {
         }
       },
       [KeyCode.ESCAPE]: () => {
-        if (!this.#realStarted) {
+        if (!this.realStarted) {
           this.quit()
         }
         if (this.#paused) {

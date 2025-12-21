@@ -536,7 +536,7 @@ export class MainController {
     this.#pauseMenu.showResume = false
     this.#keyboardEventManager.disableEvents()
     this.#pauseMenu.registerEvents({})
-    await this.#pauseMenu.show()
+    await this.#pauseMenu.show(true)
   }
 
   async backMain () {

@@ -46,6 +46,8 @@ export class PauseMenu extends RenderObject {
    */
   #currentMenus
 
+  #failed = false
+
   /**
    * @param show {boolean}
    */
@@ -202,7 +204,12 @@ export class PauseMenu extends RenderObject {
     })
   }
 
-  async show () {
+  /**
+   * @param failed {boolean}
+   * @return {Promise<void>}
+   */
+  async show (failed = false) {
+    this.#failed = failed
     this.#currentSelect = null
     this.#currentSelectIndex = null
     await this.createTransition(0, 100, 800, 'easeOut', (value) => {
@@ -211,6 +218,7 @@ export class PauseMenu extends RenderObject {
   }
 
   async hide () {
+    this.#failed = false
     this.#currentSelect = null
     this.#currentSelectIndex = null
     await this.createTransition(100, 0, 600, 'easeOut', (value) => {
@@ -247,6 +255,29 @@ export class PauseMenu extends RenderObject {
     if (this.#currentSelect) {
       this.renderArrow(context)
     }
+
+    if (this.#failed) {
+      this.renderFailed(context)
+    }
+  }
+
+  /**
+   * @param context {CanvasRenderingContext2D}
+   */
+  renderFailed (context) {
+    this.drawText({
+      context,
+      x: 0,
+      width: CANVAS.WIDTH,
+      y: 0,
+      height: 600,
+      text: 'Failed',
+      font: 'bold 240px 微软雅黑',
+      color: 'rgba(60, 0, 0, 0.6)',
+      textAlign: 'center',
+      stroke: false,
+      textBaseline: 'middle',
+    })
   }
 
   /**
