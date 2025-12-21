@@ -4,6 +4,7 @@ import { ActiveEffect } from './ActiveEffect'
 import { FlashLightEffect } from './FlashLightEffect'
 
 const DURATION = 600
+const DISTANCE_FOR_DURATION = 200
 
 /**
  * @typedef {{
@@ -82,6 +83,8 @@ export class ScrollItem extends RenderObject {
 
   #scrollY = 0
 
+  #scrollX = 0
+
   #translateY = 0
 
   #translateX = 0
@@ -93,13 +96,13 @@ export class ScrollItem extends RenderObject {
   /**
    * @return {ActiveEffect}
    */
-  get offsetXEffect() { return this.#offsetXEffect }
+  get offsetXEffect () { return this.#offsetXEffect }
 
   /**
    * @param y {number}
    */
   set translateY (y) {
-    this.#translateY = y
+    this.#translateY = Math.round(y)
   }
 
   /**
@@ -113,7 +116,7 @@ export class ScrollItem extends RenderObject {
    * @param x {number}
    */
   set translateX (x) {
-    this.#translateX = x
+    this.#translateX = Math.round(x)
   }
 
   /**
@@ -196,8 +199,32 @@ export class ScrollItem extends RenderObject {
     this.#offsetY = Math.round(offsetY)
   }
 
+  /**
+   * @param scrollY {number}
+   */
   set scrollY (scrollY) {
     this.#scrollY = Math.round(scrollY)
+  }
+
+  /**
+   * @return {number}
+   */
+  get scrollY () {
+    return this.#scrollY
+  }
+
+  /**
+   * @param x {number}
+   */
+  set scrollX (x) {
+    this.#scrollX = Math.round(x)
+  }
+
+  /**
+   * @return {number}
+   */
+  get scrollX () {
+    return this.#scrollX
   }
 
   /**
@@ -207,6 +234,9 @@ export class ScrollItem extends RenderObject {
     return this.#offsetY - this.#scrollY
   }
 
+  /**
+   * @return {number}
+   */
   get x () {
     return this.#offsetX + this.#style.left
   }
@@ -260,7 +290,7 @@ export class ScrollItem extends RenderObject {
 
     await this.#translateXEffect.createTransition(
       this.translateX, target,
-      duration, 'easeOut',
+      Math.abs(target - this.translateX) / DISTANCE_FOR_DURATION * duration, 'easeOut',
       update,
     )
   }
@@ -287,7 +317,6 @@ export class ScrollItem extends RenderObject {
    */
   async activeIn () {
     if (!this.active) {
-      console.log('activeIn')
       this.active = true
       await this._processTransition(DURATION, 'activeIn')
     }
@@ -295,7 +324,6 @@ export class ScrollItem extends RenderObject {
 
   async activeOut () {
     if (this.active) {
-      console.log('activeOut')
       this.active = false
       await this._processTransition(2 * DURATION, 'activeOut')
     }
@@ -344,10 +372,10 @@ export class ScrollItem extends RenderObject {
       context.save()
       context.strokeStyle = '#f00'
       context.lineWidth = 2
-      context.strokeRect(this.x, this.y, w, h)
+      context.strokeRect(this.offsetX, this.y, w, h)
 
       context.strokeStyle = '#00f'
-      context.strokeRect(this.x - 2, this.y + this.translateY - 2, w + 4, h + 4)
+      context.strokeRect(x - 2, y - 2, w + 4, h + 4)
       context.strokeStyle = undefined
       context.restore()
     }
@@ -416,9 +444,10 @@ export class ScrollItem extends RenderObject {
    * @return {number[]} [x, y, w, h]
    */
   rect () {
+    // console.log(this.scrollX)
     return [
-      Math.round(this.#offsetX + this.translateX),
-      Math.round(this.#offsetY - this.#scrollY + this.translateY),
+      Math.round(this.offsetX - this.scrollX + this.translateX),
+      Math.round(this.offsetY - this.scrollY + this.translateY),
       this.currentStyle.width,
       this.currentStyle.height,
     ]

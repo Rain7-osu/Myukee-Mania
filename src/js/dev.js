@@ -5,7 +5,7 @@ const urlSearch = new URLSearchParams(location.search)
  * @param expect {string}
  */
 const initDebugParams = (key, expect) => {
-  return urlSearch.get(key) === expect && window.location.host === 'localhost'
+  return urlSearch.get(key) === expect && window.location.hostname === 'localhost'
 }
 
 window.__FORCE_FINISH__ = false

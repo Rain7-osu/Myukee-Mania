@@ -25,9 +25,19 @@ import { ActiveEffect } from './ActiveEffect'
  * @property {number} height
  */
 
-const DURATION = 600
-const SCROLL_TO_DURATION = 300
+const DURATION = 480
+const DISTANCE_FOR_DURATION = 200
+const SCROLL_TO_DURATION = 480
 const MAX_SPEED = 75
+
+/**
+ * @param left {number}
+ * @param offsetY {number}
+ * @param scrollY {number}
+ */
+const calcOffsetX = (left, offsetY, scrollY) => {
+  return left + Math.abs(offsetY - scrollY - CANVAS.HEIGHT / 2) / 6
+}
 
 /**
  * @template {ScrollItem} T
@@ -95,7 +105,14 @@ export class ScrollList extends RenderObject {
    * @param scrollY {number}
    */
   set scrollY (scrollY) {
-    this.#scrollY = scrollY
+    this.#scrollY = Math.round(scrollY)
+  }
+
+  /**
+   * @return {number}
+   */
+  get scrollY () {
+    return this.#scrollY
   }
 
   /**
@@ -436,7 +453,7 @@ export class ScrollList extends RenderObject {
     let lastItem = targetItem.last
     while (lastItem) {
       const currentItem = lastItem
-      const update = (value) => currentItem.translateY = value
+      const update = value => currentItem.translateY = value
       this.createTransitionSync(currentItem.translateY, prevDistance, DURATION, 'easeOut', update)
       transformers.push(update)
       lastItem = lastItem.last
@@ -445,13 +462,13 @@ export class ScrollList extends RenderObject {
     let nextItem = targetItem.next
     while (nextItem) {
       const currentItem = nextItem
-      const update = (value) => currentItem.translateY = value
+      const update = value => currentItem.translateY = value
       this.createTransitionSync(currentItem.translateY, nextDistance, DURATION, 'easeOut', update)
       transformers.push(update)
       nextItem = nextItem.next
     }
 
-    const update = (value) => targetItem.translateY = value
+    const update = value => targetItem.translateY = value
     this.createTransitionSync(targetItem.translateY, 0, DURATION, 'easeOut', update)
     transformers.push(update)
     return transformers
@@ -522,7 +539,7 @@ export class ScrollList extends RenderObject {
    * @private
    */
   async _scrollSetOffsetX (item) {
-    const targetX = item.style.left + Math.abs(item.y - CANVAS.HEIGHT / 2) / 6
+    const targetX = calcOffsetX(item.style.left, item.offsetY, item.scrollY)
     item.offsetX = Math.min(this.#listConfig.maxOffsetX, targetX)
   }
 
@@ -549,14 +566,24 @@ export class ScrollList extends RenderObject {
       offsetY += marginTop
       scrollItem.translateX = scrollItem.currentStyle.left - scrollItem.style.left
       scrollItem.offsetY = offsetY
-      scrollItem.scrollY = this.#scrollY
-      this._scrollSetOffsetX(scrollItem)
       offsetY += height + marginBottom
     }
 
     this.scrollY = centeredItem.offsetY - CANVAS.HEIGHT / 2
     const { maxScrollY, minScrollY } = this._calcScrollYConfig()
     this.scrollY = Math.max(Math.min(this.#scrollY, maxScrollY), minScrollY)
+
+    for (let i = 0; i < scrollItems.length; i++) {
+      const scrollItem = scrollItems[i]
+      scrollItem.scrollY = this.scrollY
+      this._scrollSetOffsetX(scrollItem)
+    }
+  }
+
+  _refreshHoverWhenScroll () {
+    if (this.#status.mouseEvent && this.#status.velocity < 10) {
+      this._refreshHoverStatus(this.#status.mouseEvent)
+    }
   }
 
   /**
@@ -572,34 +599,79 @@ export class ScrollList extends RenderObject {
       if (Math.abs(this.#status.velocity) < 0.1) {
         this.#status.velocity = 0
       }
-
-      this.#status.mouseEvent && this._refreshHoverStatus(this.#status.mouseEvent)
+      this._refreshHoverWhenScroll()
     }
   }
 
   _refreshItemsScrollY () {
     /** @type {ScrollItem[]} */
-    const scrollItems = this.scrollItems()
-    for (const scrollItem of scrollItems) {
-      scrollItem.scrollY = this.#scrollY
-      this._scrollSetOffsetX(scrollItem)
+    const items = this.scrollItems()
+    for (const item of items) {
+      item.scrollY = this.scrollY
+      this._scrollSetOffsetX(item)
     }
-    this.#status.mouseEvent && this._refreshHoverStatus(this.#status.mouseEvent)
+    this._refreshHoverWhenScroll()
+  }
+
+  /**
+   * @param item {ScrollItem}
+   * @private
+   */
+  _calcScrollX (item) {
+    if (Math.abs(this.#status.velocity) > 1) {
+      const direction = this.#status.velocity > 0 ? 1 : -1
+      const vx = Math.sqrt(Math.abs(this.#status.velocity * 16)) * 8
+      const delta = direction < 0 ? (CANVAS.HEIGHT - item.y) / 10 : item.y / 10
+
+      // 因为 y 坐标默认 offset 的量，要在这里抵消掉
+      // scroll 值会被 offset 值减去，因此如果向右位移，需要 scrollX 是负数
+      const offsetXExtra = Math.abs(item.y - CANVAS.HEIGHT / 2) / 6
+      const targetScrollX = offsetXExtra - vx - delta
+      const MAX_DELTA = 10
+      if (targetScrollX < 0) {
+        if (Math.abs(targetScrollX) - Math.abs(item.scrollX) > MAX_DELTA) {
+          if (item.scrollX > targetScrollX) {
+            item.scrollX -= MAX_DELTA
+          } else {
+            item.scrollX += MAX_DELTA
+          }
+        } else {
+          item.scrollX = targetScrollX
+        }
+      }
+    } else {
+      if (item.scrollX < 0) {
+        item.scrollX += 0.5
+        item.scrollX = Math.min(0, item.scrollX)
+      }
+    }
+  }
+
+  /**
+   * @private
+   */
+  _refreshItemsScrollX () {
+    const items = this.scrollItems()
+    items.forEach(item => this._calcScrollX(item))
   }
 
   /**
    * @param now {number}
    */
   updateTransition (now) {
-    if (this.#status.velocity) {
+    if (this.#status.velocity !== 0) {
       this._updateScroll()
     }
     super.updateTransition(now)
     this.#activeEffects.inertia.updateTransition(now)
-    if (this.#scrollY !== this.#lastScrollY) {
+    if (this.#scrollY !== this.#lastScrollY && !this.#autoScrolling) {
       this._refreshItemsScrollY()
       this.#lastScrollY = this.#scrollY
+    } else if (this.#autoScrolling) {
+      this._refreshItemsScrollY()
     }
+    // 不能调顺序
+    this._refreshItemsScrollX()
     const scrollItems = this.scrollItems()
     scrollItems.forEach(item => item.updateEffect(now))
   }
@@ -632,17 +704,21 @@ export class ScrollList extends RenderObject {
    * @param scrollY {number | ((prev: number) => number)}
    */
   scrollTo (scrollY) {
+    this.#status.velocity = 0
+    this.#status.isWheeling = false
+    this.#status.inertiaX = 0
+    this.#status.mouseMoving = false
     let targetScrollY = typeof scrollY === 'function' ? scrollY(this.#scrollY) : scrollY
     const { minScrollY, maxScrollY } = this._calcScrollYConfig()
     targetScrollY = Math.min(Math.max(minScrollY, targetScrollY), maxScrollY)
-    const currentScrollY = this.#scrollY
     this.#cancelTransitionManager.cancelScrollTo()
     this.#autoScrolling = true
-    this.#cancelTransitionManager.cancelScrollTo = this.createTransitionSync(currentScrollY, targetScrollY, SCROLL_TO_DURATION, 'easeOut',
+    this.#cancelTransitionManager.cancelScrollTo = this.createTransitionSync(this.scrollY, targetScrollY, SCROLL_TO_DURATION, 'linear',
       value => this.scrollY = value,
       () => {
-        this.#status.mouseEvent && this._onMouseMove(this.#status.mouseEvent)
+        this._refreshHoverWhenScroll()
         this.#autoScrolling = false
+        this.#lastScrollY = this.scrollY
       },
     )
   }

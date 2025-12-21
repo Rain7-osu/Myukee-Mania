@@ -1,5 +1,5 @@
 /**
- * @typedef {'easeOut' | 'linear' | 'easeOutBounce'} TransitionType
+ * @typedef {'easeOut' | 'linear'} TransitionType
  */
 
 /**
@@ -135,7 +135,7 @@ export class ActiveEffect {
       }
       return true
     })
-    this.#intervals.forEach((config) => {
+    this.#intervals.forEach(config => {
       if (now - config.lastTime >= config.interval) {
         config.callback()
         config.lastTime = now
@@ -227,8 +227,6 @@ export class ActiveEffect {
     const start = performance.now()
     const end = start + duration
 
-    console.log('update debug', update.__debug__)
-
     /** @type {(value: number) => void} */
     let updateFn = update
     /** @type {(value: number) => void} */
@@ -237,7 +235,7 @@ export class ActiveEffect {
       if (rgba.isRgba(startValue) && rgba.isRgba(endValue)) {
         const [rs, gs, bs, as] = rgba.toValues(startValue)
         const [re, ge, be, ae] = rgba.toValues(endValue)
-        updateFn = (value) => {
+        updateFn = value => {
           const progress = value / 100
           update(rgba.format([
             re !== rs ? rs + (re - rs) * progress : rs,
@@ -275,7 +273,7 @@ export class ActiveEffect {
     }
 
     return () => {
-      this.#updates = this.#updates.filter((u) => u[1] !== updateFn)
+      this.#updates = this.#updates.filter(u => u[1] !== updateFn)
     }
   }
 
@@ -317,7 +315,7 @@ export class ActiveEffect {
       return
     }
 
-    this.#updates.forEach((update) => {
+    this.#updates.forEach(update => {
       const [{ start, end, startValue, endValue, type }, updateFn] = update
       /** @type {TransitionFunc} */
       let transformer
@@ -360,7 +358,7 @@ export class ActiveEffect {
     ])
 
     return () => {
-      this.#stepTos = this.#stepTos.filter((stepTo) => stepTo[1] !== updateFn)
+      this.#stepTos = this.#stepTos.filter(stepTo => stepTo[1] !== updateFn)
     }
   }
 
@@ -458,7 +456,7 @@ export class ActiveEffect {
     if (!transformers) {
       this.#updates = []
     }
-    this.#updates = this.#updates.filter((update) => !transformers.includes(update[1]))
+    this.#updates = this.#updates.filter(update => !transformers.includes(update[1]))
   }
 
   updateEffect (now) {
@@ -495,7 +493,7 @@ export class ActiveEffect {
     const easedProgress = 1 - Math.pow(1 - progress, 2)
 
     // 计算并返回当前值
-    return +(startValue + easedProgress * (endValue - startValue)).toFixed(2)
+    return startValue + easedProgress * (endValue - startValue)
   }
 
   /**
@@ -513,7 +511,7 @@ export class ActiveEffect {
 
     // 斜率
     const k = (endValue - startValue) / (end - start)
-    return +(k * (current - start) + startValue).toFixed(2)
+    return k * (current - start) + startValue
   }
 
   /**

@@ -67,11 +67,7 @@ export class BeatmapItem extends ScrollItem {
   }
 
   rect () {
-    const {
-      base: {
-        gap: BASE_GAP,
-      },
-    } = Skin.config.main.beatmap.item
+    const { base: { gap: BASE_GAP } } = Skin.config.main.beatmap.item
     const [x, y, w, h] = super.rect()
     return [x, y + BASE_GAP / 2, w, h - BASE_GAP]
   }
