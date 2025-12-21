@@ -180,7 +180,7 @@ export class StageController extends ActiveEffect {
   /**
    * @return {boolean}
    */
-  get realStarted () { return this.realStarted }
+  get realStarted () { return this.#realStarted }
 
   /**
    * @type {HTMLCanvasElement}
