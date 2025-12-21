@@ -27,7 +27,7 @@ import { ActiveEffect } from './ActiveEffect'
 
 const DURATION = 480
 const DISTANCE_FOR_DURATION = 200
-const SCROLL_TO_DURATION = 480
+const SCROLL_TO_DURATION = 240
 const MAX_SPEED = 75
 
 /**
@@ -713,7 +713,7 @@ export class ScrollList extends RenderObject {
     targetScrollY = Math.min(Math.max(minScrollY, targetScrollY), maxScrollY)
     this.#cancelTransitionManager.cancelScrollTo()
     this.#autoScrolling = true
-    this.#cancelTransitionManager.cancelScrollTo = this.createTransitionSync(this.scrollY, targetScrollY, SCROLL_TO_DURATION, 'linear',
+    this.#cancelTransitionManager.cancelScrollTo = this.createTransitionSync(this.scrollY, targetScrollY, SCROLL_TO_DURATION, 'easeOut',
       value => this.scrollY = value,
       () => {
         this._refreshHoverWhenScroll()

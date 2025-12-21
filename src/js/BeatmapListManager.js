@@ -107,7 +107,7 @@ export class BeatmapListManager {
     this.#selectedBeatmapItem = beatmapItem
     this.#beatmapList.scrollTo(prev => {
       const [_, top, __, height] = beatmapItem.rect()
-      return prev + top + height - CANVAS.HEIGHT / 2
+      return prev + top + height / 2 - CANVAS.HEIGHT / 2
     })
   }
 
