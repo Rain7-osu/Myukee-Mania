@@ -581,7 +581,7 @@ export class ScrollList extends RenderObject {
   }
 
   _refreshHoverWhenScroll () {
-    if (this.#status.mouseEvent && this.#status.velocity < 10) {
+    if (this.#status.mouseEvent && this.#status.velocity < 3) {
       this._refreshHoverStatus(this.#status.mouseEvent)
     }
   }
