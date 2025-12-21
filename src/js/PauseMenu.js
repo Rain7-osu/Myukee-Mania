@@ -26,8 +26,7 @@ export class PauseMenu extends RenderObject {
 
   #showRetry = true
 
-  /**
-   * @type {MainController}
+  /**   * @type {MainController}
    */
   #mainController
 
@@ -221,7 +220,7 @@ export class PauseMenu extends RenderObject {
     this.#failed = false
     this.#currentSelect = null
     this.#currentSelectIndex = null
-    await this.createTransition(100, 0, 600, 'easeOut', (value) => {
+    await this.createTransition(100, 0, 600, 'easeOut', value => {
       this.#alpha = value / 100
     })
   }
@@ -265,6 +264,7 @@ export class PauseMenu extends RenderObject {
    * @param context {CanvasRenderingContext2D}
    */
   renderFailed (context) {
+    context.save()
     this.drawText({
       context,
       x: 0,
@@ -278,6 +278,7 @@ export class PauseMenu extends RenderObject {
       stroke: false,
       textBaseline: 'middle',
     })
+    context.restore()
   }
 
   /**

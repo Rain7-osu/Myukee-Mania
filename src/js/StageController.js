@@ -293,7 +293,7 @@ export class StageController extends ActiveEffect {
     this.#pf = mods.includes(Mod.PF)
     this.#auto = mods.includes(Mod.AT)
     this.initSectionLines()
-    this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect, () => this.fail())
+    this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect, this.#auto, () => this.fail())
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
     this.#mouseEventHandler.registerEvents({})
@@ -396,15 +396,15 @@ export class StageController extends ActiveEffect {
     }, {})
 
     const optionKeyEvents = {
-      [KeyCode.F4]: (e) => {
+      [KeyCode.F4]: e => {
         e.preventDefault()
         this.#mainController.increaseSpeed()
       },
-      [KeyCode.F3]: (e) => {
+      [KeyCode.F3]: e => {
         e.preventDefault()
         this.#mainController.decreaseSpeed()
       },
-      [KeyCode.TILED]: (e) => {
+      [KeyCode.TILED]: e => {
         e.preventDefault()
         this.retry()
       },
@@ -649,7 +649,7 @@ export class StageController extends ActiveEffect {
   renderProgressEffect () {
     const timing = this.getGameTiming()
     const duration = this.#duration
-    const percent = timing > duration ? 1.0 : (timing / duration)
+    const percent = timing > duration ? 1.0 : timing / duration
     this.#renderEngine.renderShape(new ProgressPercentEffect(percent))
   }
 
@@ -662,7 +662,7 @@ export class StageController extends ActiveEffect {
   }
 
   renderJudgementEffects () {
-    this.#judgementManager.activeEffects.forEach((e) => {
+    this.#judgementManager.activeEffects.forEach(e => {
       this.#renderEngine.renderShape(e)
     })
   }
@@ -677,13 +677,13 @@ export class StageController extends ActiveEffect {
   }
 
   renderNotes () {
-    this.#playingMap?.notes.forEach((note) => {
+    this.#playingMap?.notes.forEach(note => {
       this.#renderEngine.renderOffsetShape(note)
     })
   }
 
   renderSectionLine () {
-    this.#sectionLines.forEach((offset) => {
+    this.#sectionLines.forEach(offset => {
       this.#renderEngine.renderOffsetShape(new SectionLine(offset, this.#stageWidth))
     })
   }

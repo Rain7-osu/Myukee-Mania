@@ -56,6 +56,8 @@ export class JudgementManager {
    */
   get fullCombo () {return this.#fullCombo}
 
+  #auto = false
+
   /** @type {JudgementRecord} */
   #judgementRecord = {
     [JudgementType.PERFECT]: 0,
@@ -71,18 +73,15 @@ export class JudgementManager {
   get judgementRecord () { return this.#judgementRecord }
 
   /**
-   * @return {number}
-   */
-  get hp() { return this.#hpManager.value }
-
-  /**
    * @param notes {Note[]}
    * @param od {number}
    * @param hp {number}
    * @param hpEffect {HpEffect}
+   * @param auto {boolean}
    * @param onFail {() => void}
    */
-  init (notes, od, hp, hpEffect, onFail) {
+  init (notes, od, hp, hpEffect, auto, onFail) {
+    this.#auto = auto
     this.#notes = notes
     this.#od = od || 8
     this.#combo = 0
@@ -107,6 +106,7 @@ export class JudgementManager {
     this.#combo = 0
     this.#maxCombo = 0
     this.#fullCombo = true
+    this.#auto = false
     this.#judgementRecord = {
       [JudgementType.PERFECT]: 0,
       [JudgementType.GREAT]: 0,
@@ -221,12 +221,76 @@ export class JudgementManager {
   /**
    * @param {number} currentTiming
    */
+  autoPlay (currentTiming) {
+    const notes = this.#notes
+    this.activeDeviations.update(currentTiming)
+    for (let i = 0; i < this.#activeEffects.length; i++) {
+      const effect = this.#activeEffects[i]
+      const nextEffect = i < this.activeEffects.length - 1 ? this.activeEffects[i + 1] : null
+      effect.update(currentTiming, nextEffect)
+    }
+
+    this.#activeEffects = this.#activeEffects.filter((e) => e.active)
+
+
+    for (let i = 0; i < notes.length; i++) {
+      const note = notes[i]
+
+      if (note.isHit) {
+        continue
+      }
+
+      if (note.type === NoteType.TAP) {
+        if (currentTiming >= note.offset) {
+          note.hit()
+          note.hitTiming = note.offset
+          note.judgement = new Judgement(JudgementType.PERFECT, note.offset, note.offset)
+
+          const type = note.judgement.type
+          this.#judgementRecord[type]++
+          const effect = new JudgementEffect(note.judgement)
+          this.activeEffects.push(effect)
+          this.activeDeviations.push(new JudgementDeviation(note.offset, 0, type))
+          this.#combo++
+        }
+      } else if (note.type === NoteType.HOLD) {
+        if (!note.isHeld) {
+          if (currentTiming >= note.offset) {
+            note.hitTiming = note.offset
+            note.isHeld = true
+            const type = JudgementType.PERFECT
+            this.activeDeviations.push(new JudgementDeviation(note.offset, 0, type))
+            this.#combo++
+          }
+        } else {
+          if (currentTiming >= note.end) {
+            note.releaseTiming = note.end
+            note.isHeld = false
+            note.hit()
+            note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, note.releaseTiming)
+            this.activeEffects.push(new JudgementEffect(note.judgement))
+            this.judgementRecord[note.judgement.type]++
+            this.#combo++
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * @param {number} currentTiming
+   */
   update (currentTiming) {
+    if (this.#auto) {
+      this.autoPlay(currentTiming)
+      return
+    }
+
     const maxMehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
     const maxOkTime = JudgementAreaCalculators[JudgementType.OK](this.#od)
     const notes = this.#notes
 
-    this.#activeDeviations.update(currentTiming)
+    this.activeDeviations.update(currentTiming)
 
     for (let i = 0; i < this.#activeEffects.length; i++) {
       const effect = this.#activeEffects[i]
@@ -335,10 +399,10 @@ export class JudgementManager {
         note.hit()
         note.hitTiming = hitTiming
         const type = note.judgement.type
-        this.#judgementRecord[type]++
+        this.judgementRecord[type]++
         const effect = new JudgementEffect(note.judgement)
-        this.#activeEffects.push(effect)
-        this.#activeDeviations.push(new JudgementDeviation(hitTiming, hitTiming - note.offset, type))
+        this.activeEffects.push(effect)
+        this.activeDeviations.push(new JudgementDeviation(hitTiming, hitTiming - note.offset, type))
 
         if (type !== JudgementType.MISS && type !== JudgementType.MEH) {
           this.#combo++
@@ -393,7 +457,7 @@ export class JudgementManager {
         // 通过 end 创建一个判定
         const judgement = this.createJudgementByHit(note.end, releaseTiming)
         const deviation = new JudgementDeviation(releaseTiming, releaseTiming - note.end, judgement?.type || JudgementType.MISS)
-        this.#activeDeviations.push(deviation)
+        this.activeDeviations.push(deviation)
       }
 
       // 如果松手时间早于尾判最早的 meh 区间，则不判定，但是要灰条加断连
@@ -412,8 +476,9 @@ export class JudgementManager {
             note, releaseTiming,
           })
           note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
-          this.#activeEffects.push(new JudgementEffect(note.judgement))
-          this.#judgementRecord[JudgementType.MEH]++
+          this.activeEffects.push(new JudgementEffect(note.judgement))
+          this.activeDeviations.push(new JudgementDeviation(note.releaseTiming, note.releaseTiming - note.end, note.judgement.type))
+          this.judgementRecord[JudgementType.MEH]++
           note.hit()
         } else {
           note.hit()
@@ -425,8 +490,9 @@ export class JudgementManager {
             })
             note.judgement = new Judgement(JudgementType.MEH, releaseTiming, note.hitTiming, releaseTiming)
           }
-          this.#activeEffects.push(new JudgementEffect(note.judgement))
-          this.#judgementRecord[note.judgement.type]++
+          this.activeEffects.push(new JudgementEffect(note.judgement))
+          this.activeDeviations.push(new JudgementDeviation(note.releaseTiming, note.releaseTiming - note.end, note.judgement.type))
+          this.judgementRecord[note.judgement.type]++
           if (note.judgement.type <= JudgementType.MEH) {
             // 直接灰条 + 断连
             note.grayed = true
