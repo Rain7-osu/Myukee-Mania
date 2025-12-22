@@ -2,7 +2,7 @@ import { Beatmap } from './Beatmap'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 import { ScrollItem } from './ScrollItem'
-import { vh, vw } from './utils'
+import { toVh, toVw, vh, vw } from './utils'
 
 /**
  * @extends ScrollItem
@@ -99,28 +99,28 @@ export class BeatmapItem extends ScrollItem {
     context.fillStyle = bg
     context.fillRect(x, y, width, height)
 
-    const paddingLeft = x + 25
+    const paddingLeft = x + toVw(25)
     let offsetY = y
 
     context.fillStyle = TITLE_COLOR
     context.font = TITLE_FONT
     context.textAlign = 'left'
-    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += 36)
+    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += toVh(40))
 
     context.font = DESC_FONT
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.description, paddingLeft, offsetY += 24)
+    context.fillText(this.#beatmap.description, paddingLeft, offsetY += toVh(24))
 
     context.font = SUBTITLE_FONT
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += 28)
+    context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += toVh(28))
 
     const star = Math.min(10, this.#beatmap.star)
 
     let i = 0
-    let size = 24
-    let left = paddingLeft + 10
-    const top = offsetY + 26
+    let size = toVh(24)
+    let left = paddingLeft + toVh(10)
+    const top = offsetY + toVh(26)
     while (i < star - 1) {
       context.fillStyle = TITLE_COLOR
 
@@ -136,14 +136,14 @@ export class BeatmapItem extends ScrollItem {
         rotation: 54,
       })
 
-      left += size + 5
+      left += size + toVh(5)
       size++
       i++
     }
 
     // 小于 1.1 的，直接画到前面的星星上，更大一点
     const lastStar = star - i
-    const lastStarSize = lastStar * 15.0 + 5.0
+    const lastStarSize = lastStar * toVh(15) + toVh(5)
     super.drawStar({
       context,
       cx: left,

@@ -49,16 +49,16 @@ export function formatTime (time = new Date().getMilliseconds()) {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
 }
 
-export function formatMapTime(milliseconds) {
+export function formatMapTime (milliseconds) {
   // 确保是正数
-  const ms = Math.abs(milliseconds);
+  const ms = Math.abs(milliseconds)
 
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000)
 
   // 格式化为两位数
-  const format = (num) => num.toString().padStart(2, '0');
+  const format = (num) => num.toString().padStart(2, '0')
 
   if (hours <= 0) {
     if (minutes <= 0) {
@@ -67,8 +67,9 @@ export function formatMapTime(milliseconds) {
     return `${format(minutes)}:${format(seconds)}`
   }
 
-  return `${format(hours)}:${format(minutes)}:${format(seconds)}`;
+  return `${format(hours)}:${format(minutes)}:${format(seconds)}`
 }
+
 export const rgba = {
   regexp: /rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*(?:,\s*([\d.]+)\s*)?\)/,
   /**
@@ -100,9 +101,9 @@ export const rgba = {
     }
     return [0, 0, 0, 0]
   },
-  isRgba(color) {
+  isRgba (color) {
     return color.match(rgba.regexp)
-  }
+  },
 }
 
 /**
@@ -129,17 +130,28 @@ export const vw = v => Math.round(v * CANVAS.WIDTH)
  * @return {number}
  */
 export const vh = v => Math.round(v * CANVAS.HEIGHT)
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const toVh = v => vh(v / 1440)
+
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const toVw = v => vw(v / 2560)
 
 /**
  * @template T
  * @param arr {T[]}
  * @return {T[]}
  */
-export function shuffleArray(arr) {
-  const shuffled = [...arr];
+export function shuffleArray (arr) {
+  const shuffled = [...arr]
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
-  return shuffled;
+  return shuffled
 }

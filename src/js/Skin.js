@@ -1,12 +1,11 @@
 import { CANVAS } from './Config'
 import { FileManager } from './FileManager'
-import { vh, vw } from './utils'
+import { toVh, vh, vw } from './utils'
 
 const YELLOW_NOTE = '#fed336'
 const BLUE_NOTE = '#00dbff'
 const WHITE_NOTE = '#ffffff'
 const RED_NOTE = '#ff0000'
-
 
 export class Skin {
   static config = {}
@@ -152,8 +151,8 @@ export class Skin {
         keys: {
           keys4: {
             note: {
-              width: 148,
-              height: 64,
+              width: vw(148 / 2560),
+              height: vh(64 / 1440),
               gap: 0,
               color: {
                 0: WHITE_NOTE,
@@ -171,8 +170,8 @@ export class Skin {
           },
           keys5: {
             note: {
-              width: 128,
-              height: 60,
+              width: vw(128 / 2560),
+              height: vh(60 / 1440),
               gap: 0,
               color: {
                 0: WHITE_NOTE,
@@ -192,8 +191,8 @@ export class Skin {
           },
           keys6: {
             note: {
-              width: 118,
-              height: 54,
+              width: vw(118 / 2560),
+              height: vh(54 / 1440),
               gap: 0,
               color: {
                 0: WHITE_NOTE,
@@ -215,8 +214,8 @@ export class Skin {
           },
           keys7: {
             note: {
-              width: 108,
-              height: 48,
+              width: vw(108 / 2560),
+              height: vh(48 / 1440),
               gap: 0,
               color: {
                 0: WHITE_NOTE,
@@ -240,8 +239,8 @@ export class Skin {
           },
           keys8: {
             note: {
-              width: 150,
-              height: 50,
+              width: vw(108 / 2560),
+              height: vh(48 / 1440),
               gap: 0,
               color: {
                 0: WHITE_NOTE,
@@ -271,8 +270,8 @@ export class Skin {
         beatmap: {
           item: {
             select: {
-              gap: 20,
-              extra: 200,
+              gap: vh(20 / 1440),
+              extra: vw(200 / 1440),
               bgColor: 'rgba(255,249,235,0.5)',
               title: {
                 color: '#212529',
@@ -280,8 +279,8 @@ export class Skin {
               left: 1460 / 2560,
             },
             hover: {
-              gap: 30,
-              extra: 80,
+              gap: vh(30 / 1440),
+              extra: vw(80 / 1440),
               bgColor: 'rgba(255,191,128,0.5)',
               title: {
                 color: '#212529',
@@ -289,17 +288,17 @@ export class Skin {
               left: 1480 / 2560,
             },
             base: {
-              gap: -12,
+              gap: vh(-12 / 1440),
               bgColor: 'rgba(255,191,128,0.5)',
               title: {
-                color: '#212529',
-                font: '32px 微软雅黑',
+                color: 'rgb(33,37,41)',
+                font: `${toVh(32)}px 微软雅黑`,
               },
               description: {
-                font: '20px 微软雅黑',
+                font: `${toVh(20)}px 微软雅黑`,
               },
               subtitle: {
-                font: 'bold 24px 微软雅黑',
+                font: `bold ${toVh(24)}px 微软雅黑`,
               },
               width: 1280 / 2560,
               height: 140 / 1440,
@@ -314,6 +313,43 @@ export class Skin {
             neverPlayed: {
               bgColor: 'rgba(140, 217, 242, 0.5)',
             },
+          },
+        },
+        header: {
+          rightHeight: vh(160 / 1440),
+          leftHeight: vh(260 / 1440),
+          color: 'rgba(255, 255, 255, 1)',
+          top: vh(20 / 1440),
+          left: vh(20 / 1440),
+          title: {
+            font: '微软雅黑',
+            fontSize: toVh(40),
+            lineHeight: toVh(48),
+            fontWeight: 'normal',
+          },
+          subtitle: {
+            font: '微软雅黑',
+            fontSize: toVh(28),
+            lineHeight: toVh(36),
+            fontWeight: 'lighter',
+          },
+          info1: {
+            font: '微软雅黑',
+            fontWeight: 'bold',
+            fontSize: toVh(28),
+            lineHeight: toVh(36),
+          },
+          info2: {
+            font: '微软雅黑',
+            fontSize: toVh(28),
+            lineHeight: toVh(36),
+            fontWeight: 'lighter',
+          },
+          difficulty: {
+            font: '微软雅黑',
+            fontSize: toVh(16),
+            lineHeight: toVh(24),
+            fontWeight: 'normal',
           },
         },
         footer: {
@@ -331,9 +367,9 @@ export class Skin {
               color: 'rgb(255, 255, 255)',
               defaultBgStartColor: 'rgb(57, 57, 57)',
               defaultBgEndColor: 'rgb(31, 31, 31)',
-              hoverBorderColor: 'rgb(255, 255, 255)'
-            }
-          }
+              hoverBorderColor: 'rgb(255, 255, 255)',
+            },
+          },
         },
       },
       pauseMenu: {
