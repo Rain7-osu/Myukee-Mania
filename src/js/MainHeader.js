@@ -1,7 +1,7 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
-import { formatMapTime, rgba, toVh, toVw, vw } from './utils'
+import { formatMapTime, rgba, py, px, vw } from './utils'
 import { Skin } from './Skin'
 
 const TRANSITION_DURATION = 200
@@ -97,9 +97,9 @@ export class MainHeader extends RenderObject {
    * @param context {CanvasRenderingContext2D}
    */
   renderSpeed (context) {
-    const TOP = toVh(12)
-    const RIGHT = CANVAS.WIDTH - toVh(12)
-    const FONT_SIZE = toVh(48)
+    const TOP = py(12)
+    const RIGHT = CANVAS.WIDTH - py(12)
+    const FONT_SIZE = py(48)
     context.save()
     context.font = `${FONT_SIZE}px 微软雅黑`
     context.fillStyle = 'rgba(255, 255, 255, 0.4)'
@@ -217,10 +217,10 @@ export class MainHeader extends RenderObject {
 
       this.#backgroundSnapshot = FrameSnapshot.createSnapshot(ctx => {
         ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
-        const RIGHT_LEFT = CANVAS.WIDTH / 3 + toVw(120)
-        const LEFT_RIGHT = CANVAS.WIDTH / 3 - toVw(120)
-        const BEZIER_POINT1 = [RIGHT_LEFT - toVw(40), RIGHT_HEIGHT]
-        const BEZIER_POINT2 = [LEFT_RIGHT + toVw(40), RIGHT_HEIGHT]
+        const RIGHT_LEFT = CANVAS.WIDTH / 3 + px(120)
+        const LEFT_RIGHT = CANVAS.WIDTH / 3 - px(120)
+        const BEZIER_POINT1 = [RIGHT_LEFT - px(40), RIGHT_HEIGHT]
+        const BEZIER_POINT2 = [LEFT_RIGHT + px(40), RIGHT_HEIGHT]
 
         ctx.beginPath()
         ctx.moveTo(0, 0)
@@ -250,7 +250,7 @@ export class MainHeader extends RenderObject {
         )
         ctx.lineTo(0, LEFT_HEIGHT)
 
-        ctx.lineWidth = toVh(8)
+        ctx.lineWidth = py(8)
         ctx.lineJoin = 'round'
         ctx.strokeStyle = BORDER_COLOR
         ctx.stroke()

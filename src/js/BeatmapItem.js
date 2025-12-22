@@ -2,7 +2,7 @@ import { Beatmap } from './Beatmap'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 import { ScrollItem } from './ScrollItem'
-import { toVh, toVw, vh, vw } from './utils'
+import { py, px, vh, vw } from './utils'
 
 /**
  * @extends ScrollItem
@@ -20,18 +20,11 @@ export class BeatmapItem extends ScrollItem {
     super()
     this.#beatmap = beatmap
     const {
-      select: { gap: SELECT_GAP, left: SELECT_LEFT },
-      hover: { gap: HOVER_GAP, left: HOVER_LEFT },
-      base: { width: WIDTH, left: LEFT, height: HEIGHT },
-      selectHover: { left: SELECT_HOVER_LEFT },
+      select: { gap: SELECT_GAP, left: activeLeft },
+      hover: { gap: HOVER_GAP, left: hoverLeft },
+      base: { width, left, height },
+      selectHover: { left: activeHoverLeft },
     } = Skin.config.main.beatmap.item
-
-    const width = vw(WIDTH)
-    const height = vh(HEIGHT)
-    const left = vw(LEFT)
-    const hoverLeft = vw(HOVER_LEFT)
-    const activeLeft = vw(SELECT_LEFT)
-    const activeHoverLeft = vw(SELECT_HOVER_LEFT)
 
     this.style = {
       marginTop: 0,
@@ -99,28 +92,28 @@ export class BeatmapItem extends ScrollItem {
     context.fillStyle = bg
     context.fillRect(x, y, width, height)
 
-    const paddingLeft = x + toVw(25)
+    const paddingLeft = x + px(25)
     let offsetY = y
 
     context.fillStyle = TITLE_COLOR
     context.font = TITLE_FONT
     context.textAlign = 'left'
-    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += toVh(40))
+    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += py(40))
 
     context.font = DESC_FONT
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.description, paddingLeft, offsetY += toVh(24))
+    context.fillText(this.#beatmap.description, paddingLeft, offsetY += py(24))
 
     context.font = SUBTITLE_FONT
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += toVh(28))
+    context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += py(28))
 
     const star = Math.min(10, this.#beatmap.star)
 
     let i = 0
-    let size = toVh(24)
-    let left = paddingLeft + toVh(10)
-    const top = offsetY + toVh(26)
+    let size = py(24)
+    let left = paddingLeft + py(10)
+    const top = offsetY + py(26)
     while (i < star - 1) {
       context.fillStyle = TITLE_COLOR
 
@@ -136,14 +129,14 @@ export class BeatmapItem extends ScrollItem {
         rotation: 54,
       })
 
-      left += size + toVh(5)
+      left += size + py(5)
       size++
       i++
     }
 
     // 小于 1.1 的，直接画到前面的星星上，更大一点
     const lastStar = star - i
-    const lastStarSize = lastStar * toVh(15) + toVh(5)
+    const lastStarSize = lastStar * py(15) + py(5)
     super.drawStar({
       context,
       cx: left,

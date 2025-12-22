@@ -1,5 +1,5 @@
 import { CANVAS, DEFAULT_SPEED } from './Config'
-import { toVh } from './utils'
+import { py } from './utils'
 
 // TODO Move stage render method out
 export class RenderEngine {
@@ -16,7 +16,7 @@ export class RenderEngine {
   timing
 
   /** @type {number} */
-  #speed = toVh(DEFAULT_SPEED)
+  #speed = py(DEFAULT_SPEED)
 
   /**
    * @public

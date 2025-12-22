@@ -26,8 +26,8 @@ function initCanvasSize () {
     height = clientWidth / 16 * 9
   }
   setCanvasSize({
-    WIDTH: width,
-    HEIGHT: height,
+    WIDTH: Math.max(1280, width),
+    HEIGHT: Math.max(720, height),
     CLIENT_X: (clientWidth - width) / 2,
     CLIENT_Y: (clientHeight - height) / 2,
   })
@@ -48,8 +48,17 @@ async function run () {
 bindClick('enter', run)
 
 // 跟踪鼠标移动
-document.addEventListener('mousemove', (e) => {
+document.addEventListener('mousemove', e => {
   const cursor = $('custom-cursor')
   cursor.style.left = e.clientX + 'px'
   cursor.style.top = e.clientY + 'px'
+})
+
+document.addEventListener('resize', e => {
+  const clientWidth = document.documentElement.clientWidth
+  const clientHeight = document.documentElement.clientHeight
+  setCanvasSize({
+    CLIENT_X: (clientWidth - CANVAS.WIDTH) / 2,
+    CLIENT_Y: (clientHeight - CANVAS.HEIGHT) / 2,
+  })
 })

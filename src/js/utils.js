@@ -134,13 +134,13 @@ export const vh = v => Math.round(v * CANVAS.HEIGHT)
  * @param v {number}
  * @return {number}
  */
-export const toVh = v => vh(v / 1440)
+export const py = v => vh(v / 1440)
 
 /**
  * @param v {number}
  * @return {number}
  */
-export const toVw = v => vw(v / 2560)
+export const px = v => vw(v / 2560)
 
 /**
  * @template T

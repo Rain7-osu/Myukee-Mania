@@ -25,10 +25,10 @@ export const CANVAS = {
 }
 
 /**
- * @param WIDTH {number}
- * @param HEIGHT {number}
- * @param CLIENT_X {number}
- * @param CLIENT_Y {number}
+ * @param WIDTH {number?}
+ * @param HEIGHT {number?}
+ * @param CLIENT_X {number?}
+ * @param CLIENT_Y {number?}
  */
 export const setCanvasSize = ({
   WIDTH,
@@ -37,6 +37,7 @@ export const setCanvasSize = ({
   CLIENT_Y,
 }) => {
   window.__canvas_config = {
+    ...window.__canvas_config,
     WIDTH,
     HEIGHT,
     CLIENT_X,

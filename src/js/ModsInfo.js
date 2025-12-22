@@ -1,6 +1,7 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { Mod } from './ModsPanel'
+import { px, py } from './utils'
 
 /**
  * @type {Record<Mod, string>}
@@ -37,11 +38,11 @@ export class ModsInfoEffect extends RenderObject {
   }
 
   render (context) {
-    const TOP = CANVAS.HEIGHT - 162 - 16
-    const LEFT = 160
+    const TOP = CANVAS.HEIGHT - py(162)
+    const LEFT = px(160)
     const text = this.#mods.map(mod => ModNameMap[mod]).join(',')
     context.save()
-    context.font = '64px 微软雅黑'
+    context.font = `${py(64)}px 微软雅黑`
     context.fillStyle = 'rgba(255, 255, 255, 0.4)'
     context.textBaseline = 'bottom'
     context.fillText(text, LEFT, TOP)

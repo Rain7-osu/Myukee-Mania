@@ -97,6 +97,7 @@ export class RankingEffect extends RenderObject {
     this.#size = size
     this.#style = style || Skin.config.stage.ranking
     this.#type = RankingEffect.calcRankingType(acc)
+    this.#renderScale = this.#style.scale
   }
 
   /**
@@ -114,7 +115,7 @@ export class RankingEffect extends RenderObject {
     const targetScale = this.#size === 'large' ? Skin.config.rankingBoard.ranking.scale : Skin.config.stage.ranking.scale
     const startScale = Skin.config.rankingBoard.ranking.startScale
     this.cancelTransitions()
-    await this.createTransition(startScale, targetScale, 2000, 'easeOut', (value) => {
+    await this.createTransition(startScale, targetScale, 2000, 'easeOut', value => {
       this.#renderScale = value
     })
   }

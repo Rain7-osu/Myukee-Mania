@@ -17,7 +17,7 @@ export class AccuracyEffect extends RenderObject {
   /**
    * @param acc {number}
    */
-  static format(acc) {
+  static format (acc) {
     return formatPercentage(acc)
   }
 
@@ -35,11 +35,22 @@ export class AccuracyEffect extends RenderObject {
 
   render (context) {
     const acc = formatPercentage(this.#acc)
-    const { x, y, font: FONT, textAlign: TEXT_ALIGN, color: COLOR } = Skin.config.stage.accuracy
+    const { x, y, font, textAlign, color } = Skin.config.stage.accuracy
 
-    context.font = FONT
-    context.fillStyle = COLOR
-    context.textAlign = TEXT_ALIGN
-    context.fillText(acc, x, y)
+    context.save()
+    this.drawText({
+      context,
+      font,
+      color,
+      textAlign: 'right',
+      textBaseline: 'top',
+      text: acc,
+      x, y,
+      stroke: false,
+      width: 0,
+      height: 0,
+    })
+
+    context.restore()
   }
 }

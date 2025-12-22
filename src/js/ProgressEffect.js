@@ -1,8 +1,5 @@
 import { RenderObject } from './RenderObject'
-import { CANVAS } from './Config'
-
-const RADIUS = 25
-const LINE_WIDTH = 3
+import { Skin } from './Skin'
 
 export class ProgressPercentEffect extends RenderObject {
   /** @type {number} */
@@ -17,31 +14,29 @@ export class ProgressPercentEffect extends RenderObject {
   }
 
   render (context) {
+    const { centerX, centerY, radius, lineWidth } = Skin.config.stage.progress
     const percent = this.#percent > 0 ? this.#percent : 0
-    const centerX = CANVAS.WIDTH - 300
-    const centerY = 120
-
     // 绘制进度弧
     const startAngle = -Math.PI / 2; // 从垂直上方开始
-    const endAngle = startAngle + (Math.PI * 2 * percent);
+    const endAngle = startAngle + Math.PI * 2 * percent;
 
     context.beginPath();
-    context.arc(centerX, centerY, RADIUS / 2.0, startAngle, endAngle, false);
-    context.strokeStyle = '#ffffff75';
-    context.lineWidth = RADIUS;
+    context.arc(centerX, centerY, radius / 2.0, startAngle, endAngle, false);
+    context.strokeStyle = 'rgba(255,255,255,0.46)';
+    context.lineWidth = radius;
     context.stroke();
 
     // 绘制背景圆
     context.beginPath();
-    context.arc(centerX, centerY, RADIUS, 0, Math.PI * 2);
-    context.strokeStyle = '#fff';
-    context.lineWidth = LINE_WIDTH;
+    context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+    context.strokeStyle = 'rgb(255,255,255)';
+    context.lineWidth = lineWidth;
     context.stroke();
 
     // 绘制中心圆
     context.beginPath();
-    context.arc(centerX, centerY, LINE_WIDTH, 0, Math.PI * 2);
-    context.fillStyle = '#fff';
+    context.arc(centerX, centerY, lineWidth, 0, Math.PI * 2);
+    context.fillStyle = 'rgb(255,255,255)';
     context.fill();
   }
 }
