@@ -1,11 +1,7 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FooterMenuButton } from './FooterMenuButton'
-
-const HEIGHT = 162
-const BORDER_WIDTH = 6
-const BORDER_COLOR = 'rgb(0, 102, 255)'
-const BG_COLOR = 'rgb(0, 0, 0)'
+import { Skin } from './Skin'
 
 export class MainFooter extends RenderObject {
   /**
@@ -150,15 +146,23 @@ export class MainFooter extends RenderObject {
 
   async show () {
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, 0, 100, 'easeOut', (value) => this._setTranslateY(value))
+    await this.createTransition(this.#translateY, 0, 100, 'easeOut', value => this._setTranslateY(value))
   }
 
   async hide () {
+    const { height: HEIGHT, borderWidth: BORDER_WIDTH } = Skin.config.main.footer
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, HEIGHT + BORDER_WIDTH, 100, 'easeOut', (value) => this._setTranslateY(value))
+    await this.createTransition(this.#translateY, HEIGHT + BORDER_WIDTH, 100, 'easeOut', value => this._setTranslateY(value))
   }
 
   render (context) {
+    const {
+      height: HEIGHT,
+      borderWidth: BORDER_WIDTH,
+      borderColor: BORDER_COLOR,
+      bgColor: BG_COLOR,
+    } = Skin.config.main.footer
+
     context.save()
     const y = CANVAS.HEIGHT - HEIGHT + this.#translateY
     context.fillStyle = BG_COLOR

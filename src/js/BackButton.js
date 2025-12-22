@@ -1,6 +1,7 @@
 import { BaseButton } from './BaseButton'
 import { Skin } from './Skin'
 import { CANVAS } from './Config'
+import { vh } from './utils'
 
 export class BackButton extends BaseButton {
   #defaultWidth = 200
@@ -41,8 +42,8 @@ export class BackButton extends BaseButton {
     this.hovered = true
     this.cancelAnimations()
     const { hoverWidth, width, hoverBackground, background } = this.style
-    this.createAnimation(width, hoverWidth, 'spring', (value) => this.style.width = value)
-    await this.processColorTransition(background, hoverBackground, this.#currentBackground, (color) => this.#currentBackground = color)
+    this.createAnimation(width, hoverWidth, 'spring', value => this.style.width = value)
+    await this.processColorTransition(background, hoverBackground, this.#currentBackground, color => this.#currentBackground = color)
   }
 
   /**
@@ -52,8 +53,8 @@ export class BackButton extends BaseButton {
     this.hovered = false
     this.cancelAnimations()
     const { width, background, hoverBackground } = this.style
-    this.createAnimation(width, this.#defaultWidth, 'spring', (value) => this.style.width = value)
-    await this.processColorTransition(hoverBackground, background, this.#currentBackground, (color) => this.#currentBackground = color)
+    this.createAnimation(width, this.#defaultWidth, 'spring', value => this.style.width = value)
+    await this.processColorTransition(hoverBackground, background, this.#currentBackground, color => this.#currentBackground = color)
   }
 
   async hide () {
@@ -141,7 +142,7 @@ export class BackButton extends BaseButton {
       context,
       text,
       x: x + shortPosition + moveDelta,
-      y: y + 5, // 稍微往下一点，视觉上更对齐
+      y: y + vh(5 / 1440), // 稍微往下一点，视觉上更对齐
       width: width - shortPosition - moveDelta,
       height,
       font: `${fontSize}px ${font}`,

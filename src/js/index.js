@@ -14,11 +14,27 @@ function createStageCanvas (id = 'stage') {
   return canvas
 }
 
-async function run () {
+function initCanvasSize () {
+  const clientWidth = document.documentElement.clientWidth
+  const clientHeight = document.documentElement.clientHeight
+  const ratio = clientWidth / clientHeight
+  let width = clientWidth
+  let height = clientHeight
+  if (ratio > 16 / 9) {
+    width = clientHeight / 9 * 16
+  } else if (ratio < 16 / 9) {
+    height = clientWidth / 16 * 9
+  }
   setCanvasSize({
-    WIDTH: document.body.clientWidth,
-    HEIGHT: document.body.clientHeight,
+    WIDTH: width,
+    HEIGHT: height,
+    CLIENT_X: (clientWidth - width) / 2,
+    CLIENT_Y: (clientHeight - height) / 2,
   })
+}
+
+async function run () {
+  initCanvasSize()
   Skin.loadConfig()
   const canvas = createStageCanvas('stage')
   const container = $('stage-container')

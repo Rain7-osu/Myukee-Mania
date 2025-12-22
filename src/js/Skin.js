@@ -1,11 +1,12 @@
 import { CANVAS } from './Config'
 import { FileManager } from './FileManager'
-import { vh } from './utils'
+import { vh, vw } from './utils'
 
 const YELLOW_NOTE = '#fed336'
 const BLUE_NOTE = '#00dbff'
 const WHITE_NOTE = '#ffffff'
 const RED_NOTE = '#ff0000'
+
 
 export class Skin {
   static config = {}
@@ -14,8 +15,8 @@ export class Skin {
     Skin.config = {
       fps: {
         width: 80,
-        right: 24,
-        bottom: 24,
+        right: 4,
+        bottom: 4,
         height: 28,
         radius: 14,
         font: '微软雅黑',
@@ -285,7 +286,7 @@ export class Skin {
               title: {
                 color: '#212529',
               },
-              left: 1480 / 2560
+              left: 1480 / 2560,
             },
             base: {
               gap: -12,
@@ -305,7 +306,7 @@ export class Skin {
               left: 1580 / 2560,
             },
             selectHover: {
-              left: 1380 / 2560
+              left: 1380 / 2560,
             },
             sameGroup: {
               bgColor: 'rgba(140, 217, 242, 0.5)',
@@ -314,6 +315,25 @@ export class Skin {
               bgColor: 'rgba(140, 217, 242, 0.5)',
             },
           },
+        },
+        footer: {
+          height: vh(162 / 1440),
+          borderWidth: vh(6 / 1440),
+          borderColor: 'rgb(0, 102, 255)',
+          bgColor: 'rgb(0, 0, 0)',
+          menus: {
+            left: vw(420 / 2560),
+            button: {
+              width: vw(132 / 2560),
+              gap: vw(6 / 2560),
+              outlineColor: 'rgb(115, 115, 115)',
+              outlineShadowColor: 'rgb(255, 255, 255)',
+              color: 'rgb(255, 255, 255)',
+              defaultBgStartColor: 'rgb(57, 57, 57)',
+              defaultBgEndColor: 'rgb(31, 31, 31)',
+              hoverBorderColor: 'rgb(255, 255, 255)'
+            }
+          }
         },
       },
       pauseMenu: {
@@ -503,23 +523,23 @@ export class Skin {
             text: 'Watch Replay',
           },
           back: {
-            width: 180,
-            shortPosition: 60,
-            backDelta: 15,
-            height: 86,
+            width: vh(180 / 1440),
+            shortPosition: vh(60 / 1440),
+            backDelta: vh(15 / 1440),
+            height: vh(86 / 1440),
             gap: 0,
             left: 0,
-            top: CANVAS.HEIGHT - 86 - 32,
+            top: CANVAS.HEIGHT - vh(118 / 1440),
             font: '微软雅黑',
-            fontSize: 36,
+            fontSize: vh(36 / 1440),
             radius: 0,
             color: '#fff',
             background: 'rgb(238, 52, 153, 1)',
             hoverBackground: 'rgb(187, 16, 118, 1)',
             text: 'back',
-            hoverWidth: 260,
-            iconLeft: 12,
-            iconSize: 32,
+            hoverWidth: vh(260 / 1440),
+            iconLeft: vh(12 / 1440),
+            iconSize: vh(32 / 1440),
           },
         },
       },

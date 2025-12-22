@@ -1,18 +1,8 @@
 import { BaseButton } from './BaseButton'
 import { CANVAS } from './Config'
-import { rgba } from './utils'
+import { rgba, vh, vw } from './utils'
+import { Skin } from './Skin'
 
-const FOOTER_HEIGHT = 162
-const BUTTON_WIDTH = 132
-const BORDER_WIDTH = 6
-const BUTTON_GAP = 6
-const LEFT = 420
-const BUTTON_OUTLINE_COLOR = 'rgb(115, 115, 115)'
-const BUTTON_OUTLINE_SHADOW_COLOR = 'rgb(255, 255, 255)'
-const BUTTON_TEXT_COLOR = 'rgb(255, 255, 255)'
-const DEFAULT_BG_START_COLOR = 'rgb(57, 57, 57)'
-const DEFAULT_BG_END_COLOR = 'rgb(31, 31, 31)'
-const HOVER_BORDER_COLOR = 'rgb(255, 255, 255)'
 const TRANSITION_DURATION = 300
 
 /**
@@ -52,7 +42,7 @@ export class FooterMenuButton extends BaseButton {
   /**
    * @param y {number}
    */
-  set translateY(y) { this.#translateY = y}
+  set translateY (y) { this.#translateY = y}
 
   /**
    * @param container {HTMLCanvasElement}
@@ -61,6 +51,18 @@ export class FooterMenuButton extends BaseButton {
    * @param widthScale {number}
    */
   constructor (container, config, index, widthScale = 1) {
+    const {
+      menus: {
+        left: LEFT,
+        button: {
+          width: BUTTON_WIDTH,
+          gap: BUTTON_GAP,
+          defaultBgStartColor: DEFAULT_BG_START_COLOR,
+          defaultBgEndColor: DEFAULT_BG_END_COLOR,
+        },
+      },
+      height: FOOTER_HEIGHT,
+    } = Skin.config.main.footer
     super(container, {
       left: LEFT + index * BUTTON_WIDTH + index * BUTTON_GAP,
       top: CANVAS.HEIGHT - FOOTER_HEIGHT,
@@ -74,6 +76,7 @@ export class FooterMenuButton extends BaseButton {
   }
 
   async hover () {
+    const { menus: { button: { hoverBorderColor: HOVER_BORDER_COLOR } } } = Skin.config.main.footer
     this.hovered = true
     this.cancelTransitions()
     const [sr, sg, sb, sa] = rgba.toValues(this.#currentBgStartColor)
@@ -82,7 +85,7 @@ export class FooterMenuButton extends BaseButton {
     const [her, heg, heb, hea] = rgba.toValues(this.#config.hoverEndColor)
     const [bcr, bcg, bcb, bca] = rgba.toValues(this.#currentBorderColor)
     const [hbcr, hbcg, hbcb, hbca] = rgba.toValues(HOVER_BORDER_COLOR)
-    await this.createTransition(this.#hoverPercent, 100, TRANSITION_DURATION, 'easeOut', (value) => {
+    await this.createTransition(this.#hoverPercent, 100, TRANSITION_DURATION, 'easeOut', value => {
       const progress = value / 100
       this.#hoverPercent = value
       this.#currentBgStartColor = rgba.format([
@@ -107,6 +110,14 @@ export class FooterMenuButton extends BaseButton {
   }
 
   async hoverOut () {
+    const {
+      menus: {
+        button: {
+          defaultBgStartColor: DEFAULT_BG_START_COLOR,
+          defaultBgEndColor: DEFAULT_BG_END_COLOR,
+        },
+      },
+    } = Skin.config.main.footer
     this.hovered = false
     this.cancelTransitions()
     const [sr, sg, sb, sa] = rgba.toValues(this.#currentBgStartColor)
@@ -115,7 +126,7 @@ export class FooterMenuButton extends BaseButton {
     const [der, deg, deb, dea] = rgba.toValues(DEFAULT_BG_END_COLOR)
     const [bcr, bcg, bcb, bca] = rgba.toValues(this.#currentBorderColor)
     const [dbcr, dbcg, dbcb, dbca] = rgba.toValues(this.#config.borderColor)
-    await this.createTransition(this.#hoverPercent, 0, TRANSITION_DURATION, 'easeOut', (value) => {
+    await this.createTransition(this.#hoverPercent, 0, TRANSITION_DURATION, 'easeOut', value => {
       this.#hoverPercent = value
       const progress = 1 - value / 100
       this.#currentBgStartColor = rgba.format([
@@ -162,9 +173,11 @@ export class FooterMenuButton extends BaseButton {
     }
 
     const renderText = () => {
+      const { menus: { button: { color: BUTTON_TEXT_COLOR } } } = Skin.config.main.footer
+
       context.save()
-      const FONT_SIZE = 32
-      const LINE_HEIGHT = 36
+      const FONT_SIZE = Math.min(vw(32 / 2560), vh(32 / 1440))
+      const LINE_HEIGHT = Math.min(vw(36 / 2560), vh(36 / 1440))
 
       context.shadowColor = BUTTON_TEXT_COLOR
       context.shadowBlur = 5
@@ -210,6 +223,14 @@ export class FooterMenuButton extends BaseButton {
     }
 
     const renderOutline = () => {
+      const {
+        menus: {
+          button: {
+            outlineColor: BUTTON_OUTLINE_COLOR,
+            outlineShadowColor: BUTTON_OUTLINE_SHADOW_COLOR,
+          },
+        },
+      } = Skin.config.main.footer
       context.save()
       if (this.hovered) {
         context.fillStyle = this.#config.hoverStartColor
@@ -226,6 +247,7 @@ export class FooterMenuButton extends BaseButton {
     }
 
     const renderBorder = () => {
+      const { borderWidth: BORDER_WIDTH } = Skin.config.main.footer
       context.save()
       context.fillStyle = this.#currentBorderColor
       context.fillRect(x - 1, y, w + 2, -BORDER_WIDTH)
@@ -233,8 +255,10 @@ export class FooterMenuButton extends BaseButton {
     }
 
     const renderKey = () => {
+      const { menus: { button: { color: BUTTON_TEXT_COLOR } } } = Skin.config.main.footer
+
       if (key) {
-        const FONT_SIZE = 28
+        const FONT_SIZE = Math.min(vw(28 / 2560), vh(32 / 1440))
         context.save()
         this.drawText({
           context,

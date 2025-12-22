@@ -3,6 +3,7 @@ import { ScrollItem } from './ScrollItem'
 import { CANVAS } from './Config'
 import { dev } from './dev'
 import { ActiveEffect } from './ActiveEffect'
+import { MouseEventManager } from './MouseEventManager'
 
 /**
  * @typedef {Object} ListConfig
@@ -76,7 +77,13 @@ export class ScrollList extends RenderObject {
     this.#activeEffects = {
       inertia: new ActiveEffect(),
     }
+    this.#mouseEventHandler = new MouseEventManager(container, 'ScrollListcontainer')
   }
+
+  /**
+   * @type {MouseEventManager}
+   */
+  #mouseEventHandler
 
   /**
    * @type {HTMLElement}
@@ -208,9 +215,6 @@ export class ScrollList extends RenderObject {
    * @param e {HTMLElementEventMap['canvas']}
    */
   _checkEventCapture (e) {
-    if (!this.#enableEvents) {
-      return false
-    }
     const x = e.clientX
     const y = e.clientY
     const { left: listLeft, top: listTop, height: listHeight, width: listWidth, bottom: listBottom } = this.#style
@@ -227,10 +231,6 @@ export class ScrollList extends RenderObject {
    * @return void
    */
   async _onWheel (e) {
-    if (!this.#enableEvents) {
-      return
-    }
-
     if (this.#autoScrolling) {
       this.#cancelTransitionManager.cancelScrollTo()
       this.#autoScrolling = false
@@ -373,20 +373,7 @@ export class ScrollList extends RenderObject {
    * }}
    */
   registerEvents (eventMaps) {
-    if (this.#hasRegistered) {
-      return this.#removeEventsHandler
-    }
-
-    const container = this.#container
     this.#eventMaps = eventMaps
-
-    const handleMouseWheel = this._onWheel.bind(this)
-    const handleMouseMove = this._onMouseMove.bind(this)
-    const handleClick = this._onClick.bind(this)
-    container.addEventListener('wheel', handleMouseWheel)
-    container.addEventListener('mousemove', handleMouseMove)
-    container.addEventListener('click', handleClick)
-
     const listenWheelEnd = () => {
       clearTimeout(this.#wheelTimeout)
       this.#status.isWheeling = true
@@ -395,35 +382,25 @@ export class ScrollList extends RenderObject {
       }, 30)
     }
 
-    container.addEventListener('wheel', listenWheelEnd)
-
-    this.#hasRegistered = true
-    this.#removeEventsHandler = () => {
-      container.removeEventListener('wheel', handleMouseWheel)
-      container.removeEventListener('mousemove', handleMouseMove)
-      container.removeEventListener('click', handleClick)
-      container.removeEventListener('wheel', listenWheelEnd)
-      clearTimeout(this.#wheelTimeout)
-    }
+    this.#mouseEventHandler.registerEvents({
+      wheelEvents: [this._onWheel.bind(this)],
+      mousemoveEvents: [this._onMouseMove.bind(this), listenWheelEnd],
+      clickEvents: [this._onClick.bind(this)],
+    })
   }
 
   removeEvents () {
-    if (this.#hasRegistered) {
-      this.#hasRegistered = false
-      this.#removeEventsHandler()
-    } else {
-      dev.warn('Please listenEvents firstly')
-    }
+    clearTimeout(this.#wheelTimeout)
+    this.#mouseEventHandler.removeEvents()
   }
 
-  #enableEvents = true
-
   disableEvents () {
-    this.#enableEvents = false
+    clearTimeout(this.#wheelTimeout)
+    this.#mouseEventHandler.disableEvents()
   }
 
   enableEvents () {
-    this.#enableEvents = true
+    this.#mouseEventHandler.enableEvents()
   }
 
   /**
@@ -499,9 +476,7 @@ export class ScrollList extends RenderObject {
    * @private
    */
   _selectRefreshItems (targetItem) {
-    const startMarginTop = targetItem.currentStyle.marginTop
     const endMarginTop = targetItem.activeStyle.marginTop
-    const startMarginBottom = targetItem.currentStyle.marginBottom
     const endMarginBottom = targetItem.activeStyle.marginBottom
 
     this.#cancelTransitionManager.cancelSelect()

@@ -2,8 +2,19 @@
  * @callback MouseEventHandler
  * @param {MouseEvent} e
  */
+
+/**
+ * @typedef {Object} EventsMaps
+ * @property {MouseEventHandler[]?} mousemoveEvents
+ * @property {MouseEventHandler[]?} clickEvents
+ * @property {MouseEventHandler[]?} wheelEvents
+ * @property {MouseEventHandler[]?} mouseDownEvents
+ * @property {MouseEventHandler[]?} mouseupEvents
+ */
+
 import { RenderObject } from './RenderObject'
 import { dev } from './dev'
+import { CANVAS } from './Config'
 
 export class MouseEventManager {
   /**
@@ -52,47 +63,59 @@ export class MouseEventManager {
     this.#source = source
   }
 
+  _buildEvent(e) {
+    return {
+      ...e,
+      clientX: e.clientX - CANVAS.CLIENT_X,
+      clientY: e.clientY - CANVAS.CLIENT_Y,
+      preventDefault: e.preventDefault.bind(e),
+      stopPropagation: e.stopPropagation.bind(e),
+      deltaY: e.deltaY,
+      deltaX: e.deltaX,
+    }
+  }
+
   /**
    * @param e {MouseEvent}
    */
-  #invokeMousemoveEventHandler = (e) => {
+  #invokeMousemoveEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
     dev.log(this.#source, 'mousemove', e)
-    this.#mousemoveEvents.forEach(handler => handler(e))
+    this.#mousemoveEvents.forEach(handler => handler(this._buildEvent(e)))
   }
   /**
    * @param e {MouseEvent}
    */
-  #invokeWheelEventHandler = (e) => {
+  #invokeWheelEventHandler = e => {
     e.preventDefault()
-    if (this.#disabled)  return
+    if (this.#disabled) return
     dev.log(this.#source, 'wheel', e)
-    this.#wheelEvents.forEach(handler => handler(e))
+    this.#wheelEvents.forEach(handler => handler(this._buildEvent(e)))
   }
   /**
    * @param e {MouseEvent}
    */
-  #invokeClickEventHandler = (e) => {
+  #invokeClickEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
     dev.log(this.#source, 'click', e)
     if (this.#shapeEvents) {
-      ![...this.#shapeEvents.values()].forEach(handler => handler(e))
+      ![...this.#shapeEvents.values()].forEach(handler => handler(this._buildEvent(e)))
     }
-    this.#clickEvents.forEach(handler => handler(e))
+    this.#clickEvents.forEach(handler => handler(this._buildEvent(e)))
   }
-  #invokeMouseDownEventHandler = (e) => {
+  #invokeMouseDownEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
     dev.log(this.#source, 'mousedown', e)
-    this.#mousedownEvents.forEach(handler => handler(e))
+    this.#mousedownEvents.forEach(handler => handler(this._buildEvent(e)))
   }
-  #invokeMouseUpEventHandler = (e) => {
+  #invokeMouseUpEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
     dev.log(this.#source, 'mouseup', e)
-    this.#mouseupEvents.forEach(handler => handler(e))
+    this.#mouseupEvents.forEach(handler => handler(this._buildEvent(e)))
   }
 
   /**
@@ -104,7 +127,7 @@ export class MouseEventManager {
       this.#shapeEvents = new Map()
     }
     const [x, y, w, h] = shape.hotArea
-    this.#shapeEvents.set(shape, (e) => {
+    this.#shapeEvents.set(shape, e => {
       if (e.clientX > x && e.clientY > y && e.clientX < x + w && e.clientY < y + h) {
         handler(e)
       }
@@ -119,19 +142,16 @@ export class MouseEventManager {
   }
 
   /**
-   * @param mousemoveEvents {MouseEventHandler[]?}
-   * @param clickEvents {MouseEventHandler[]?}
-   * @param wheelEvents {MouseEventHandler[]?}
-   * @param mouseDownEvents {MouseEventHandler[]?}
-   * @param mouseupEvents {MouseEventHandler[]?}
+   * @param maps {EventsMaps}
    */
-  registerEvents ({
-    mousemoveEvents = [],
-    clickEvents = [],
-    wheelEvents = [],
-    mouseupEvents = [],
-    mousedownEvents = [],
-  }) {
+  registerEvents (maps) {
+    const {
+      mousemoveEvents = [],
+      clickEvents = [],
+      wheelEvents = [],
+      mouseupEvents = [],
+      mousedownEvents = [],
+    } = maps
     this.#clickEvents = clickEvents
     this.#mousemoveEvents = mousemoveEvents
     this.#wheelEvents = wheelEvents
@@ -165,15 +185,11 @@ export class MouseEventManager {
     }
   }
 
-  dispose() {
-
-  }
-
-  disableEvents() {
+  disableEvents () {
     this.#disabled = true
   }
 
-  enableEvents() {
+  enableEvents () {
     this.#disabled = false
   }
 }
