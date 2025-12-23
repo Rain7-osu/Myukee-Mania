@@ -1,4 +1,4 @@
-import { CANVAS } from './Config'
+import { CANVAS, MAX_SPEED, MIN_SPEED, py } from './Config'
 
 // TODO Move stage render method out
 export class RenderEngine {
@@ -34,10 +34,13 @@ export class RenderEngine {
   }
 
   /**
-   * @param value {number}
+   * @param speed {number}
    */
-  set speed (value) {
-    this.#speed = value
+  set speed (speed) {
+    if (speed > MAX_SPEED || speed < MIN_SPEED) {
+      return
+    }
+    this.#speed = speed
   }
 
   get speed () {
@@ -50,16 +53,16 @@ export class RenderEngine {
   convertOffsetToY (offset) {
     const timing = this.timing
     // per frame fall (10 * speed) px
-    return Math.floor((timing - offset) / 10 * this.#speed + CANVAS.HEIGHT)
+    return Math.floor(py((timing - offset) / 10 * this.#speed) + CANVAS.HEIGHT)
   }
 
   /**
    * @public
-   * @param shape {RenderObject}
+   * @param object {RenderObject}
    */
-  renderShape (shape) {
-    if (shape.display) {
-      shape.render(this.context)
+  renderObject (object) {
+    if (object.display) {
+      object.render(this.context)
     }
   }
 
@@ -67,7 +70,7 @@ export class RenderEngine {
    * @public
    * @param shape {OffsetShape}
    */
-  renderOffsetShape (shape) {
+  renderOffsetObject (shape) {
     const offsetY = this.convertOffsetToY(shape.offset)
     const endY = shape.end ? this.convertOffsetToY(shape.end) : undefined
     shape.render(this.context, offsetY, endY)

@@ -105,8 +105,7 @@ export class BackButton extends BaseButton {
           this.#mainController.hideRankingBoard()
           await this.#mainController.backMain()
         } else {
-          await this.#mainController.fadeOut(0, 2000)
-          this.#mainController.exit()
+          await this.#mainController.exit()
         }
       },
     })

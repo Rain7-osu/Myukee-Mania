@@ -1,6 +1,6 @@
 import { RenderObject } from './RenderObject'
 import { JudgementAreaCalculators, JudgementType } from './Judgement'
-import { CANVAS } from './Config'
+import { CANVAS, px, py } from './Config'
 
 const BG_COLOR = 'rgba(0, 0, 0, 0.5)'
 const YELLOW_COLOR = '#dead50'
@@ -38,12 +38,12 @@ export class JudgementDeviationEffect extends RenderObject {
   init (od, scale = 1.5) {
     this.#activeDeviations = []
     this.#config = {
-      width: JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale,
-      height: BAR_HEIGHT * scale,
-      colorHeight: COLOR_HEIGHT * scale,
-      yellowWidth: JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale,
-      greenWidth: JudgementAreaCalculators[JudgementType.OK](od) * 2 * scale,
-      blueWidth: JudgementAreaCalculators[JudgementType.GREAT](od) * 2 * scale,
+      width: px(JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale),
+      height: py(BAR_HEIGHT * scale),
+      colorHeight: py(COLOR_HEIGHT * scale),
+      yellowWidth: px(JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale),
+      greenWidth: px(JudgementAreaCalculators[JudgementType.OK](od) * 2 * scale),
+      blueWidth: px(JudgementAreaCalculators[JudgementType.GREAT](od) * 2 * scale),
     }
   }
 
@@ -58,7 +58,7 @@ export class JudgementDeviationEffect extends RenderObject {
     const yellowX = x
     const greenX = (CANVAS.WIDTH - this.#config.greenWidth) / 2.0
     const blueX = (CANVAS.WIDTH - this.#config.blueWidth) / 2.0
-    const whiteX = (CANVAS.WIDTH - WHITE_LINE_WIDTH) / 2.0
+    const whiteX = (CANVAS.WIDTH - px(WHITE_LINE_WIDTH)) / 2.0
     const whiteY = y
 
     // 绘制背景
@@ -79,7 +79,7 @@ export class JudgementDeviationEffect extends RenderObject {
 
     // 绘制白线
     context.fillStyle = WHITE_COLOR
-    context.fillRect(whiteX, whiteY, WHITE_LINE_WIDTH, this.#config.height)
+    context.fillRect(whiteX, whiteY, px(WHITE_LINE_WIDTH), this.#config.height)
   }
 
   /**

@@ -1,13 +1,25 @@
 import { RenderObject } from './RenderObject'
-import { CANVAS } from './Config'
-import { BaseButton } from './BaseButton'
-import { rgba } from './utils'
-import { vh, vw } from './Config'
+import { CANVAS, px, py } from './Config'
 import { ModButton } from './ModButton'
-import { FrameSnapshot } from './FrameSnapshot'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { KeyCode } from './KeyCode'
 import { ModsPanelButton } from './ModsPanelButton'
+import {
+  ATIcon,
+  DTIcon,
+  EZIcon,
+  FDIcon,
+  FLIcon,
+  HDIcon,
+  HRIcon,
+  HTIcon,
+  MRIcon,
+  NCIcon,
+  NFIcon,
+  PFIcon,
+  RDIcon,
+  SDIcon,
+} from './Icons'
 
 const BACKGROUND_COLOR = 'rgba(0, 0, 0, 0.95)'
 const BUTTON_TEXT_COLOR = '#fff'
@@ -15,28 +27,24 @@ const BUTTON_RESET_COLOR = 'rgb(233, 49, 0)'
 const BUTTON_CLOSE_COLOR = 'rgb(107, 107, 107)'
 const BUTTON_RESET_HOVER_COLOR = 'rgb(249, 67, 1)'
 const BUTTON_CLOSE_HOVER_COLOR = 'rgb(127, 127, 127)'
-const BUTTON_BOTTOM = 224 / 1440
-const BUTTON_GAP = 44 / 1440
-const BUTTON_HEIGHT = 104 / 1440
-const BUTTON_WIDTH = 1356 / 2560
-const BUTTON_FONT_SIZE = 64 / 1440
+const BUTTON_BOTTOM = 224
+const BUTTON_GAP = 44
+const BUTTON_HEIGHT = 104
+const BUTTON_WIDTH = 1356
+const BUTTON_FONT_SIZE = 64
 const DIFFICULTY_REDUCTION_LABEL_COLOR = 'rgb(73, 190, 67)'
 const DIFFICULTY_INCREASE_LABEL_COLOR = 'rgb(240, 78, 13)'
 const SPECIAL_LABEL_COLOR = 'rgb(255, 255, 255)'
-const LABEL_LEFT = 76 / 2560
-const LABEL_TOP = 396 / 1440
-const LABEL_GAP = 132 / 1440
-const LABEL_FONT_SIZE = 48 / 1440
-const TITLE_TEXT = 'Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.'
-const TITLE_COLOR = 'rgb(255, 255, 255)'
-const TITLE_FONT_SIZE = 36
-const MOD_LEFT = 660 / 2560
-const MOD_TOP = 356 / 1440
-const MOD_HEIGHT = 120 / 1440
-const MOD_WIDTH = 120 / 2560
-const MOD_X_GAP = 78 / 2560
-const MOD_Y_GAP = 64 / 1440
-const MOD_FONT_SIZE = 36 / 2560
+const LABEL_LEFT = 76
+const LABEL_TOP = 396
+const LABEL_GAP = 132
+const LABEL_FONT_SIZE = 48
+const MOD_LEFT = 660
+const MOD_TOP = 356
+const MOD_HEIGHT = 120
+const MOD_WIDTH = 120
+const MOD_X_GAP = 78
+const MOD_Y_GAP = 64
 const BUTTON_ACTIVE_COLOR = 'rgba(255, 255, 255, 0.6)'
 
 /**
@@ -107,15 +115,22 @@ export class ModsPanel extends RenderObject {
   #keyboardEventManager
 
   /**
-   * @param container {HTMLCanvasElement}
+   * @type {MainController}
    */
-  constructor (container) {
+  #mainController
+
+  /**
+   * @param container {HTMLCanvasElement}
+   * @param mainController {MainController}
+   */
+  constructor (container, mainController) {
     super()
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#container = container
+    this.#mainController = mainController
     const baseModStyle = {
-      width: vw(MOD_WIDTH),
-      height: vh(MOD_HEIGHT),
+      width: px(MOD_WIDTH),
+      height: py(MOD_HEIGHT),
     }
     /**
      * @readonly
@@ -143,8 +158,8 @@ export class ModsPanel extends RenderObject {
     this.#modButtons = modConfig.map((item, index) => {
       return item.map((subItem, subIndex) => {
         return new ModButton(container, {
-          left: vw(MOD_LEFT + subIndex * (MOD_WIDTH + MOD_X_GAP)),
-          top: vh(MOD_TOP + index * (MOD_HEIGHT + MOD_Y_GAP)),
+          left: px(MOD_LEFT + subIndex * (MOD_WIDTH + MOD_X_GAP)),
+          top: py(MOD_TOP + index * (MOD_HEIGHT + MOD_Y_GAP)),
           mod: subItem.mod,
           backgroundImage: subItem.backgroundImage,
           description: subItem.description || '',
@@ -157,28 +172,28 @@ export class ModsPanel extends RenderObject {
     }, [])
     this.#resetButton = new ModsPanelButton(container, {
       text: '1. Reset All Mods',
-      left: CANVAS.WIDTH / 2 - vw(BUTTON_WIDTH) / 2,
-      top: CANVAS.HEIGHT - vh(BUTTON_BOTTOM + BUTTON_HEIGHT * 2 + BUTTON_GAP),
-      height: vh(BUTTON_HEIGHT),
-      width: vw(BUTTON_WIDTH),
+      left: CANVAS.WIDTH / 2 - px(BUTTON_WIDTH) / 2,
+      top: CANVAS.HEIGHT - py(BUTTON_BOTTOM + BUTTON_HEIGHT * 2 + BUTTON_GAP),
+      height: py(BUTTON_HEIGHT),
+      width: px(BUTTON_WIDTH),
       color: BUTTON_TEXT_COLOR,
       background: BUTTON_RESET_COLOR,
       hoverBackground: BUTTON_RESET_HOVER_COLOR,
       font: '微软雅黑',
-      fontSize: vh(BUTTON_FONT_SIZE),
+      fontSize: py(BUTTON_FONT_SIZE),
       activeBackground: BUTTON_ACTIVE_COLOR,
     })
     this.#closeButton = new ModsPanelButton(container, {
       text: '2. Close',
-      left: CANVAS.WIDTH / 2 - vw(BUTTON_WIDTH) / 2,
-      top: CANVAS.HEIGHT - vh(BUTTON_BOTTOM + BUTTON_HEIGHT),
-      height: vh(BUTTON_HEIGHT),
-      width: vw(BUTTON_WIDTH),
+      left: CANVAS.WIDTH / 2 - px(BUTTON_WIDTH) / 2,
+      top: CANVAS.HEIGHT - py(BUTTON_BOTTOM + BUTTON_HEIGHT),
+      height: py(BUTTON_HEIGHT),
+      width: px(BUTTON_WIDTH),
       color: BUTTON_TEXT_COLOR,
       background: BUTTON_CLOSE_COLOR,
       hoverBackground: BUTTON_CLOSE_HOVER_COLOR,
       font: '微软雅黑',
-      fontSize: vh(BUTTON_FONT_SIZE),
+      fontSize: py(BUTTON_FONT_SIZE),
       activeBackground: BUTTON_ACTIVE_COLOR,
     })
   }
@@ -229,23 +244,18 @@ export class ModsPanel extends RenderObject {
     this.#resetButton.initTranslateDirection = -1
     this.#closeButton.initTranslateDirection = 1
     await Promise.all([
-      this.createTransition(this.#alpha, 100, 300, 'easeOut', (v) => this.#alpha = v),
+      this.createTransition(this.#alpha, 100, 300, 'easeOut', v => this.#alpha = v),
       this.#resetButton.show(),
       this.#closeButton.show(),
     ])
   }
 
   async hide () {
-    await this.createTransition(this.#alpha, 0, 300, 'easeOut', (v) => this.#alpha = v)
+    await this.createTransition(this.#alpha, 0, 300, 'easeOut', v => this.#alpha = v)
     this.display = false
   }
 
-  /**
-   * @param onClose {function(selectedMods: Mod[]): void}
-   */
-  registerEvents ({
-    onClose,
-  }) {
+  registerEvents () {
     this.#resetButton.registerEvents({
       onClick: () => {
         this._reset()
@@ -253,7 +263,7 @@ export class ModsPanel extends RenderObject {
     })
     this.#closeButton.registerEvents({
       onClick: () => {
-        onClose(this.#selectedMods)
+        this.#mainController.closeModsPanel(this.#selectedMods)
       },
     })
 
@@ -273,7 +283,10 @@ export class ModsPanel extends RenderObject {
           this._reset()
         },
         [KeyCode.Digit2]: () => {
-          onClose(this.#selectedMods)
+          this.#mainController.closeModsPanel(this.#selectedMods)
+        },
+        [KeyCode.ESCAPE]: () => {
+          this.#mainController.closeModsPanel(this.#selectedMods)
         },
         ...modButtonKeyMaps,
       },
@@ -287,14 +300,14 @@ export class ModsPanel extends RenderObject {
     this.#keyboardEventManager.removeEvents()
   }
 
-  disableEvents(){
+  disableEvents () {
     this.#closeButton.disableEvents()
     this.#resetButton.disableEvents()
     this.#modButtons.forEach(btn => btn.disableEvents())
     this.#keyboardEventManager.disableEvents()
   }
 
-  enableEvents() {
+  enableEvents () {
     this.#closeButton.enableEvents()
     this.#resetButton.enableEvents()
     this.#modButtons.forEach(btn => btn.enableEvents())
@@ -319,17 +332,17 @@ export class ModsPanel extends RenderObject {
     }
 
     const renderLabel = () => {
-      let y = vh(LABEL_TOP)
-      const fontSize = vh(LABEL_FONT_SIZE)
+      let y = py(LABEL_TOP)
+      const fontSize = py(LABEL_FONT_SIZE)
       context.save()
       context.textBaseline = 'top'
       context.fillStyle = DIFFICULTY_REDUCTION_LABEL_COLOR
       context.font = `${fontSize}px 微软雅黑`
-      context.fillText('Difficulty Reduction', vw(LABEL_LEFT), y)
+      context.fillText('Difficulty Reduction', px(LABEL_LEFT), y)
       context.fillStyle = DIFFICULTY_INCREASE_LABEL_COLOR
-      context.fillText('Difficulty Increase', vw(LABEL_LEFT), y += vh(LABEL_FONT_SIZE + LABEL_GAP))
+      context.fillText('Difficulty Increase', px(LABEL_LEFT), y += py(LABEL_FONT_SIZE + LABEL_GAP))
       context.fillStyle = SPECIAL_LABEL_COLOR
-      context.fillText('Special', vw(LABEL_LEFT), y += vh(LABEL_FONT_SIZE + LABEL_GAP))
+      context.fillText('Special', px(LABEL_LEFT), y += py(LABEL_FONT_SIZE + LABEL_GAP))
       context.restore()
     }
 
@@ -342,140 +355,4 @@ export class ModsPanel extends RenderObject {
   }
 }
 
-/**
- * @return {(function(context: CanvasRenderingContext2D): void)}
- */
-const createRender = ({
-  baseFill,
-  fontSize,
-  text,
-  bottom = 6,
-}) => {
-  return (context) => {
-    const [r, g, b, a] = rgba.toValues(baseFill)
-    const calc = (v, s) => Math.round((255 - v) * s + v)
-    const gradient = context.createLinearGradient(0, 0, 0, vh(MOD_HEIGHT))
-    gradient.addColorStop(0, rgba.format([calc(r, 0.1), calc(g, 0.1), calc(b, 0.1), a]))
-    gradient.addColorStop(0.5, rgba.format([r, g, b, a]))
-    gradient.addColorStop(0.8, rgba.format([r, g, b, a]))
-    gradient.addColorStop(1, rgba.format([calc(r, -0.15), calc(g, -0.15), calc(b, -0.15), a]))
-    context.fillStyle = gradient
-    context.beginPath()
-    context.roundRect(0, 0, vw(MOD_WIDTH), vh(MOD_HEIGHT), [8])
-    context.fill()
-    context.fillStyle = BUTTON_TEXT_COLOR
-    context.font = `${fontSize}px 等线 Light`
-    const lines = text.split('\n')
-    if (lines.length === 1) {
-      context.textBaseline = 'bottom'
-      context.textAlign = 'center'
-      context.shadowColor = 'rgb(255, 255, 255)'
-      context.shadowBlur = 6
-      context.fillText(text, vw(MOD_WIDTH / 2), vh(MOD_HEIGHT) - bottom)
-    } else {
-      context.textBaseline = 'bottom'
-      context.textAlign = 'left'
-      context.shadowColor = 'rgb(255, 255, 255)'
-      context.shadowBlur = 6
-      context.fillText(lines[0], 2, vh(MOD_HEIGHT) - bottom - fontSize)
-      context.textBaseline = 'bottom'
-      context.textAlign = 'right'
-      context.fillText(lines[1], vw(MOD_WIDTH) - 2, vh(MOD_HEIGHT) - bottom)
-    }
-  }
-}
 
-export const EZIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(68, 102, 28)',
-  fontSize: vh(MOD_HEIGHT / 4),
-  text: 'Easy',
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const NFIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(29, 34, 74)',
-  fontSize: vh(MOD_HEIGHT / 5),
-  text: 'No-Fail',
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const HTIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(49, 43, 53)',
-  fontSize: vh(MOD_HEIGHT / 4),
-  text: 'Half',
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const HRIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(108, 2, 32)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Hard\nRock',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const SDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(95, 44, 1)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Sudden\nDeath',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const PFIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(113, 64, 22)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Perfect',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const DTIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(91, 51, 130)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Double',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const NCIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(57, 28, 154)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Nightcore',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const FDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(107, 68, 0)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Fade',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const HDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(152, 116, 30)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Hidden',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const FLIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(26, 26, 26)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Flashlight',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const MRIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(38,77,51)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Mirror',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const RDIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(2, 96, 42)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Random',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))
-
-export const ATIcon = () => FrameSnapshot.createOffscreenCanvas(createRender({
-  baseFill: 'rgb(0, 60, 125)',
-  fontSize: vh(MOD_HEIGHT / 4.2),
-  text: 'Auto',
-  bottom: 2,
-}), vw(MOD_WIDTH), vh(MOD_HEIGHT))

@@ -1,7 +1,6 @@
 import { RenderObject } from './RenderObject'
 import { ScrollItem } from './ScrollItem'
-import { CANVAS } from './Config'
-import { dev } from './dev'
+import { CANVAS, px } from './Config'
 import { ActiveEffect } from './ActiveEffect'
 import { MouseEventManager } from './MouseEventManager'
 
@@ -662,8 +661,8 @@ export class ScrollList extends RenderObject {
    * @private
    */
   _renderScrollBar (context) {
-    const { left: listLeft, top: listTop, height: listHeight, width: listWidth, bottom: listBottom } = this.#style
-    const BAR_WIDTH = 8
+    const { left: listLeft, top: listTop, height: listHeight, width: listWidth } = this.#style
+    const BAR_WIDTH = px(8)
     context.fillStyle = 'rgba(0, 0, 0, 0.2)'
     context.fillRect(listLeft + listWidth, listTop, -BAR_WIDTH, listHeight)
     context.fillStyle = 'rgba(255, 255, 255, 1)'

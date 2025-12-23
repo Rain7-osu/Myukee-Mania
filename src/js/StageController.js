@@ -623,26 +623,26 @@ export class StageController extends ActiveEffect {
   }
 
   renderCoverEffect () {
-    this.#modEffect && this.#renderEngine.renderShape(this.#modEffect)
+    this.#modEffect && this.#renderEngine.renderObject(this.#modEffect)
   }
 
   renderJudgementDeviations () {
-    this.#renderEngine.renderShape(this.#judgementManager.activeDeviations)
+    this.#renderEngine.renderObject(this.#judgementManager.activeDeviations)
   }
 
   renderStageBoard () {
-    this.#renderEngine.renderShape(this.#stageBoard)
+    this.#renderEngine.renderObject(this.#stageBoard)
   }
 
   renderAccuracyEffect () {
     const acc = this.#accuracyManager.acc
-    this.#renderEngine.renderShape(new AccuracyEffect(acc))
-    this.#renderEngine.renderShape(new RankingEffect(acc))
+    this.#renderEngine.renderObject(new AccuracyEffect(acc))
+    this.#renderEngine.renderObject(new RankingEffect(acc))
   }
 
   renderSkip () {
     if (this.#skipHeadEffect) {
-      this.#renderEngine.renderShape(this.#skipHeadEffect)
+      this.#renderEngine.renderObject(this.#skipHeadEffect)
     }
   }
 
@@ -650,46 +650,42 @@ export class StageController extends ActiveEffect {
     const timing = this.getGameTiming()
     const duration = this.#duration
     const percent = timing > duration ? 1.0 : timing / duration
-    this.#renderEngine.renderShape(new ProgressPercentEffect(percent))
-  }
-
-  renderJudgementResultEffect () {
-    this.#renderEngine.renderShape(new JudgementRecordEffect(this.#judgementManager.judgementRecord))
+    this.#renderEngine.renderObject(new ProgressPercentEffect(percent))
   }
 
   renderScoreEffect () {
-    this.#renderEngine.renderShape(this.#scoreManager.effect)
+    this.#renderEngine.renderObject(this.#scoreManager.effect)
   }
 
   renderJudgementEffects () {
     this.#judgementManager.activeEffects.forEach(e => {
-      this.#renderEngine.renderShape(e)
+      this.#renderEngine.renderObject(e)
     })
   }
 
   renderComboEffect () {
     const combo = new ComboEffect(this.#judgementManager.combo)
-    this.#renderEngine.renderShape(combo)
+    this.#renderEngine.renderObject(combo)
   }
 
   renderHitEffects () {
-    this.#renderEngine.renderShape(this.#hitEffects)
+    this.#renderEngine.renderObject(this.#hitEffects)
   }
 
   renderNotes () {
     this.#playingMap?.notes.forEach(note => {
-      this.#renderEngine.renderOffsetShape(note)
+      this.#renderEngine.renderOffsetObject(note)
     })
   }
 
   renderSectionLine () {
     this.#sectionLines.forEach(offset => {
-      this.#renderEngine.renderOffsetShape(new SectionLine(offset, this.#stageWidth))
+      this.#renderEngine.renderOffsetObject(new SectionLine(offset, this.#stageWidth))
     })
   }
 
   renderHpEffect () {
-    this.#renderEngine.renderShape(this.#hpEffect)
+    this.#renderEngine.renderObject(this.#hpEffect)
   }
 
   get frameSnapshot () {

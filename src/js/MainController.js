@@ -172,7 +172,7 @@ export class MainController {
     this.#rankingBoard = new RankingBoard(canvas, this)
     this.#beatmapListManager = new BeatmapListManager(canvas)
     this.#backButton = new BackButton(canvas, this)
-    this.#modsPanel = new ModsPanel(canvas)
+    this.#modsPanel = new ModsPanel(canvas, this)
     this.#pauseMenu = new PauseMenu(canvas, this)
     this.#mainFooter = new MainFooter(canvas, this)
     this.#mainHeader = new MainHeader(speed)
@@ -200,7 +200,8 @@ export class MainController {
     this.#autoManager.setRate(this.#currentRate)
   }
 
-  exit () {
+  async exit () {
+    await this.fadeOut(0, 2000)
     this.#canvas.style.display = 'none'
     this.#entry.style.display = 'flex'
     this.#autoManager.abort()
@@ -245,21 +246,25 @@ export class MainController {
   }
 
   /**
+   *
+   * @param selectedMods {Mod[]}
+   */
+  async closeModsPanel (selectedMods) {
+    this.#selectedMods = selectedMods
+    await this.#modsPanel.hide()
+    this.#mouseEventManager.enableEvents()
+    this.#keyboardEventManager.enableEvents()
+    this.#backButton.enableEvents()
+    this.#mainFooter.enableEvents()
+    this.#beatmapListManager.beatmapList.enableEvents()
+    this.#modsPanel.disableEvents()
+  }
+
+  /**
    * @private
    */
   _registerModsPanelEvents () {
-    this.#modsPanel.registerEvents({
-      onClose: async mods => {
-        this.#selectedMods = mods
-        await this.#modsPanel.hide()
-        this.#mouseEventManager.enableEvents()
-        this.#keyboardEventManager.enableEvents()
-        this.#backButton.enableEvents()
-        this.#mainFooter.enableEvents()
-        this.#beatmapListManager.beatmapList.enableEvents()
-        this.#modsPanel.disableEvents()
-      },
-    })
+    this.#modsPanel.registerEvents()
   }
 
   _registerFooterEvents () {
@@ -272,8 +277,8 @@ export class MainController {
     this.#mouseEventManager.disableEvents()
     this.#backButton.disableEvents()
     this.#mainFooter.disableEvents()
-    await this.#modsPanel.show()
     this.#modsPanel.enableEvents()
+    await this.#modsPanel.show()
   }
 
   async lastRandom () {
@@ -437,6 +442,10 @@ export class MainController {
           } else {
             this.pause()
           }
+        } else if (this.#showResults) {
+          // this.backMain()
+        } else {
+          this.exit()
         }
       },
       [KeyCode.F1]: () => this.showModsPanel(),
@@ -621,41 +630,41 @@ export class MainController {
 
   renderFrame () {
     this.#layoutEngine.clearBackground()
-    this.#layoutEngine.renderShape(this.#backgroundEffect)
+    this.#layoutEngine.renderObject(this.#backgroundEffect)
 
     // if (this.#loading) {
     //   this.renderLoading()
     // }
 
     if (this.#playing) {
-      this.#layoutEngine.renderShape(this.#backgroundDarker)
+      this.#layoutEngine.renderObject(this.#backgroundDarker)
       this.#stageController.loopFrame()
       if (this.#paused || this.#stageController.failed) {
         this.renderFrameSnapshot()
-        this.#layoutEngine.renderShape(this.#pauseMenu)
+        this.#layoutEngine.renderObject(this.#pauseMenu)
       }
     } else if (this.#showResults) {
-      this.#layoutEngine.renderShape(this.#rankingBoard)
-      this.#layoutEngine.renderShape(this.#backButton)
+      this.#layoutEngine.renderObject(this.#rankingBoard)
+      this.#layoutEngine.renderObject(this.#backButton)
     } else {
-      this.#layoutEngine.renderShape(this.#beatmapListManager.beatmapList)
-      this.#layoutEngine.renderShape(this.#mainHeader)
+      this.#layoutEngine.renderObject(this.#beatmapListManager.beatmapList)
+      this.#layoutEngine.renderObject(this.#mainHeader)
       this.renderModsInfo()
-      this.#layoutEngine.renderShape(this.#mainFooter)
-      this.#layoutEngine.renderShape(this.#backButton)
-      this.#layoutEngine.renderShape(this.#modsPanel)
+      this.#layoutEngine.renderObject(this.#mainFooter)
+      this.#layoutEngine.renderObject(this.#backButton)
+      this.#layoutEngine.renderObject(this.#modsPanel)
     }
 
-    this.#layoutEngine.renderShape(this.#flashLightEffect)
+    this.#layoutEngine.renderObject(this.#flashLightEffect)
 
     if (this.#backgroundFading) {
-      this.#layoutEngine.renderShape(this.#backgroundDarker)
+      this.#layoutEngine.renderObject(this.#backgroundDarker)
     }
 
     if (this.#valueChangeEffect) {
-      this.#layoutEngine.renderShape(this.#valueChangeEffect)
+      this.#layoutEngine.renderObject(this.#valueChangeEffect)
     }
-    this.#layoutEngine.renderShape(this.#fps)
+    this.#layoutEngine.renderObject(this.#fps)
     this.renderSpeedChangeEffects()
   }
 
@@ -681,20 +690,20 @@ export class MainController {
 
   renderSpeedChangeEffects () {
     if (this.#speedChangeEffect && this.#speedChangeEffect.active) {
-      this.#layoutEngine.renderShape(this.#speedChangeEffect)
+      this.#layoutEngine.renderObject(this.#speedChangeEffect)
     }
   }
 
   renderFrameSnapshot () {
     const frameSnapshot = this.#stageController.frameSnapshot
     if (frameSnapshot) {
-      this.#layoutEngine.renderShape(frameSnapshot)
+      this.#layoutEngine.renderObject(frameSnapshot)
     }
   }
 
   renderModsInfo () {
     if (this.#selectedMods && this.#selectedMods.length) {
-      this.#layoutEngine.renderShape(new ModsInfoEffect(this.#selectedMods))
+      this.#layoutEngine.renderObject(new ModsInfoEffect(this.#selectedMods))
     }
   }
 
@@ -702,7 +711,7 @@ export class MainController {
    * @private
    */
   renderLoading () {
-    this.#layoutEngine.renderShape(this.#loadingEffect)
+    this.#layoutEngine.renderObject(this.#loadingEffect)
   }
 
   async fadeIn (start = 200, end = 300) {

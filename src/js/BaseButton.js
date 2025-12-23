@@ -1,6 +1,6 @@
 import { RenderObject } from './RenderObject'
 import { MouseEventManager } from './MouseEventManager'
-import { rgba } from './utils'
+import { py } from './Config'
 
 /**
  * @typedef {Object} ButtonStyle
@@ -168,7 +168,7 @@ export class BaseButton extends RenderObject {
         context,
         text,
         x,
-        y: y + 5, // 稍微往下一点，视觉上更对齐
+        y: y + py(5), // 稍微往下一点，视觉上更对齐
         width,
         height,
         font: `${fontSize}px ${font}`,

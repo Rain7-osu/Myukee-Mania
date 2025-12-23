@@ -1,7 +1,7 @@
 import { RenderObject } from './RenderObject'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { BaseButton } from './BaseButton'
-import { CANVAS } from './Config'
+import { CANVAS, py } from './Config'
 import { KeyCode } from './KeyCode'
 import { Skin } from './Skin'
 
@@ -41,7 +41,7 @@ export class PauseMenu extends RenderObject {
   #currentSelectIndex = null
 
   /**
-   * @type {Array<'Resume', 'Retry', 'Back'>}
+   * @type {Array<'Resume' | 'Retry' | 'Back'>}
    */
   #currentMenus
 
@@ -270,9 +270,9 @@ export class PauseMenu extends RenderObject {
       x: 0,
       width: CANVAS.WIDTH,
       y: 0,
-      height: 600,
+      height: py(600),
       text: 'Failed',
-      font: 'bold 240px 微软雅黑',
+      font: `bold ${py(240)}px 微软雅黑`,
       color: 'rgba(60, 0, 0, 0.6)',
       textAlign: 'center',
       stroke: false,

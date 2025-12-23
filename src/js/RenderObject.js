@@ -247,12 +247,12 @@ export class RenderObject extends ActiveEffect {
    * @param size {number}
    * @param context {CanvasRenderingContext2D}
    * @param color {string}
-   * @param strokeColor {string}
    * @param stroke {boolean}
    * @param x {number}
    * @param y {number}
    * @param direction {'right' | 'left'}
-   * @param shadowColor {string?}
+   * @param [strokeColor] {string}
+   * @param [shadowColor] {string}
    */
   drawArrow ({
     size,

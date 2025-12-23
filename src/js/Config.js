@@ -48,6 +48,7 @@ export const setCanvasSize = ({
 export const SUPPORTED_RATIO = [
   [3840, 2160],
   [2560, 1440],
+  [2240, 1260],
   [1920, 1080],
   [1600, 900],
   [1366, 768],

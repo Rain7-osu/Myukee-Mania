@@ -8,7 +8,8 @@ import { JudgementAssets } from './JudgementEffect'
 import { AccuracyEffect } from './AccuracyEffect'
 import { RankingEffect } from './RankingEffect'
 import { BaseButton } from './BaseButton'
-import { BackButton } from './BackButton'
+import { KeyboardEventManager } from './KeyboardEventManager'
+import { KeyCode } from './KeyCode'
 
 /**
  * @typedef RankingResult
@@ -59,6 +60,8 @@ export class RankingBoard extends RenderObject {
    * @type {MainController}
    */
   #mainController
+
+  #keyboardEventManager = new KeyboardEventManager()
 
   /**
    * @param container {HTMLCanvasElement}
@@ -177,6 +180,13 @@ export class RankingBoard extends RenderObject {
         console.log('Not implements')
       },
     })
+    this.#keyboardEventManager.registerEvents({
+      keydownEventList: {
+        [KeyCode.ESCAPE]: () => {
+          this.#mainController.backMain()
+        },
+      }
+    })
   }
 
   removeEvents () {
@@ -185,6 +195,7 @@ export class RankingBoard extends RenderObject {
     }
     this.#retryButton.removeEvents()
     this.#watchReplayButton.removeEvents()
+    this.#keyboardEventManager.removeEvents()
   }
 
   render (context) {
