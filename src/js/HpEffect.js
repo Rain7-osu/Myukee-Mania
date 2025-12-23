@@ -1,6 +1,6 @@
 import { RenderObject } from './RenderObject'
 import { HpManager } from './HpManager'
-import { vh } from './utils'
+import { vh } from './Config'
 import { CANVAS } from './Config'
 
 const BG_COLOR = 'rgb(66, 74, 103)'

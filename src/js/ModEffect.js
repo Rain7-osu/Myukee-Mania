@@ -1,6 +1,6 @@
 import { RenderObject } from './RenderObject'
 import { Mod } from './ModsPanel'
-import { vh } from './utils'
+import { vh } from './Config'
 import { Skin } from './Skin'
 import { CANVAS } from './Config'
 

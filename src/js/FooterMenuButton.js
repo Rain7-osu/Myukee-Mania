@@ -1,6 +1,7 @@
 import { BaseButton } from './BaseButton'
 import { CANVAS } from './Config'
-import { rgba, vh, vw } from './utils'
+import { rgba } from './utils'
+import { vh, vw } from './Config'
 import { Skin } from './Skin'
 
 const TRANSITION_DURATION = 300

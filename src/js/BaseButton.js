@@ -196,7 +196,7 @@ export class BaseButton extends RenderObject {
    * @private
    */
   async _processColorTransition (fromColor, targetColor) {
-    await this.createTransition(this.#background, targetColor, TRANSITION_DURATION, 'easeOut', (color) => this.#background = color)
+    await this.createTransition(this.#background, targetColor, TRANSITION_DURATION, 'easeOut', color => this.#background = color)
   }
 
   async hover () {
@@ -208,7 +208,7 @@ export class BaseButton extends RenderObject {
       results.push(this._processColorTransition(background, hoverBackground))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
+      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -223,7 +223,7 @@ export class BaseButton extends RenderObject {
       results.push(this._processColorTransition(hoverBackground, background))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
+      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -238,7 +238,7 @@ export class BaseButton extends RenderObject {
       results.push(this._processColorTransition(this.hovered ? hoverBackground : background, activeBackground))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
+      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -253,7 +253,7 @@ export class BaseButton extends RenderObject {
       results.push(this._processColorTransition(activeBackground, this.hovered ? hoverBackground : background))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', (value) => this.#scale = value))
+      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
     }
     await Promise.all(results)
   }
@@ -271,16 +271,16 @@ export class BaseButton extends RenderObject {
   }
 
   /**
-   * @param eventMap {{
+   * @param [eventMap] {{
    *   onClick?: Function
    * }}
    */
   registerEvents (eventMap) {
-    const { onClick } = eventMap
+    const { onClick } = eventMap || {}
 
     this.#mouseEventHandler.registerEvents({
       mousemoveEvents: [
-        (e) => {
+        e => {
           if (this.isMouseIn(e)) {
             if (!this.hovered) {
               this.hover()
@@ -292,21 +292,21 @@ export class BaseButton extends RenderObject {
       ],
       wheelEvents: [],
       clickEvents: [
-        async (e) => {
+        async e => {
           if (this.isMouseIn(e)) {
-            onClick?.()
+            onClick()
           }
         },
       ],
       mousedownEvents: [
-        (e) => {
+        e => {
           if (this.isMouseIn(e)) {
             this.activeIn()
           }
         },
       ],
       mouseupEvents: [
-        (e) => {
+        e => {
           if (this.isMouseIn(e)) {
             this.activeOut()
           }

@@ -1,9 +1,12 @@
 import { BaseButton } from './BaseButton'
+import { ActiveEffect } from './ActiveEffect'
 
 const LEFT_OFFSET = 120
 
 export class ModsPanelButton extends BaseButton {
   #translateX = LEFT_OFFSET
+
+  #showEffect = new ActiveEffect()
 
   /**
    * @param x {1 | -1}
@@ -18,7 +21,12 @@ export class ModsPanelButton extends BaseButton {
   }
 
   async show () {
-    this.cancelTransitions()
-    await this.createTransition(this.#translateX, 0, 300, 'easeOut', (v) => this.#translateX = v)
+    this.#showEffect.cancelTransitions()
+    await this.#showEffect.createTransition(this.#translateX, 0, 300, 'easeOut', (v) => this.#translateX = v)
+  }
+
+  updateEffect (now) {
+    super.updateEffect(now)
+    this.#showEffect.updateEffect(now)
   }
 }

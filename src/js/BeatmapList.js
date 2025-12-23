@@ -1,7 +1,7 @@
 import { BeatmapItem } from './BeatmapItem'
 import { ScrollList } from './ScrollList'
 import { CANVAS } from './Config'
-import { py, vw } from './utils'
+import { py, vw } from './Config'
 
 const MAX_OFFSET_X_VW = 0.8
 const MAX_SPEED = 50

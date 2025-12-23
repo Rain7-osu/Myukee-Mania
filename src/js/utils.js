@@ -1,5 +1,3 @@
-import { CANVAS } from './Config'
-
 /**
  * @param arr {any[]}
  */
@@ -58,7 +56,7 @@ export function formatMapTime (milliseconds) {
   const seconds = Math.floor((ms % (1000 * 60)) / 1000)
 
   // 格式化为两位数
-  const format = (num) => num.toString().padStart(2, '0')
+  const format = num => num.toString().padStart(2, '0')
 
   if (hours <= 0) {
     if (minutes <= 0) {
@@ -121,28 +119,6 @@ export function uniqNotes (notes) {
 }
 
 /**
- * @param v {number}
- * @return {number}
- */
-export const vw = v => Math.round(v * CANVAS.WIDTH)
-/**
- * @param v {number}
- * @return {number}
- */
-export const vh = v => Math.round(v * CANVAS.HEIGHT)
-/**
- * @param v {number}
- * @return {number}
- */
-export const py = v => vh(v / 1440)
-
-/**
- * @param v {number}
- * @return {number}
- */
-export const px = v => vw(v / 2560)
-
-/**
  * @template T
  * @param arr {T[]}
  * @return {T[]}
@@ -154,4 +130,46 @@ export function shuffleArray (arr) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
   return shuffled
+}
+
+/**
+ * 安全设置 localStorage 项
+ * @param key {string}
+ * @param value {string}
+ */
+export const safeSetStorage = (key, value) => {
+  try {
+    localStorage.setItem(key, value)
+  } catch (e) {
+    console.error('Failed to set item in localStorage', e)
+  }
+}
+
+/**
+ * 安全获取 localStorage 项
+ * @param key {string}
+ * @return {string | null}
+ */
+export const safeGetStorage = key => {
+  try {
+    return localStorage.getItem(key)
+  } catch (e) {
+    console.error('Failed to get item from localStorage', e)
+    return null
+  }
+}
+
+/**
+ * 安全解析 JSON 字符串
+ * @param str {string}
+ * @param defaultValue {any?}
+ * @return {any | null}
+ */
+export const safeParseJson = (str, defaultValue = null) => {
+  try {
+    return JSON.parse(str)
+  } catch (e) {
+    console.error('Failed to parse JSON string', e)
+    return defaultValue
+  }
 }

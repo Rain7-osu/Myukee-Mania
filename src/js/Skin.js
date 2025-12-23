@@ -1,6 +1,6 @@
 import { CANVAS } from './Config'
 import { FileManager } from './FileManager'
-import { py, vh, vw, px } from './utils'
+import { py, vh, vw, px } from './Config'
 
 const YELLOW_NOTE = '#fed336'
 const BLUE_NOTE = '#00dbff'

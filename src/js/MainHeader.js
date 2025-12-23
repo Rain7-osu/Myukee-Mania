@@ -1,7 +1,8 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
-import { formatMapTime, rgba, py, px, vw } from './utils'
+import { formatMapTime, rgba } from './utils'
+import { py, px, vw } from './Config'
 import { Skin } from './Skin'
 
 const TRANSITION_DURATION = 200

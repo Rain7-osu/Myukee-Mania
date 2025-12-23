@@ -86,7 +86,7 @@ export class MainController {
   #paused = false
   #showResults = false
 
-  #settings = new Settings()
+  #settings = Settings.getInstance()
 
   /**
    * @type {HTMLCanvasElement}
@@ -169,9 +169,9 @@ export class MainController {
     this.#keyboardEventManager = new KeyboardEventManager()
     this.#mouseEventManager = new MouseEventManager(canvas, 'MainController')
     this.#stageController = new StageController(canvas, this, this.#layoutEngine)
-    this.#rankingBoard = new RankingBoard(canvas)
+    this.#rankingBoard = new RankingBoard(canvas, this)
     this.#beatmapListManager = new BeatmapListManager(canvas)
-    this.#backButton = new BackButton(canvas)
+    this.#backButton = new BackButton(canvas, this)
     this.#modsPanel = new ModsPanel(canvas)
     this.#pauseMenu = new PauseMenu(canvas, this)
     this.#mainFooter = new MainFooter(canvas, this)
@@ -216,6 +216,7 @@ export class MainController {
     this.#canvas.style.display = 'block'
     this.#entry.style.display = 'none'
     const songs = await this.loadSongList()
+    this.#layoutEngine.speed = this.#settings.get('speed')
     this.#beatmapListManager.init(songs)
     const selectItem = this.#beatmapListManager.firstSelect()
     Promise.all([
@@ -232,18 +233,15 @@ export class MainController {
   }
 
   _registerBackButtonEvents () {
-    this.#backButton.registerEvents({
-      onClick: async () => {
-        if (this.#showResults) {
-          await this.fadeOut()
-          this.#rankingBoard.hide()
-          await this.backMain()
-        } else {
-          await this.fadeOut(0, 2000)
-          this.exit()
-        }
-      },
-    })
+    this.#backButton.initEvents()
+  }
+
+  hideRankingBoard () {
+    this.#rankingBoard.hide()
+  }
+
+  showRankingBoard () {
+    return this.#rankingBoard.show()
   }
 
   /**
@@ -251,7 +249,7 @@ export class MainController {
    */
   _registerModsPanelEvents () {
     this.#modsPanel.registerEvents({
-      onClose: async (mods) => {
+      onClose: async mods => {
         this.#selectedMods = mods
         await this.#modsPanel.hide()
         this.#mouseEventManager.enableEvents()
@@ -329,6 +327,7 @@ export class MainController {
     await this.#stageController.init(beatmap, this.#settings, this.#currentRate, this.#selectedMods)
     this.#stageController.start()
     this.#playing = true
+    this.#backButton.page = 'main'
     this.#showResults = false
     this.#paused = false
     this.#cursor.hide()
@@ -381,7 +380,7 @@ export class MainController {
     /**
      * @param item {BeatmapItem}
      */
-    const handleClick = (item) => {
+    const handleClick = item => {
       if (this.#beatmapListManager.selectedItem === item) {
         this.#keyboardEventManager.removeEvents()
         this.preparePlay(item.beatmap)
@@ -407,7 +406,7 @@ export class MainController {
 
   _registerKeyboardEvents () {
     /** @type {KeyboardEventHandler} */
-    const handleEnter = async (e) => {
+    const handleEnter = async e => {
       e.preventDefault()
       if (!this.#playing) {
         await this.preparePlay(this.#beatmapListManager.selectedItem.beatmap)
@@ -415,7 +414,7 @@ export class MainController {
       }
     }
     /** @type {KeyboardEventHandler} */
-    const handleRandom = (e) => {
+    const handleRandom = e => {
       if (e.shiftKey) {
         this.lastRandom()
       } else {
@@ -442,13 +441,13 @@ export class MainController {
       },
       [KeyCode.F1]: () => this.showModsPanel(),
       [KeyCode.F2]: handleRandom,
-      [KeyCode.F3]: (e) => {
+      [KeyCode.F3]: e => {
         if (this.#playing) return
         if (e.ctrlKey) {
           this.decreaseSpeed()
         }
       },
-      [KeyCode.F4]: (e) => {
+      [KeyCode.F4]: e => {
         if (this.#playing) return
         if (e.ctrlKey) {
           this.increaseSpeed()
@@ -509,23 +508,15 @@ export class MainController {
   async finish (rankingResults) {
     this.#playing = false
     this.#showResults = true
+    this.#backButton.page = 'result'
     this.#rankingBoard.setResult(rankingResults)
     this.#cursor.show()
-    this.#rankingBoard.registerEvents({
-      onRetry: async () => {
-        await this.fadeOut()
-        this.#rankingBoard.hide()
-        await this.retry()
-      },
-      onWatchReplay: async () => {
-        console.log('Not implements')
-      },
-    })
+    this.#rankingBoard.registerEvents()
     this.#backButton.enableEvents()
     await this.fadeIn()
     await Promise.all([
       this.#backButton.show(),
-      this.#rankingBoard.show(),
+      this.showRankingBoard(),
     ])
   }
 
@@ -541,6 +532,7 @@ export class MainController {
 
   async backMain () {
     this.#showResults = false
+    this.#backButton.page = 'main'
     this.#playing = false
     this.#paused = false
     this.#pauseMenu.hide()
@@ -565,6 +557,7 @@ export class MainController {
     this.#playing = true
     this.#paused = false
     this.#showResults = false
+    this.#backButton.page = 'main'
     this.#pauseMenu.hide()
     this.#stageController.retry()
     this.#pauseMenu.removeEvents()

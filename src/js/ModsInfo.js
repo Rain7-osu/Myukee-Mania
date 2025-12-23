@@ -1,7 +1,7 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { Mod } from './ModsPanel'
-import { px, py } from './utils'
+import { px, py } from './Config'
 
 /**
  * @type {Record<Mod, string>}

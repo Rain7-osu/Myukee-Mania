@@ -1,5 +1,4 @@
-import { CANVAS, DEFAULT_SPEED } from './Config'
-import { py } from './utils'
+import { CANVAS } from './Config'
 
 // TODO Move stage render method out
 export class RenderEngine {
@@ -16,7 +15,7 @@ export class RenderEngine {
   timing
 
   /** @type {number} */
-  #speed = py(DEFAULT_SPEED)
+  #speed
 
   /**
    * @public

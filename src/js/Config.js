@@ -56,6 +56,27 @@ export const SUPPORTED_RATIO = [
 ]
 
 export const DEFAULT_DELAY_TIME = 1200
-export const DEFAULT_SPEED = 34
 export const MAX_SPEED = 40
 export const MIN_SPEED = 1
+
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const vw = v => Math.round(v * CANVAS.WIDTH)
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const vh = v => Math.round(v * CANVAS.HEIGHT)
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const py = v => vh(v / 1440)
+
+/**
+ * @param v {number}
+ * @return {number}
+ */
+export const px = v => vw(v / 2560)

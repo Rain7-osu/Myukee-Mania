@@ -56,10 +56,17 @@ export class RankingBoard extends RenderObject {
   #hasRegistered = false
 
   /**
-   * @param container {HTMLCanvasElement}
+   * @type {MainController}
    */
-  constructor (container) {
+  #mainController
+
+  /**
+   * @param container {HTMLCanvasElement}
+   * @param mainController {MainController}
+   */
+  constructor (container, mainController) {
     super()
+    this.#mainController = mainController
     const {
       score: {
         left,
@@ -134,12 +141,6 @@ export class RankingBoard extends RenderObject {
 
   hide () {
     this.#alpha = 0
-    // if (this.#alpha === 0) {
-    //   return Promise.resolve()
-    // }
-    // this.cancelTransitions()
-    //
-    // await this.createTransition(this.#alpha, 0, 500, 'easeOut', value => this.#alpha = value)
   }
 
   /**
@@ -160,21 +161,22 @@ export class RankingBoard extends RenderObject {
     this.#scoreEffect.updateEffect(now)
   }
 
-  /**
-   * @param onRetry {() => void}
-   * @param onWatchReplay {() => void}
-   * @param onBack {() => void}
-   */
-  registerEvents ({
-    onRetry,
-    onWatchReplay,
-    onBack,
-  }) {
+  registerEvents () {
     if (this.#hasRegistered) {
       return
     }
-    this.#retryButton.registerEvents({ onClick: onRetry })
-    this.#watchReplayButton.registerEvents({ onClick: onWatchReplay })
+    this.#retryButton.registerEvents({
+      onClick: async () => {
+        await this.#mainController.fadeOut()
+        this.hide()
+        await this.#mainController.retry()
+      },
+    })
+    this.#watchReplayButton.registerEvents({
+      onClick: async () => {
+        console.log('Not implements')
+      },
+    })
   }
 
   removeEvents () {

@@ -1,7 +1,7 @@
 import { BaseButton } from './BaseButton'
 import { Skin } from './Skin'
 import { CANVAS } from './Config'
-import { vh } from './utils'
+import { vh } from './Config'
 
 export class BackButton extends BaseButton {
   #defaultWidth = 200
@@ -12,7 +12,21 @@ export class BackButton extends BaseButton {
 
   #translateY = 0
 
-  constructor (container) {
+  /**
+   * @type {'main' | 'result'}
+   */
+  #page = 'main'
+
+  /**
+   * @type {MainController}
+   */
+  #mainController
+
+  /**
+   * @param container {HTMLCanvasElement}
+   * @param mainController {MainController}
+   */
+  constructor (container, mainController) {
     const { buttons: { back } } = Skin.config.rankingBoard
     super(container, {
       width: back.width,
@@ -30,9 +44,23 @@ export class BackButton extends BaseButton {
       hoverScale: 100,
       offsetPercentX: 0,
     })
-
+    this.#mainController = mainController
     this.#currentBackground = back.background
     this.#defaultWidth = back.width
+  }
+
+  /**
+   * @param page {'main' | 'result'}
+   */
+  set page (page) {
+    this.#page = page === 'result' ? 'result' : 'main'
+  }
+
+  /**
+   * @return {'main'|'result'}
+   */
+  get page () {
+    return this.#page
   }
 
   /**
@@ -67,6 +95,21 @@ export class BackButton extends BaseButton {
   async show () {
     this.cancelTransitions()
     await this.createTransition(this.#translateY, 0, 100, 'easeOut', value => this.#translateY = value)
+  }
+
+  initEvents () {
+    this.registerEvents({
+      onClick: async () => {
+        if (this.page === 'result') {
+          await this.#mainController.fadeOut()
+          this.#mainController.hideRankingBoard()
+          await this.#mainController.backMain()
+        } else {
+          await this.#mainController.fadeOut(0, 2000)
+          this.#mainController.exit()
+        }
+      },
+    })
   }
 
   rect () {

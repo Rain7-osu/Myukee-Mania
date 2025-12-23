@@ -2,7 +2,7 @@ import { Beatmap } from './Beatmap'
 import { CANVAS } from './Config'
 import { Skin } from './Skin'
 import { ScrollItem } from './ScrollItem'
-import { py, px, vh, vw } from './utils'
+import { py, px, vh, vw } from './Config'
 
 /**
  * @extends ScrollItem
