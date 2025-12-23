@@ -45,6 +45,16 @@ export const setCanvasSize = ({
   }
 }
 
+export const SUPPORTED_RATIO = [
+  [3840, 2160],
+  [2560, 1440],
+  [1920, 1080],
+  [1600, 900],
+  [1366, 768],
+  [1280, 720],
+  [960, 540],
+]
+
 export const DEFAULT_DELAY_TIME = 1200
 export const DEFAULT_SPEED = 34
 export const MAX_SPEED = 40
