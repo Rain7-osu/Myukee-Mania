@@ -63,6 +63,9 @@ const server = http.createServer((req, res) => {
   const [urlPath, search] = req.url.split('?')
   if (urlPath === '/') {
     serveFile(res, INDEX_HTML, 'text/html')
+  } else if (urlPath === '/icons') {
+    const iconsHtml = path.join(SRC_DIR, 'icons.html')
+    serveFile(res, iconsHtml, 'text/html')
   } else {
     let realPath = decodeURIComponent(path.join(SRC_DIR, urlPath))
     if (path.extname(realPath) === '') {

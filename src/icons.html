@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Icons</title>
+    <style>
+      #icons {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+</head>
+<body>
+<canvas id="icons"></canvas>
+<script type="module">
+  import { ATIcon, DTIcon, EZIcon } from './js/Icons'
+
+  function main () {
+    /** @type {HTMLCanvasElement} */
+    const canvas = document.getElementById('icons')
+    canvas.width = document.documentElement.clientWidth
+    canvas.height = document.documentElement.clientHeight
+    const ctx = canvas.getContext('2d')
+
+    const list = [
+      ATIcon(),
+      DTIcon(),
+      EZIcon(),
+    ]
+
+    const SIZE = 128
+    let x = 10, y = 10
+    for (let i = 0; i < list.length; i++) {
+      ctx.drawImage(list[i], x, y, SIZE, SIZE)
+      x += SIZE + 10
+      if (x + SIZE > window.screen) {
+        x = 10
+        y += SIZE + 10
+      }
+    }
+  }
+
+  main()
+
+</script>
+</body>
+</html>
