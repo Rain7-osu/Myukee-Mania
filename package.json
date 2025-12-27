@@ -2,11 +2,13 @@
   "name": "myukee-mania",
   "version": "0.0.0",
   "description": "a web mania game",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "dev": "node ./devServer/server.js",
-    "generate": "node ./src/local-scripts/generateSongList.js",
-    "prepare": "husky"
+    "generate": "node ./scripts/generateSongList.js",
+    "build": "rsbuild build",
+    "dev": "rsbuild dev --open",
+    "preview": "rsbuild preview"
   },
   "keywords": [
     "mania",
@@ -15,10 +17,6 @@
   "author": "Myukee",
   "license": "ISC",
   "devDependencies": {
-    "@types/ws": "^8.18.1",
-    "chokidar": "^4.0.3",
-    "globals": "^16.5.0",
-    "husky": "^9.1.7",
-    "ws": "^8.18.3"
+    "@rsbuild/core": "^1.6.14"
   }
 }
