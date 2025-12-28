@@ -1,4 +1,4 @@
-import { JudgementType } from './Judgement'
+import { JudgementType, MAX_MISS_DIVISION } from './Judgement'
 import { ScoreEffect } from './ScoreEffect'
 
 const MAX_SCORE = 1_000_000
@@ -64,6 +64,7 @@ export class ScoreManager {
    * Calculate the score for each note based on its judgement.
    * @private
    * @param note {Note}
+   * @return number
    */
   calcEachNoteScore (note) {
     if (!note.isHit) {
@@ -85,22 +86,33 @@ export class ScoreManager {
     return baseScore + bonusScore
   }
 
+  #lastScoreValue = 0
+
+  #lastScoreNoteIndex = 0
+
   /**
    * @param time {number}
+   * @param gameTiming {number}
    */
-  update (time) {
+  update (time, gameTiming) {
     let totalScore = 0
 
-    for (let i = 0; i < this.#notes.length; i++) {
+    for (let i = this.#lastScoreNoteIndex; i < this.#notes.length; i++) {
       const note = this.#notes[i]
 
-      if (note.score > 0) {
+      if (note.score !== null) {
         totalScore += note.score
         this.#lastBonus = note.bonus
       } else if (note.isHit) {
         note.score = this.calcEachNoteScore(note)
         totalScore += note.score
         this.#lastBonus = note.bonus
+      } else if (!note.isHit) {
+
+      }
+
+      if (note.offset - gameTiming > MAX_MISS_DIVISION) {
+        break
       }
     }
 

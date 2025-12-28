@@ -529,6 +529,11 @@ export class Skin {
           },
         },
       },
+      settingsPanel: {
+        width: px(1080),
+        height: CANVAS.HEIGHT,
+        background: 'rgba(0, 0, 0, 0.6)'
+      },
     }
   }
 }

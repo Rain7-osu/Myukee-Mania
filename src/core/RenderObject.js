@@ -24,6 +24,12 @@ export class RenderObject extends ActiveEffect {
 
   get display () { return this.#display}
 
+  updateEffect (now) {
+    if (this.display) {
+      super.updateEffect(now)
+    }
+  }
+
   /**
    * @public
    * @abstract
@@ -32,62 +38,6 @@ export class RenderObject extends ActiveEffect {
    */
   render (context) {
     throw new Error('Please implements the render method')
-  }
-
-  /**
-   * @param context {CanvasRenderingContext2D}
-   * @param text {string}
-   * @param x {number}
-   * @param y {number}
-   * @param maxWidth {number}
-   * @param lineHeight {number}
-   * @param row {number}
-   */
-  wrapText ({
-    context,
-    text,
-    x,
-    y,
-    maxWidth,
-    lineHeight,
-    row = 2,
-  }) {
-    const words = text.split(' ')
-    let line = ''
-    let testLine = ''
-    let lineCount = 0
-
-    for (let n = 0; n < words.length; n++) {
-      testLine = line + words[n] + ' '
-      const metrics = context.measureText(testLine)
-      const testWidth = metrics.width
-
-      if (testWidth > maxWidth && n > 0) {
-        if (lineCount < row) {
-          context.fillText(line, x, y)
-          line = words[n] + ' '
-          y += lineHeight
-          lineCount++
-        } else {
-          line = line.trim() + '...'
-          if (context.measureText(line).width > maxWidth) {
-            // 如果加上省略号还是超长，需要进一步处理
-            while (context.measureText(line + '...').width > maxWidth && line.length > 0) {
-              line = line.substring(0, line.length - 1)
-            }
-            line += '...'
-          }
-          context.fillText(line, x, y)
-          return
-        }
-      } else {
-        line = testLine
-      }
-    }
-
-    if (lineCount < 2) {
-      context.fillText(line, x, y)
-    }
   }
 
   /**

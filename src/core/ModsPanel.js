@@ -279,10 +279,10 @@ export class ModsPanel extends RenderObject {
 
     this.#keyboardEventManager.registerEvents({
       keydownEventList: {
-        [KeyCode.Digit1]: () => {
+        [KeyCode.DIGIT1]: () => {
           this._reset()
         },
-        [KeyCode.Digit2]: () => {
+        [KeyCode.DIGIT2]: () => {
           this.#mainController.closeModsPanel(this.#selectedMods)
         },
         [KeyCode.ESCAPE]: () => {

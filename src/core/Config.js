@@ -82,10 +82,10 @@ export const vh = v => Math.round(v * CANVAS.HEIGHT)
  * @param v {number}
  * @return {number}
  */
-export const py = v => vh(v / 1440)
+export const py = v => v > 64 ? vh(v / 1440) : Math.round(vh(v  / 140) / 10)
 
 /**
  * @param v {number}
  * @return {number}
  */
-export const px = v => vw(v / 2560)
+export const px = v => v > 64 ? vw(v / 2560) : Math.round(vw(v / 256) / 10)

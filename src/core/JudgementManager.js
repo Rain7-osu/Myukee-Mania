@@ -6,6 +6,17 @@ import { JudgementDeviation } from './JudgementDeviation'
 import { dev } from './dev'
 import { HpManager } from './HpManager'
 
+/**
+ * @typedef {Object} InitOptions
+ * @property {Note[]} notes
+ * @property {number} od
+ * @property {number} hp
+ * @property {HpEffect} hpEffect
+ * @property {boolean} auto
+ * @property {() => void} onFail
+ * @property {number} [judgementDelay]
+ */
+
 const DEFAULT_OD = 7
 
 export class JudgementManager {
@@ -19,6 +30,12 @@ export class JudgementManager {
    * @type {JudgementEffect[]}
    */
   #activeEffects = []
+
+  /**
+   * @type {number}
+   */
+  #judgementDelay = 0
+
   /**
    * @return {JudgementEffect[]}
    */
@@ -73,19 +90,16 @@ export class JudgementManager {
   get judgementRecord () { return this.#judgementRecord }
 
   /**
-   * @param notes {Note[]}
-   * @param od {number}
-   * @param hp {number}
-   * @param hpEffect {HpEffect}
-   * @param auto {boolean}
-   * @param onFail {() => void}
+   * @param options {InitOptions}
    */
-  init (notes, od, hp, hpEffect, auto, onFail) {
+  init (options) {
+    const { notes, od, hp, hpEffect, auto, onFail, judgementDelay = 0 } = options
     this.#auto = auto
     this.#notes = notes
     this.#od = od || 8
     this.#combo = 0
     this.#maxCombo = 0
+    this.#judgementDelay = judgementDelay
     this.#fullCombo = true
     this.#activeDeviations.init(od)
     this.#hpManager.init(hp, onFail, hpEffect)
@@ -186,19 +200,19 @@ export class JudgementManager {
     const goodTime = JudgementAreaCalculators[JudgementType.GOOD](this.#od)
     const okTime = JudgementAreaCalculators[JudgementType.OK](this.#od)
 
-    if (hitDeviation <= perfectTime * 1.2 && (hitDeviation + releaseDeviation) <= perfectTime * 2.4) {
+    if (hitDeviation <= perfectTime * 1.2 && hitDeviation + releaseDeviation <= perfectTime * 2.4) {
       return new Judgement(JudgementType.PERFECT, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= greatTime * 1.1 && (hitDeviation + releaseDeviation) <= greatTime * 2.2) {
+    if (hitDeviation <= greatTime * 1.1 && hitDeviation + releaseDeviation <= greatTime * 2.2) {
       return new Judgement(JudgementType.GREAT, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= goodTime && (hitDeviation + releaseDeviation) <= goodTime * 2) {
+    if (hitDeviation <= goodTime && hitDeviation + releaseDeviation <= goodTime * 2) {
       return new Judgement(JudgementType.GOOD, releaseTiming, hitTiming, releaseTiming)
     }
 
-    if (hitDeviation <= okTime && (hitDeviation + releaseDeviation) <= okTime * 2) {
+    if (hitDeviation <= okTime && hitDeviation + releaseDeviation <= okTime * 2) {
       return new Judgement(JudgementType.OK, releaseTiming, hitTiming, releaseTiming)
     }
 
@@ -220,8 +234,9 @@ export class JudgementManager {
 
   /**
    * @param {number} currentTiming
+   * @param {HitEffectManager} hitEffectManager
    */
-  autoPlay (currentTiming) {
+  autoPlay (currentTiming, hitEffectManager) {
     const notes = this.#notes
     this.activeDeviations.update(currentTiming)
     for (let i = 0; i < this.#activeEffects.length; i++) {
@@ -230,8 +245,7 @@ export class JudgementManager {
       effect.update(currentTiming, nextEffect)
     }
 
-    this.#activeEffects = this.#activeEffects.filter((e) => e.active)
-
+    this.#activeEffects = this.#activeEffects.filter(e => e.active)
 
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
@@ -243,9 +257,10 @@ export class JudgementManager {
       if (note.type === NoteType.TAP) {
         if (currentTiming >= note.offset) {
           note.hit()
+          hitEffectManager.pressKey(note.col)
+          setTimeout(() => hitEffectManager.releaseKey(note.col), 80)
           note.hitTiming = note.offset
           note.judgement = new Judgement(JudgementType.PERFECT, note.offset, note.offset)
-
           const type = note.judgement.type
           this.#judgementRecord[type]++
           const effect = new JudgementEffect(note.judgement)
@@ -258,6 +273,8 @@ export class JudgementManager {
           if (currentTiming >= note.offset) {
             note.hitTiming = note.offset
             note.isHeld = true
+
+            hitEffectManager.pressKey(note.col)
             const type = JudgementType.PERFECT
             this.activeDeviations.push(new JudgementDeviation(note.offset, 0, type))
             this.#combo++
@@ -266,6 +283,8 @@ export class JudgementManager {
           if (currentTiming >= note.end) {
             note.releaseTiming = note.end
             note.isHeld = false
+
+            hitEffectManager.releaseKey(note.col)
             note.hit()
             note.judgement = this.createJudgementByRelease(note.offset, note.hitTiming, note.end, note.releaseTiming)
             this.activeEffects.push(new JudgementEffect(note.judgement))
@@ -278,14 +297,10 @@ export class JudgementManager {
   }
 
   /**
-   * @param {number} currentTiming
+   * @param {number} timing
    */
-  update (currentTiming) {
-    if (this.#auto) {
-      this.autoPlay(currentTiming)
-      return
-    }
-
+  update (timing) {
+    const currentTiming = timing + this.#judgementDelay
     const maxMehTime = JudgementAreaCalculators[JudgementType.MEH](this.#od)
     const maxOkTime = JudgementAreaCalculators[JudgementType.OK](this.#od)
     const notes = this.#notes
@@ -298,7 +313,7 @@ export class JudgementManager {
       effect.update(currentTiming, nextEffect)
     }
 
-    this.#activeEffects = this.#activeEffects.filter((e) => e.active)
+    this.#activeEffects = this.#activeEffects.filter(e => e.active)
 
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
@@ -366,10 +381,11 @@ export class JudgementManager {
   }
 
   /**
-   * @param {number} hitTiming
+   * @param {number} timing
    * @param {number} hitCol
    */
-  checkHit (hitTiming, hitCol) {
+  checkHit (timing, hitCol) {
+    const hitTiming = this.#judgementDelay + timing
     const notes = this.#notes
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]
@@ -435,10 +451,12 @@ export class JudgementManager {
   }
 
   /**
-   * @param releaseTiming {number}
+   * @param timing {number}
    * @param releaseCol {number}
    */
-  checkRelease (releaseTiming, releaseCol) {
+  checkRelease (timing, releaseCol) {
+    const releaseTiming = this.#judgementDelay + timing
+
     const notes = this.#notes
     for (let i = 0; i < notes.length; i++) {
       const note = notes[i]

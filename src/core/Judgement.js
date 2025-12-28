@@ -28,12 +28,17 @@ export const JudgementAreaList = [
  */
 export const JudgementAreaCalculators = {
   [JudgementType.PERFECT]: () => 16.0,
-  [JudgementType.GREAT]: (od) => 64.0 - 3 * od,
-  [JudgementType.GOOD]: (od) => 97.0 - 3 * od,
-  [JudgementType.OK]: (od) => 127.0 - 3 * od,
-  [JudgementType.MEH]: (od) => 151.0 - 3 * od,
-  [JudgementType.MISS]: (od) => 188.0 - 3 * od,
+  [JudgementType.GREAT]: od => 64.0 - 3 * od,
+  [JudgementType.GOOD]: od => 97.0 - 3 * od,
+  [JudgementType.OK]: od => 127.0 - 3 * od,
+  [JudgementType.MEH]: od => 151.0 - 3 * od,
+  [JudgementType.MISS]: od => 188.0 - 3 * od,
 }
+
+/**
+ * @type {number}
+ */
+export const MAX_MISS_DIVISION = JudgementAreaCalculators[JudgementType.MISS](0)
 
 /**
  * the Judgement of hit notes

@@ -81,7 +81,7 @@ export class MouseEventManager {
   #invokeMousemoveEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
-    dev.log(this.#source, 'mousemove', e)
+    dev.debug(this.#source, 'mousemove', e)
     this.#mousemoveEvents.forEach(handler => handler(this._buildEvent(e)))
   }
   /**
@@ -90,7 +90,7 @@ export class MouseEventManager {
   #invokeWheelEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
-    dev.log(this.#source, 'wheel', e)
+    dev.debug(this.#source, 'wheel', e)
     this.#wheelEvents.forEach(handler => handler(this._buildEvent(e)))
   }
   /**
@@ -99,7 +99,7 @@ export class MouseEventManager {
   #invokeClickEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
-    dev.log(this.#source, 'click', e)
+    dev.debug(this.#source, 'click', e)
     if (this.#shapeEvents) {
       ![...this.#shapeEvents.values()].forEach(handler => handler(this._buildEvent(e)))
     }
@@ -108,13 +108,13 @@ export class MouseEventManager {
   #invokeMouseDownEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
-    dev.log(this.#source, 'mousedown', e)
+    dev.debug(this.#source, 'mousedown', e)
     this.#mousedownEvents.forEach(handler => handler(this._buildEvent(e)))
   }
   #invokeMouseUpEventHandler = e => {
     e.preventDefault()
     if (this.#disabled) return
-    dev.log(this.#source, 'mouseup', e)
+    dev.debug(this.#source, 'mouseup', e)
     this.#mouseupEvents.forEach(handler => handler(this._buildEvent(e)))
   }
 

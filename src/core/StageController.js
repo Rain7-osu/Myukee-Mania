@@ -118,7 +118,7 @@ export class StageController extends ActiveEffect {
   /**
    * @type {HitEffectManager}
    */
-  #hitEffects
+  #hitEffectManager
 
   /**
    * @type {{ [key: KeyCode]: boolean }}
@@ -216,7 +216,7 @@ export class StageController extends ActiveEffect {
     this.#mainController = mainController
     this.#renderEngine = renderEngine
     this.#keyboardEventManager = new KeyboardEventManager()
-    this.#hitEffects = new HitEffectManager()
+    this.#hitEffectManager = new HitEffectManager()
     this.#judgementManager = new JudgementManager()
     this.#scoreManager = new ScoreManager()
     this.#accuracyManager = new AccuracyManager()
@@ -269,7 +269,7 @@ export class StageController extends ActiveEffect {
     const { keys: keysCount, notes, overallDifficulty, hpDrainRate } = currentMap
     const { note: { width } } = keys[`keys${keysCount}`]
     this.#stageBoard.init(keysCount)
-    this.#hitEffects.keys = keysCount
+    this.#hitEffectManager.keys = keysCount
     this.#stageWidth = keysCount * width
     this.#hpEffect.init(this.#stageBoard.boundary.right)
     const coverMod = mods.find(v => [Mod.FD, Mod.FL, Mod.HD].includes(v))
@@ -293,7 +293,14 @@ export class StageController extends ActiveEffect {
     this.#pf = mods.includes(Mod.PF)
     this.#auto = mods.includes(Mod.AT)
     this.initSectionLines()
-    this.#judgementManager.init(notes, overallDifficulty, hpDrainRate, this.#hpEffect, this.#auto, () => this.fail())
+    this.#judgementManager.init({
+      notes,
+      od: overallDifficulty,
+      hp: hpDrainRate,
+      auto: this.#auto,
+      onFail: () => this.fail(),
+      hpEffect: this.#hpEffect,
+    })
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
     this.#mouseEventHandler.registerEvents({})
@@ -329,7 +336,7 @@ export class StageController extends ActiveEffect {
     this.#totalPauseTime = 0
     this.#lastPausedTime = 0
     this.#skippedTiming = 0
-    this.#hitEffects.reset()
+    this.#hitEffectManager.reset()
     this.#playingMap?.reset()
     this.#judgementManager.reset()
     this.#scoreManager.reset()
@@ -363,12 +370,12 @@ export class StageController extends ActiveEffect {
       return {
         ...acc,
         [key]: () => {
-          if (this.#paused || !this.#playing) {
+          if (this.#paused || !this.#playing || this.#auto) {
             return
           }
           if (this.#keyStatus[key]) {
             const col = hitObjectKeys.indexOf(key)
-            this.#hitEffects.releaseKey(col)
+            this.#hitEffectManager.releaseKey(col)
             if (col >= 0 && this.#playing && !this.#paused) {
               this.#judgementManager.checkRelease(this.getGameTiming(), col)
             }
@@ -382,11 +389,11 @@ export class StageController extends ActiveEffect {
       return {
         ...acc,
         [key]: () => {
-          if (this.#paused || !this.#playing) {
+          if (this.#paused || !this.#playing || this.#auto) {
             return
           }
           const col = hitObjectKeys.indexOf(key)
-          this.#hitEffects.pressKey(col)
+          this.#hitEffectManager.pressKey(col)
           if (col >= 0 && this.#playing && !this.#paused) {
             this.#judgementManager.checkHit(this.getGameTiming(), col)
             this.#keyStatus[key] = true
@@ -416,7 +423,7 @@ export class StageController extends ActiveEffect {
         }
       },
       [KeyCode.ESCAPE]: () => {
-        if (!this.realStarted) {
+        if (!this.realStarted || this.#auto) {
           this.quit()
         }
         if (this.#paused) {
@@ -601,8 +608,12 @@ export class StageController extends ActiveEffect {
 
       if (!this.#paused && !this.#failed) {
         this.#renderEngine.setTiming(timing)
-        this.#judgementManager.update(timing)
-        this.#scoreManager.update(now)
+        if (this.#auto) {
+          this.#judgementManager.autoPlay(timing, this.#hitEffectManager)
+        } else {
+          this.#judgementManager.update(timing)
+        }
+        this.#scoreManager.update(now, gameTiming)
         this.#accuracyManager.update()
         if (this.#pf && this.#accuracyManager.acc < 1) {
           this.retry()
@@ -610,7 +621,7 @@ export class StageController extends ActiveEffect {
         }
         this.#hpEffect.updateEffect(now)
       }
-      this.#hitEffects.updateTransition(now)
+      this.#hitEffectManager.updateTransition(now)
     }
 
     this.#stageBoard.updateEffect(now)
@@ -669,7 +680,7 @@ export class StageController extends ActiveEffect {
   }
 
   renderHitEffects () {
-    this.#renderEngine.renderObject(this.#hitEffects)
+    this.#renderEngine.renderObject(this.#hitEffectManager)
   }
 
   renderNotes () {

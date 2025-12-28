@@ -1,7 +1,11 @@
 import { RenderObject } from './RenderObject'
-import { CANVAS } from './Config'
+import { CANVAS, px, py } from './Config'
 import { Mod } from './ModsPanel'
-import { px, py } from './Config'
+
+const TOP = 162
+const LEFT = 160
+const FONT = 64
+const MAX_TRANSLATE_Y = 228
 
 /**
  * @type {Record<Mod, string>}
@@ -27,25 +31,50 @@ export class ModsInfoEffect extends RenderObject {
   /**
    * @type {Mod[]}
    */
-  #mods
+  #mods = []
+
+  #translateY = 0
+
+  constructor () {
+    super()
+    this.display = false
+  }
+
+  async hide () {
+    if (this.display) {
+      this.cancelTransitions()
+      await this.createTransition(this.#translateY, py(MAX_TRANSLATE_Y), 100, 'easeOut', value => this.#translateY = value)
+    } else {
+      return Promise.resolve()
+    }
+  }
+
+  async show () {
+    if (this.display) {
+      this.cancelTransitions()
+      await this.createTransition(this.#translateY, 0, 100, 'easeOut', value => this.#translateY = value)
+    } else {
+      return Promise.resolve()
+    }
+  }
 
   /**
    * @param mods {Mod[]}
    */
-  constructor (mods) {
-    super()
+  set mods (mods) {
     this.#mods = mods
+    this.display = !!mods.length
   }
 
   render (context) {
-    const TOP = CANVAS.HEIGHT - py(162)
-    const LEFT = px(160)
+    const top = CANVAS.HEIGHT - py(TOP) + this.#translateY
+    const left = px(LEFT)
     const text = this.#mods.map(mod => ModNameMap[mod]).join(',')
     context.save()
-    context.font = `${py(64)}px 微软雅黑`
+    context.font = `${py(FONT)}px 微软雅黑`
     context.fillStyle = 'rgba(255, 255, 255, 0.4)'
     context.textBaseline = 'bottom'
-    context.fillText(text, LEFT, TOP)
+    context.fillText(text, left, top)
     context.restore()
   }
 }

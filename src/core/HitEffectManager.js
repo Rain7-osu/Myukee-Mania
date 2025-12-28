@@ -1,5 +1,4 @@
 import { RenderObject } from './RenderObject'
-import { KeyCode } from './KeyCode'
 import { HitEffect } from './HitEffect'
 import { Skin } from './Skin'
 

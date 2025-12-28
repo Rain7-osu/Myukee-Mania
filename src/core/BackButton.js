@@ -3,6 +3,10 @@ import { Skin } from './Skin'
 import { CANVAS } from './Config'
 import { vh } from './Config'
 
+/**
+ * @typedef {'main' | 'result' | 'settings'} Scene
+ */
+
 export class BackButton extends BaseButton {
   #defaultWidth = 200
 
@@ -13,9 +17,9 @@ export class BackButton extends BaseButton {
   #translateY = 0
 
   /**
-   * @type {'main' | 'result'}
+   * @type {Scene}
    */
-  #page = 'main'
+  #scene = 'main'
 
   /**
    * @type {MainController}
@@ -50,17 +54,17 @@ export class BackButton extends BaseButton {
   }
 
   /**
-   * @param page {'main' | 'result'}
+   * @param scene {Scene}
    */
-  set page (page) {
-    this.#page = page === 'result' ? 'result' : 'main'
+  set scene (scene) {
+    this.#scene = scene
   }
 
   /**
-   * @return {'main'|'result'}
+   * @return {Scene}
    */
-  get page () {
-    return this.#page
+  get scene () {
+    return this.#scene
   }
 
   /**
@@ -100,10 +104,12 @@ export class BackButton extends BaseButton {
   initEvents () {
     this.registerEvents({
       onClick: async () => {
-        if (this.page === 'result') {
+        if (this.scene === 'result') {
           await this.#mainController.fadeOut()
           this.#mainController.hideRankingBoard()
           await this.#mainController.backMain()
+        } else if (this.#scene === 'settings') {
+          await this.#mainController.hideSettingsPanel()
         } else {
           await this.#mainController.exit()
         }

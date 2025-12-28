@@ -48,8 +48,9 @@ export class Note extends OffsetShape {
    */
   get judgement () { return this.#judgement }
 
-  /** @type {number} */
-  #score = 0
+  /** @type {number | null} */
+  #score = null
+
   get score () { return this.#score }
 
   set score (value) { this.#score = value }
@@ -84,7 +85,7 @@ export class Note extends OffsetShape {
   /** @type {number | null} */
   #hitTiming = null
   /**
-   * @return {number|null}
+   * @return {number | null}
    */
   get hitTiming () { return this.#hitTiming }
 

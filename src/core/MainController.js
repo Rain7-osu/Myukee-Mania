@@ -19,10 +19,11 @@ import { BackButton } from './BackButton'
 import { FPS } from './FPS'
 import { RateChangeEffect } from './RateChangeEffect'
 import { MainFooter } from './MainFooter'
-import { ModsPanel } from './ModsPanel'
+import { Mod, ModsPanel } from './ModsPanel'
 import { ModsInfoEffect } from './ModsInfo'
 import { MAX_SPEED, MIN_SPEED } from './Config'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
+import { SettingsPanel } from './SettingsPanel'
 
 /**
  * 主界面管理器
@@ -115,7 +116,7 @@ export class MainController {
   /**
    * @type {ValueChangeEffect}
    */
-  #valueChangeEffect = null
+  #rateChangeEffect = null
 
   /**
    * @type {Cursor}
@@ -153,6 +154,16 @@ export class MainController {
   #cancelAnimation = -1
 
   /**
+   * @type {SettingsPanel}
+   */
+  #settingsPanel
+
+  /**
+   * @type {ModsInfoEffect}
+   */
+  #modsInfo
+
+  /**
    * @param canvas {HTMLCanvasElement}
    * @param entry {HTMLElement}
    */
@@ -176,8 +187,11 @@ export class MainController {
     this.#pauseMenu = new PauseMenu(canvas, this)
     this.#mainFooter = new MainFooter(canvas, this)
     this.#mainHeader = new MainHeader(speed)
+    this.#settingsPanel = new SettingsPanel(canvas)
+    this.#modsInfo = new ModsInfoEffect()
     this.#cursor = new Cursor()
     this.#modsPanel.display = false
+    this.#settingsPanel.display = false
   }
 
   increaseRate () {
@@ -186,7 +200,7 @@ export class MainController {
       this.#currentRate = 2.5
     }
     this.#currentRate = +this.#currentRate.toFixed(2)
-    this.#valueChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
+    this.#rateChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
     this.#autoManager.setRate(this.#currentRate)
   }
 
@@ -196,7 +210,7 @@ export class MainController {
       this.#currentRate = 0.25
     }
     this.#currentRate = +this.#currentRate.toFixed(2)
-    this.#valueChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
+    this.#rateChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
     this.#autoManager.setRate(this.#currentRate)
   }
 
@@ -252,6 +266,7 @@ export class MainController {
   async closeModsPanel (selectedMods) {
     this.#selectedMods = selectedMods
     await this.#modsPanel.hide()
+    this.#modsInfo.mods = selectedMods
     this.#mouseEventManager.enableEvents()
     this.#keyboardEventManager.enableEvents()
     this.#backButton.enableEvents()
@@ -332,7 +347,7 @@ export class MainController {
     await this.#stageController.init(beatmap, this.#settings, this.#currentRate, this.#selectedMods)
     this.#stageController.start()
     this.#playing = true
-    this.#backButton.page = 'main'
+    this.#backButton.scene = 'main'
     this.#showResults = false
     this.#paused = false
     this.#cursor.hide()
@@ -356,6 +371,8 @@ export class MainController {
       this.#mainHeader.hide(),
       this.#mainFooter.hide(),
       this.#backButton.hide(),
+      this.#modsInfo.hide(),
+      this.#settingsPanel.hide(),
     ])
     await this.play(beatmap)
     await this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
@@ -405,6 +422,7 @@ export class MainController {
       this.#beatmapListManager.show(),
       this.#mainHeader.show(),
       this.#mainFooter.show(),
+      this.#modsInfo.show(),
       this.#backButton.show(),
     ])
   }
@@ -433,6 +451,16 @@ export class MainController {
     const keydownEventList = {
       [KeyCode.ENTER]: handleEnter,
       [KeyCode.NUMPAD_ENTER]: handleEnter,
+      [KeyCode.O]: e => {
+        // process settings
+        if (e.ctrlKey) {
+          if (!this.#settingsPanel.display) {
+            this.showSettingsPanel()
+          }
+        } else {
+          // input o
+        }
+      },
       // [KeyCode.ARROW_UP]: () => this.#beatmapListManager.selectPrev(),
       // [KeyCode.ARROW_DOWN]: () => this.#beatmapListManager.selectNext(),
       [KeyCode.ESCAPE]: () => {
@@ -442,8 +470,8 @@ export class MainController {
           } else {
             this.pause()
           }
-        } else if (this.#showResults) {
-          // this.backMain()
+        } else if (this.#settingsPanel.display) {
+          this.hideSettingsPanel()
         } else {
           this.exit()
         }
@@ -471,6 +499,16 @@ export class MainController {
     this.#keyboardEventManager.registerEvents({
       keydownEventList,
     })
+  }
+
+  showSettingsPanel () {
+    this.#backButton.scene = 'settings'
+    this.#settingsPanel.show()
+  }
+
+  hideSettingsPanel () {
+    this.#settingsPanel.hide()
+    this.#backButton.scene = 'main'
   }
 
   _registerMouseEvents () {
@@ -517,7 +555,7 @@ export class MainController {
   async finish (rankingResults) {
     this.#playing = false
     this.#showResults = true
-    this.#backButton.page = 'result'
+    this.#backButton.scene = 'result'
     this.#rankingBoard.setResult(rankingResults)
     this.#cursor.show()
     this.#rankingBoard.registerEvents()
@@ -541,7 +579,7 @@ export class MainController {
 
   async backMain () {
     this.#showResults = false
-    this.#backButton.page = 'main'
+    this.#backButton.scene = 'main'
     this.#playing = false
     this.#paused = false
     this.#pauseMenu.hide()
@@ -566,7 +604,7 @@ export class MainController {
     this.#playing = true
     this.#paused = false
     this.#showResults = false
-    this.#backButton.page = 'main'
+    this.#backButton.scene = 'main'
     this.#pauseMenu.hide()
     this.#stageController.retry()
     this.#pauseMenu.removeEvents()
@@ -600,22 +638,25 @@ export class MainController {
 
     this.#fps.update(now)
     this.#backgroundDarker.updateEffect(now)
-    this.#rankingBoard.updateEffect(now)
-    this.#beatmapListManager.beatmapList.updateEffect(now)
-    this.#mainHeader.updateEffect(now)
-    this.#mainFooter.updateEffect(now)
-    this.#backButton.updateEffect(now)
-    this.#flashLightEffect.updateEffect(now)
-    this.#pauseMenu.updateEffect(now)
-    this.#backgroundDarker.updateEffect(now)
-    if (this.#modsPanel.display) {
+
+    if (!this.#stageController.realStarted) {
+      this.#rankingBoard.updateEffect(now)
+      this.#beatmapListManager.beatmapList.updateEffect(now)
+      this.#mainHeader.updateEffect(now)
+      this.#mainFooter.updateEffect(now)
+      this.#backButton.updateEffect(now)
+      this.#flashLightEffect.updateEffect(now)
+      this.#pauseMenu.updateEffect(now)
+      this.#backgroundDarker.updateEffect(now)
+      this.#modsInfo.updateEffect(now)
+      this.#settingsPanel.updateEffect(now)
       this.#modsPanel.updateEffect(now)
     }
 
-    if (this.#valueChangeEffect) {
-      this.#valueChangeEffect.update(now)
-      if (!this.#valueChangeEffect.active) {
-        this.#valueChangeEffect = null
+    if (this.#rateChangeEffect) {
+      this.#rateChangeEffect.update(now)
+      if (!this.#rateChangeEffect.active) {
+        this.#rateChangeEffect = null
       }
     }
 
@@ -649,8 +690,9 @@ export class MainController {
     } else {
       this.#layoutEngine.renderObject(this.#beatmapListManager.beatmapList)
       this.#layoutEngine.renderObject(this.#mainHeader)
-      this.renderModsInfo()
+      this.#layoutEngine.renderObject(this.#modsInfo)
       this.#layoutEngine.renderObject(this.#mainFooter)
+      this.#layoutEngine.renderObject(this.#settingsPanel)
       this.#layoutEngine.renderObject(this.#backButton)
       this.#layoutEngine.renderObject(this.#modsPanel)
     }
@@ -661,9 +703,10 @@ export class MainController {
       this.#layoutEngine.renderObject(this.#backgroundDarker)
     }
 
-    if (this.#valueChangeEffect) {
-      this.#layoutEngine.renderObject(this.#valueChangeEffect)
+    if (this.#rateChangeEffect) {
+      this.#layoutEngine.renderObject(this.#rateChangeEffect)
     }
+
     this.#layoutEngine.renderObject(this.#fps)
     this.renderSpeedChangeEffects()
   }
@@ -701,12 +744,6 @@ export class MainController {
     }
   }
 
-  renderModsInfo () {
-    if (this.#selectedMods && this.#selectedMods.length) {
-      this.#layoutEngine.renderObject(new ModsInfoEffect(this.#selectedMods))
-    }
-  }
-
   /**
    * @private
    */
@@ -733,6 +770,6 @@ export class MainController {
    * @return {Promise<any[]>}
    */
   async loadSongList () {
-    return await fetch('./beatmaps.json').then(res => res.json())
+    return await fetch('/beatmaps.json').then(res => res.json())
   }
 }

@@ -129,14 +129,13 @@ export class BeatmapItem extends ScrollItem {
         rotation: 54,
       })
 
-      left += size + py(5)
+      left += size + py(18)
       size++
       i++
     }
 
-    // 小于 1.1 的，直接画到前面的星星上，更大一点
-    const lastStar = star - i
-    const lastStarSize = lastStar * py(15) + py(5)
+    const lastStar = (star - i + 0.2) / 1.2
+    const lastStarSize = lastStar * size
     super.drawStar({
       context,
       cx: left,

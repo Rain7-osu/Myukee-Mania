@@ -32,6 +32,7 @@ export default defineConfig({
       name: path.resolve(__dirname, './public'),
     },
     strictPort: true,
+    port: 3000,
   },
   output: {
     distPath: '../myukee-mania-build',

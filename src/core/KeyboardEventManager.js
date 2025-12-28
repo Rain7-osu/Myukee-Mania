@@ -11,6 +11,7 @@ const preventDefaultMaps = [
   KeyCode.F3,
   KeyCode.F4,
   KeyCode.F5,
+  KeyCode.O,
 ]
 
 export class KeyboardEventManager {
@@ -34,49 +35,49 @@ export class KeyboardEventManager {
   /**
    * @param e {KeyboardEvent}
    */
-  #invokeKeydownEventHandler = (e) => {
+  #invokeKeydownEventHandler = e => {
     const key = e.code
     if (this.#disabled) return
-    dev.log(`[Keydown]: ${key}`)
+    dev.debug(`[Keydown]: ${key}`)
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
     if (this.#keydownEventList[key]) {
       this.#keydownEventList[key](e)
     } else {
-      dev.warn(`No keydown handler registered for key: ${key}`)
+      dev.debug(`No keydown handler registered for key: ${key}`)
     }
   }
   /**
    * @param e {KeyboardEvent}
    */
-  #invokeKeyupEventHandler = (e) => {
+  #invokeKeyupEventHandler = e => {
     const key = e.code
     if (this.#disabled) return
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
-    dev.log(`[Keyup]: ${key}`)
+    dev.debug(`[Keyup]: ${key}`)
     if (this.#keyupEventList[key]) {
       this.#keyupEventList[key](e)
     } else {
-      dev.warn(`No keyup handler registered for key: ${key}`)
+      dev.debug(`No keyup handler registered for key: ${key}`)
     }
   }
   /**
    * @param e {KeyboardEvent}
    */
-  #invokeKeypressEventHandler = (e) => {
+  #invokeKeypressEventHandler = e => {
     const key = e.code
     if (this.#disabled) return
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
-    dev.log(`[Keypress]: ${key}`)
+    dev.debug(`[Keypress]: ${key}`)
     if (this.#keypressEventList[key]) {
       this.#keypressEventList[key](e)
     } else {
-      dev.warn(`No keypress handler registered for key: ${key}`)
+      dev.debug(`No keypress handler registered for key: ${key}`)
     }
   }
 

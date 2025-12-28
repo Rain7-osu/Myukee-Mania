@@ -1,7 +1,15 @@
+const searchParams = new URLSearchParams(location.search)
 window.__FORCE_FINISH__ = false
 window.__DEV__ = import.meta.env.DEV
+window.__DEBUG__ = searchParams.get('__DEBUG__') === 'true'
 window.__MOUSE_MOVE__SOURCE__ = ''
 window.__SHOW_SCROLL_BOX__ = false
+
+function debug (...args) {
+  if (__DEBUG__) {
+    console.log(performance.now(), ...args)
+  }
+}
 
 function warn (...args) {
   if (__DEV__) {
@@ -18,6 +26,7 @@ function log (...args) {
 export const dev = {
   warn,
   log,
+  debug,
 }
 
 /**

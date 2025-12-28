@@ -3,6 +3,8 @@ import { CANVAS } from './Config'
 import { FooterMenuButton } from './FooterMenuButton'
 import { Skin } from './Skin'
 
+const MAX_TRANSLATE_Y = 228
+
 export class MainFooter extends RenderObject {
   /**
    * @type {HTMLCanvasElement}
@@ -150,9 +152,8 @@ export class MainFooter extends RenderObject {
   }
 
   async hide () {
-    const { height: HEIGHT, borderWidth: BORDER_WIDTH } = Skin.config.main.footer
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, HEIGHT + BORDER_WIDTH, 100, 'easeOut', value => this._setTranslateY(value))
+    await this.createTransition(this.#translateY, MAX_TRANSLATE_Y, 100, 'easeOut', value => this._setTranslateY(value))
   }
 
   render (context) {
