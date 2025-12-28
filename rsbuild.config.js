@@ -25,12 +25,15 @@ export default defineConfig({
       index: './src/entries/index.js',
       icons: './src/entries/icons.js',
     },
-    assetsInclude: /\.json$/
+    assetsInclude: /\.json$/,
   },
   server: {
     publicDir: {
       name: path.resolve(__dirname, './public'),
     },
     strictPort: true,
+  },
+  output: {
+    distPath: '../myukee-mania-build',
   },
 })

@@ -1,18 +1,18 @@
 @font-face {
   font-family: Torus;
-  src: url('../../public/fonts/Torus-Regular.otf');
+  src: url('../assets/fonts/Torus-Regular.otf');
   font-weight: 500;
 }
 
 @font-face {
   font-family: Torus;
-  src: url('../../public/fonts/Torus-SemiBold.otf');
+  src: url('../assets/fonts/Torus-SemiBold.otf');
   font-weight: 600;
 }
 
 @font-face {
   font-family: Torus;
-  src: url('../../public/fonts/Torus-Bold.otf');
+  src: url('../assets/fonts/Torus-Bold.otf');
   font-weight: 700;
 }
 
@@ -98,14 +98,14 @@ body {
 #cursor {
   width: 200px;
   height: 200px;
-  background-image: url("../../public/skin/cursor.png");
+  background-image: url("../assets/images/cursor.png");
   background-size: contain;
   background-repeat: no-repeat;
   will-change: auto;
 }
 
 #cursor-middle {
-  background-image: url("../../public/skin/cursor-middle.png");
+  background-image: url("../assets/images/cursor-middle.png");
   width: 64px;
   height: 64px;
   background-size: contain;
