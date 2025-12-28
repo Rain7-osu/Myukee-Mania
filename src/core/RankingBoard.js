@@ -185,7 +185,7 @@ export class RankingBoard extends RenderObject {
         [KeyCode.ESCAPE]: () => {
           this.#mainController.backMain()
         },
-      }
+      },
     })
   }
 
@@ -343,10 +343,10 @@ export class RankingBoard extends RenderObject {
        * @param type {JudgementType}
        */
       const renderJudgement = (offsetX, offsetY, type) => {
-
+        const { scale } = Skin.config.rankingBoard.results.judgement
         const value = judgementRecord[type] + 'x'
         const { image } = JudgementAssets[type]
-        const { width, height } = image
+        const { width, height } = { width: image.width * scale, height: image.height * scale }
 
         context.drawImage(image, offsetX + (itemValueLeft - itemLeft - width) / 2, offsetY + (itemHeight - height) / 2, width, height)
         context.fillStyle = color

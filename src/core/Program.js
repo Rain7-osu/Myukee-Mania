@@ -1,4 +1,4 @@
-import { CANVAS, setCanvasSize, SUPPORTED_RATIO } from './Config'
+import { CANVAS, setCanvasSize, SUPPORTED_RATIO, MIN_CANVAS_WIDTH, MIN_CANVAS_HEIGHT, MIN_ASPECT_RATIO, MAX_ASPECT_RATIO } from './Config'
 import { Skin } from './Skin'
 import { $, bindClick } from './dom'
 import { MainController } from './MainController'
@@ -16,18 +16,26 @@ export class Program {
   _resize () {
     const clientWidth = document.documentElement.clientWidth
     const clientHeight = document.documentElement.clientHeight
+    let selectedWidth = clientWidth
+    let selectedHeight = clientHeight
 
-    // 找到最大的支持尺寸，该尺寸的宽高都小于等于客户端宽高
-    let selectedWidth = 960 // 默认最小尺寸
-    let selectedHeight = 540
-
-    // 遍历支持的分辨率列表（从大到小）
-    for (const [width, height] of SUPPORTED_RATIO) {
-      if (width <= clientWidth && height <= clientHeight) {
-        selectedWidth = width
-        selectedHeight = height
-        break // 找到第一个合适的最大尺寸
+    // 当屏幕高度小于最小高度或者屏幕宽度小于最小宽度时，CANVAS 大小设置为最小尺寸
+    if (clientHeight < MIN_CANVAS_HEIGHT || clientWidth < MIN_CANVAS_WIDTH) {
+      selectedWidth = MIN_CANVAS_WIDTH
+      selectedHeight = MIN_CANVAS_HEIGHT
+    } else {
+      // 计算当前宽高比
+      const aspectRatio = selectedWidth / selectedHeight
+      
+      // 宽高比最小为 4:3，即当宽高比小于 4:3 时，以宽为基准计算高度
+      if (aspectRatio < MIN_ASPECT_RATIO) {
+        selectedHeight = selectedWidth * (3 / 4)
       }
+      // 宽高比最大为 16:7，即当宽高比大于 16:7 时，以高为基准计算宽度
+      else if (aspectRatio > MAX_ASPECT_RATIO) {
+        selectedWidth = selectedHeight * (16 / 7)
+      }
+      // 默认情况下，宽高为视口的宽高（已设置）
     }
 
     // 设置画布尺寸

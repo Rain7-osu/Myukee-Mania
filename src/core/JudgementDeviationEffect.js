@@ -8,9 +8,7 @@ const GREEN_COLOR = '#53e80a'
 const BLUE_COLOR = '#2ebbe6'
 const WHITE_COLOR = '#ffffff'
 
-const WHITE_LINE_WIDTH = 4
-const BAR_HEIGHT = 32
-const COLOR_HEIGHT = 8
+
 
 /**
  * 打击偏差动效
@@ -37,13 +35,15 @@ export class JudgementDeviationEffect extends RenderObject {
    */
   init (od, scale = 1.5) {
     this.#activeDeviations = []
+    const BAR_HEIGHT = py(32)
+    const COLOR_HEIGHT = py(8)
     this.#config = {
-      width: px(JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale),
-      height: py(BAR_HEIGHT * scale),
+      width: py(JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale),
+      height: BAR_HEIGHT * scale,
       colorHeight: py(COLOR_HEIGHT * scale),
-      yellowWidth: px(JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale),
-      greenWidth: px(JudgementAreaCalculators[JudgementType.OK](od) * 2 * scale),
-      blueWidth: px(JudgementAreaCalculators[JudgementType.GREAT](od) * 2 * scale),
+      yellowWidth: py(JudgementAreaCalculators[JudgementType.MEH](od) * 2 * scale),
+      greenWidth: py(JudgementAreaCalculators[JudgementType.OK](od) * 2 * scale),
+      blueWidth: py(JudgementAreaCalculators[JudgementType.GREAT](od) * 2 * scale),
     }
   }
 
@@ -52,6 +52,7 @@ export class JudgementDeviationEffect extends RenderObject {
    * @param context {CanvasRenderingContext2D}
    */
   renderBar (context) {
+    const WHITE_LINE_WIDTH = py(4)
     const y = CANVAS.HEIGHT - this.#config.height
     const x = (CANVAS.WIDTH - this.#config.width) / 2.0
     const colorY = y + (this.#config.height - this.#config.colorHeight) / 2.0

@@ -129,7 +129,7 @@ export class ModsPanel extends RenderObject {
     this.#container = container
     this.#mainController = mainController
     const baseModStyle = {
-      width: px(MOD_WIDTH),
+      width: py(MOD_WIDTH),
       height: py(MOD_HEIGHT),
     }
     /**

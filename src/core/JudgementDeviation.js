@@ -1,13 +1,12 @@
 import { RenderObject } from './RenderObject'
 import { JudgementType } from './Judgement'
-import { CANVAS } from './Config'
+import { CANVAS, py } from './Config'
 
 const MAX_REMAIN_TIME = 6000.0
-const HEIGHT = 32
-const LINE_WIDTH = 4
-const BLUE_COLOR = (a) => `rgba(46, 187, 230, ${a})`
-const GREEN_COLOR = (a) => `rgba(83, 232, 10, ${a})`
-const YELLOW_COLOR = (a) => `rgba(222, 173, 80, ${a})`
+
+const BLUE_COLOR = a => `rgba(46, 187, 230, ${a})`
+const GREEN_COLOR = a => `rgba(83, 232, 10, ${a})`
+const YELLOW_COLOR = a => `rgba(222, 173, 80, ${a})`
 
 /**
  * 打击偏差
@@ -68,6 +67,8 @@ export class JudgementDeviation extends RenderObject {
   }
 
   render (context) {
+    const HEIGHT = py(32)
+    const LINE_WIDTH = py(4)
     context.fillStyle = this.#color(this.#alpha)
     const x = CANVAS.WIDTH / 2.0 + this.#deviation * this.#scale
     const y = CANVAS.HEIGHT - HEIGHT * this.#scale

@@ -1,5 +1,4 @@
 import { CANVAS } from './Config'
-import { FileManager } from './FileManager'
 import { py, vh, vw, px } from './Config'
 
 const YELLOW_NOTE = '#fed336'
@@ -30,7 +29,7 @@ export class Skin {
           background: 'rgba(0, 0, 0, 1)',
         },
         border: {
-          width: px(10),
+          width: py(10),
           color: 'rgb(127, 127, 127)',
         },
         columnCenter: CANVAS.WIDTH / 2.0,
@@ -42,7 +41,7 @@ export class Skin {
           textAlign: 'right',
         },
         ranking: {
-          right: px(356),
+          right: py(48) * 6 + py(60),
           top: py(106),
           scale: py(144) / 100,
         },
@@ -93,7 +92,7 @@ export class Skin {
           height: py(200),
         },
         progress: {
-          centerX: CANVAS.WIDTH - px(320),
+          centerX: CANVAS.WIDTH - (py(48) * 6 + py(20)),
           centerY: py(132),
           radius: py(24),
           lineWidth: py(3),
@@ -101,7 +100,7 @@ export class Skin {
         keys: {
           keys4: {
             note: {
-              width: px(148),
+              width: py(148),
               height: py(64),
               gap: 0,
               color: {
@@ -120,7 +119,7 @@ export class Skin {
           },
           keys5: {
             note: {
-              width: px(128),
+              width: py(128),
               height: py(60),
               gap: 0,
               color: {
@@ -141,7 +140,7 @@ export class Skin {
           },
           keys6: {
             note: {
-              width: px(118),
+              width: py(118),
               height: py(54),
               gap: 0,
               color: {
@@ -164,7 +163,7 @@ export class Skin {
           },
           keys7: {
             note: {
-              width: px(108),
+              width: py(108),
               height: py(48),
               gap: 0,
               color: {
@@ -189,7 +188,7 @@ export class Skin {
           },
           keys8: {
             note: {
-              width: px(108),
+              width: py(108),
               height: py(48),
               gap: 0,
               color: {
@@ -308,10 +307,10 @@ export class Skin {
           borderColor: 'rgb(0, 102, 255)',
           bgColor: 'rgb(0, 0, 0)',
           menus: {
-            left: px(420),
+            left: py(420),
             button: {
-              width: px(132),
-              gap: px(6),
+              width: py(132),
+              gap: py(6),
               outlineColor: 'rgb(115, 115, 115)',
               outlineShadowColor: 'rgb(255, 255, 255)',
               color: 'rgb(255, 255, 255)',
@@ -449,6 +448,7 @@ export class Skin {
             itemRight: px(40),
             itemTop: py(38),
             itemHeight: py(132),
+            scale: py(1000) / 1000,
           },
           combo: {
             font: '微软雅黑',
@@ -474,8 +474,8 @@ export class Skin {
           },
         },
         ranking: {
-          scale: 2,
-          startScale: 8,
+          scale: py(2000) / 1000,
+          startScale: py(8000) / 1000,
           right: px(10),
           top: py(240),
         },

@@ -60,6 +60,14 @@ export const DEFAULT_DELAY_TIME = 1200
 export const MAX_SPEED = 40
 export const MIN_SPEED = 1
 
+// Canvas尺寸限制
+export const MIN_CANVAS_WIDTH = 960
+export const MIN_CANVAS_HEIGHT = 540
+
+// 宽高比限制
+export const MIN_ASPECT_RATIO = 4 / 3  // 4:3
+export const MAX_ASPECT_RATIO = 16 / 7 // 16:7
+
 /**
  * @param v {number}
  * @return {number}
