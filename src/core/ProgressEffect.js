@@ -6,6 +6,16 @@ export class ProgressPercentEffect extends RenderObject {
   #percent
 
   /**
+   * @param value {number}
+   */
+  set percent(value) { this.#percent = value }
+
+  /**
+   * @return {number}
+   */
+  get percent(){ return this.#percent }
+
+  /**
    * @param percent {number}
    */
   constructor (percent) {

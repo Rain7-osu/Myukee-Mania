@@ -211,7 +211,7 @@ export class PauseMenu extends RenderObject {
     this.#failed = failed
     this.#currentSelect = null
     this.#currentSelectIndex = null
-    await this.createTransition(0, 100, 800, 'easeOut', (value) => {
+    await this.createTransition(0, 100, 800, 'easeOut', value => {
       this.#alpha = value / 100
     })
   }

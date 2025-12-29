@@ -1,7 +1,7 @@
 import { OffsetShape } from './RenderObject'
 import { Skin } from './Skin'
 
-export class SectionLine extends OffsetShape {
+export class SectionLineEffect extends OffsetShape {
   /**
    * @type {number}
    */

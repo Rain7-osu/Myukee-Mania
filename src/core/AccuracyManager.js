@@ -1,8 +1,27 @@
+import { RankingEffect } from './RankingEffect.js'
+import { AccuracyEffect } from './AccuracyEffect.js'
+
 export class AccuracyManager {
   /** @type {Note[]} */
   #notes
 
   #acc = 1.0
+
+  /** @type {AccuracyEffect} */
+  #accEffect = new AccuracyEffect()
+
+  /**
+   * @return {AccuracyEffect}
+   */
+  get accEffect () { return this.#accEffect }
+
+  /** @type {RankingEffect} */
+  #rankingEffect = new RankingEffect(0)
+
+  /**
+   * @return {RankingEffect}
+   */
+  get rankingEffect () { return this.#rankingEffect }
 
   /**
    * @param notes {Note[]}
@@ -15,7 +34,7 @@ export class AccuracyManager {
    * @private
    * @return {number}
    */
-  calcAcc () {
+  _calcAcc () {
     if (this.#notes.length === 0) {
       return 1.0
     }
@@ -39,7 +58,10 @@ export class AccuracyManager {
   }
 
   update () {
-    this.#acc = this.calcAcc()
+    const acc = this._calcAcc()
+    this.#acc = acc
+    this.#accEffect.acc = acc
+    this.#rankingEffect.type = RankingEffect.calcRankingType(acc)
   }
 
   /**

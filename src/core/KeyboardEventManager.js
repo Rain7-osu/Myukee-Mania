@@ -11,6 +11,9 @@ const preventDefaultMaps = [
   KeyCode.F3,
   KeyCode.F4,
   KeyCode.F5,
+  KeyCode.F6,
+  KeyCode.F7,
+  KeyCode.F8,
   KeyCode.O,
 ]
 

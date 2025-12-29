@@ -5,10 +5,15 @@ export class ComboEffect extends RenderObject {
   /** @type {number} */
   #value
 
-  constructor (value) {
-    super()
-    this.#value = value
-  }
+  /**
+   * @param value {number}
+   */
+  set value(value) { this.#value = value }
+
+  /**
+   * @return {number}
+   */
+  get value(){ return this.#value }
 
   render (context) {
     if (!this.#value) {

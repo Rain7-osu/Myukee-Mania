@@ -95,6 +95,14 @@ export class AudioManager {
    */
   setRate (value) {
     this.#audio.playbackRate = value
+    this.#audio.preservesPitch = false
+  }
+
+  /**
+   * @param value {boolean}
+   */
+  set preservesPitch (value) {
+    this.#audio.preservesPitch = value
   }
 
   async play () {
@@ -116,13 +124,14 @@ export class AudioManager {
   /**
    * @param mod {Mod}
    */
-  applyMod(mod) {
+  applyMod (mod) {
     if (mod === Mod.HT) {
       this.setRate(0.75)
     } else if (mod === Mod.DT) {
       this.setRate(1.5)
     } else if (mod === Mod.NC) {
       this.setRate(1.5)
+      this.preservesPitch = false
     }
   }
 
@@ -142,6 +151,5 @@ export class AudioManager {
    * @return {boolean}
    */
   get playing () { return this.#playing }
-
 
 }

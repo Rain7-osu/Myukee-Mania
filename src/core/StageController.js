@@ -2,7 +2,7 @@ import { DEFAULT_DELAY_TIME } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
 import { HitEffectManager } from './HitEffectManager'
-import { SectionLine } from './SectionLine'
+import { SectionLineEffect } from './SectionLineEffect.js'
 import { ComboEffect } from './ComboEffect'
 import { JudgementManager } from './JudgementManager'
 import { KeyCode } from './KeyCode'
@@ -25,6 +25,8 @@ import { ActiveEffect } from './ActiveEffect'
 import { ModEffect } from './ModEffect'
 import { Mod } from './ModsPanel'
 import { HpEffect } from './HpEffect'
+import { SectionLineManager } from './SectionLineManager.js'
+import { ProgressPercentManager } from './ProgressPercentManager.js'
 
 /**
  * @callback Callback
@@ -51,12 +53,6 @@ export class StageController extends ActiveEffect {
    * @type {AudioManager | null}
    */
   #playingAudio
-
-  /**
-   * every section line offset
-   * @type {number[]}
-   */
-  #sectionLines = []
 
   /**
    * 是否在一局游戏中处于暂停状态
@@ -119,6 +115,15 @@ export class StageController extends ActiveEffect {
    * @type {HitEffectManager}
    */
   #hitEffectManager
+
+  /**
+   * @type {SectionLineManager}
+   */
+  #sectionLineManager = new SectionLineManager()
+
+  #progressPercentManager = new ProgressPercentManager()
+
+  #comboEffect = new ComboEffect()
 
   /**
    * @type {{ [key: KeyCode]: boolean }}
@@ -283,16 +288,19 @@ export class StageController extends ActiveEffect {
     // audio
     const audio = new AudioManager()
     await audio.load(beatmap.audioFile)
+    const duration = audio.duration / rate
+
     audio.setRate(rate)
     mods.forEach(mod => audio.applyMod(mod))
-    this.#duration = audio.duration / rate
+    this.#duration = duration
     this.#playingMap = currentMap
     this.#playingAudio = audio
+    this.#progressPercentManager.duration = duration
 
     // init
     this.#pf = mods.includes(Mod.PF)
     this.#auto = mods.includes(Mod.AT)
-    this.initSectionLines()
+    this.#sectionLineManager.init(currentMap, audio, this.#stageWidth)
     this.#judgementManager.init({
       notes,
       od: overallDifficulty,
@@ -304,24 +312,6 @@ export class StageController extends ActiveEffect {
     this.#scoreManager.init(notes)
     this.#accuracyManager.init(notes)
     this.#mouseEventHandler.registerEvents({})
-  }
-
-  initSectionLines () {
-    const timingList = this.#playingMap.timingList
-    const duration = this.#playingAudio.duration
-
-    let currentSection = -1
-    for (let i = 0; i < timingList.length; i++) {
-      const currentTiming = timingList[i]
-      const startOffset = currentTiming.offset
-      const sectionLen = currentTiming.beatLen * 4
-      const endOffset = i + 1 >= timingList.length ? duration : timingList[i + 1].offset
-
-      for (let j = 0; j + startOffset < endOffset; j += sectionLen) {
-        currentSection = startOffset + j
-        this.#sectionLines.push(currentSection)
-      }
-    }
   }
 
   /**
@@ -352,8 +342,7 @@ export class StageController extends ActiveEffect {
     if (flag) {
       await this.#playingAudio.resume()
     } else {
-      const [task] = this.createTimeout(DEFAULT_DELAY_TIME)
-      await task
+      await new Promise(resolve => setTimeout(resolve, DEFAULT_DELAY_TIME))
       this.#realStarted = true
       await this.#playingAudio.play()
     }
@@ -548,7 +537,6 @@ export class StageController extends ActiveEffect {
   }
 
   renderFrame () {
-    // TODO update 逻辑抽出
     if (this.#playing) {
       this.renderStageBoard()
       if (!this.#finished) {
@@ -603,24 +591,23 @@ export class StageController extends ActiveEffect {
 
     const now = performance.now()
     this.updateTimeout(now)
-    if (this.#playing) {
-      const timing = gameTiming
 
-      if (!this.#paused && !this.#failed) {
-        this.#renderEngine.setTiming(timing)
-        if (this.#auto) {
-          this.#judgementManager.autoPlay(timing, this.#hitEffectManager)
-        } else {
-          this.#judgementManager.update(timing)
-        }
-        this.#scoreManager.update(now, gameTiming)
-        this.#accuracyManager.update()
-        if (this.#pf && this.#accuracyManager.acc < 1) {
-          this.retry()
-          return
-        }
-        this.#hpEffect.updateEffect(now)
+    if (this.#playing && !this.#paused && !this.#failed) {
+      this.#renderEngine.setTiming(gameTiming)
+      if (this.#auto) {
+        this.#judgementManager.autoPlay(gameTiming, this.#hitEffectManager)
+      } else {
+        this.#judgementManager.update(gameTiming)
       }
+      this.#comboEffect.value = this.#judgementManager.combo
+      this.#scoreManager.update(now, gameTiming)
+      this.#accuracyManager.update()
+      if (this.#pf && this.#accuracyManager.acc < 1) {
+        this.retry()
+        return
+      }
+      this.#progressPercentManager.update(gameTiming)
+      this.#hpEffect.updateEffect(now)
       this.#hitEffectManager.updateTransition(now)
     }
 
@@ -646,9 +633,8 @@ export class StageController extends ActiveEffect {
   }
 
   renderAccuracyEffect () {
-    const acc = this.#accuracyManager.acc
-    this.#renderEngine.renderObject(new AccuracyEffect(acc))
-    this.#renderEngine.renderObject(new RankingEffect(acc))
+    this.#renderEngine.renderObject(this.#accuracyManager.accEffect)
+    this.#renderEngine.renderObject(this.#accuracyManager.rankingEffect)
   }
 
   renderSkip () {
@@ -658,10 +644,7 @@ export class StageController extends ActiveEffect {
   }
 
   renderProgressEffect () {
-    const timing = this.getGameTiming()
-    const duration = this.#duration
-    const percent = timing > duration ? 1.0 : timing / duration
-    this.#renderEngine.renderObject(new ProgressPercentEffect(percent))
+    this.#renderEngine.renderObject(this.#progressPercentManager.effect)
   }
 
   renderScoreEffect () {
@@ -675,8 +658,7 @@ export class StageController extends ActiveEffect {
   }
 
   renderComboEffect () {
-    const combo = new ComboEffect(this.#judgementManager.combo)
-    this.#renderEngine.renderObject(combo)
+    this.#renderEngine.renderObject(this.#comboEffect)
   }
 
   renderHitEffects () {
@@ -684,15 +666,13 @@ export class StageController extends ActiveEffect {
   }
 
   renderNotes () {
-    this.#playingMap?.notes.forEach(note => {
+    this.#playingMap.notes.forEach(note => {
       this.#renderEngine.renderOffsetObject(note)
     })
   }
 
   renderSectionLine () {
-    this.#sectionLines.forEach(offset => {
-      this.#renderEngine.renderOffsetObject(new SectionLine(offset, this.#stageWidth))
-    })
+    this.#renderEngine.renderObject(this.#sectionLineManager)
   }
 
   renderHpEffect () {

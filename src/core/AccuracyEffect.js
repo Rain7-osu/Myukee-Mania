@@ -22,19 +22,15 @@ export class AccuracyEffect extends RenderObject {
   }
 
   /** @type {number} */
-  #acc
+  #value = 0
 
   /**
-   * Creates an instance of AccuracyEffect.
-   * @param acc {number} - The accuracy value, typically between 0 and 1.
+   * @param value {number}
    */
-  constructor (acc) {
-    super()
-    this.#acc = acc ?? 1
-  }
+  set acc(value) { this.#value = value }
 
   render (context) {
-    const acc = formatPercentage(this.#acc)
+    const acc = formatPercentage(this.#value)
     const { x, y, font, textAlign, color } = Skin.config.stage.accuracy
 
     context.save()

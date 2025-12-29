@@ -24,6 +24,7 @@ import { ModsInfoEffect } from './ModsInfo'
 import { MAX_SPEED, MIN_SPEED } from './Config'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { SettingsPanel } from './SettingsPanel'
+import { ComboEffect } from './ComboEffect.js'
 
 /**
  * 主界面管理器
@@ -202,6 +203,7 @@ export class MainController {
     this.#currentRate = +this.#currentRate.toFixed(2)
     this.#rateChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
     this.#autoManager.setRate(this.#currentRate)
+    this.#autoManager.preservesPitch = false
   }
 
   decreaseRate () {
@@ -212,6 +214,7 @@ export class MainController {
     this.#currentRate = +this.#currentRate.toFixed(2)
     this.#rateChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
     this.#autoManager.setRate(this.#currentRate)
+    this.#autoManager.preservesPitch = true
   }
 
   async exit () {
@@ -492,8 +495,16 @@ export class MainController {
       },
       [KeyCode.F5]: () => this.#autoManager.resume(),
       [KeyCode.F6]: () => this.#autoManager.pause(),
-      [KeyCode.F7]: () => this.decreaseRate(),
-      [KeyCode.F8]: () => this.increaseRate(),
+      [KeyCode.F7]: e => {
+        if (e.ctrlKey) {
+          this.decreaseRate()
+        }
+      },
+      [KeyCode.F8]: e => {
+        if (e.ctrlKey) {
+          this.increaseRate()
+        }
+      },
     }
 
     this.#keyboardEventManager.registerEvents({
@@ -538,14 +549,14 @@ export class MainController {
     })
   }
 
-  pause () {
+  async pause () {
     this.#paused = true
     this.#cursor.show()
     this.#pauseMenu.showResume = true
     this.#pauseMenu.showBack = true
     this.#pauseMenu.showRetry = true
     this.#keyboardEventManager.removeEvents()
-    this.#pauseMenu.show()
+    await this.#pauseMenu.show()
     this.#pauseMenu.registerEvents({})
   }
 
@@ -646,11 +657,14 @@ export class MainController {
       this.#mainFooter.updateEffect(now)
       this.#backButton.updateEffect(now)
       this.#flashLightEffect.updateEffect(now)
-      this.#pauseMenu.updateEffect(now)
       this.#backgroundDarker.updateEffect(now)
       this.#modsInfo.updateEffect(now)
       this.#settingsPanel.updateEffect(now)
       this.#modsPanel.updateEffect(now)
+    }
+
+    if (this.#paused || this.#stageController.failed) {
+      this.#pauseMenu.updateEffect(now)
     }
 
     if (this.#rateChangeEffect) {
