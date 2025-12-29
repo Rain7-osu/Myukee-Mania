@@ -608,7 +608,7 @@ export class StageController extends ActiveEffect {
       }
       this.#progressPercentManager.update(gameTiming)
       this.#hpEffect.updateEffect(now)
-      this.#hitEffectManager.updateTransition(now)
+      this.#hitEffectManager.update(now)
     }
 
     this.#stageBoard.updateEffect(now)
@@ -662,7 +662,7 @@ export class StageController extends ActiveEffect {
   }
 
   renderHitEffects () {
-    this.#renderEngine.renderObject(this.#hitEffectManager)
+    this.#hitEffectManager.effects.forEach(effect => this.#renderEngine.renderObject(effect))
   }
 
   renderNotes () {

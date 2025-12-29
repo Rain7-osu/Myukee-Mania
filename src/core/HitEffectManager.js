@@ -2,11 +2,16 @@ import { RenderObject } from './RenderObject'
 import { HitEffect } from './HitEffect'
 import { Skin } from './Skin'
 
-export class HitEffectManager extends RenderObject {
+export class HitEffectManager {
   /**
    * @type {HitEffect[]}
    */
   #activeEffectList = []
+
+  /**
+   * @return {HitEffect[]}
+   */
+  get effects () { return this.#activeEffectList }
 
   #keys = 4
 
@@ -24,13 +29,6 @@ export class HitEffectManager extends RenderObject {
     }
   }
 
-  /**
-   * @param context {CanvasRenderingContext2D}
-   */
-  render (context) {
-    this.#activeEffectList.forEach(effect => effect.render(context))
-  }
-
   getEffectColor (col) {
     const effectSkin = Skin.config.stage.keys[`keys${this.#keys}`].hitEffect
     return effectSkin[col]
@@ -43,8 +41,7 @@ export class HitEffectManager extends RenderObject {
     return { x, width }
   }
 
-  updateTransition (time) {
-    super.updateTransition(time)
+  update (time) {
     this.#activeEffectList.forEach(effect => effect.updateTransition(time))
   }
 
