@@ -1,13 +1,14 @@
+import type { Note } from './Note'
+import { Mod } from './ModsPanel'
+import { shuffleArray } from './utils'
+import { HpManager } from './HpManager'
+
 export interface TimingPoint {
   offset: number
   beatLen: number
 }
 
 export type TimingList = TimingPoint[]
-
-import { Mod } from './ModsPanel'
-import { shuffleArray } from './utils'
-import { HpManager } from './HpManager'
 
 export class PlayMap {
   constructor ({
@@ -25,104 +26,104 @@ export class PlayMap {
     keys: number
     length: number
   }) {
-    this.#notes = notes
-    this.#timingList = timingList
-    this.#overallDifficulty = overallDifficulty
-    this.#hpDrainRate = hpDrainRate
-    this.#length = length
-    this.#keys = keys
+    this._notes = notes
+    this._timingList = timingList
+    this._overallDifficulty = overallDifficulty
+    this._hpDrainRate = hpDrainRate
+    this._length = length
+    this._keys = keys
   }
 
-  #keys: number
+  private _keys: number
 
-  #overallDifficulty: number
+  private _overallDifficulty: number
 
-  #hpDrainRate: number
+  private _hpDrainRate: number
 
-  #length: number
+  private _length: number
 
-  #notes: Note[]
+  private _notes: Note[]
 
-  #timingList: TimingList
+  private _timingList: TimingList
 
   get notes (): Note[] {
-    return this.#notes
+    return this._notes
   }
 
   get timingList (): TimingList {
-    return this.#timingList
+    return this._timingList
   }
 
   get overallDifficulty (): number {
-    return this.#overallDifficulty
+    return this._overallDifficulty
   }
 
   get hpDrainRate (): number {
-    return this.#hpDrainRate
+    return this._hpDrainRate
   }
 
   get length (): number {
-    return this.#length
+    return this._length
   }
 
   get keys (): number {
-    return this.#keys
+    return this._keys
   }
 
   get startTiming (): number {
-    return this.#notes[0].offset
+    return this._notes[0].offset
   }
 
   reset (): void {
-    this.#notes.forEach((item) => item.reset())
+    this._notes.forEach((item) => item.reset())
   }
 
   applyMod (mod: Mod): void {
     if (mod === Mod.MR) {
-      this.#notes.forEach(note => note.col = this.#keys - note.col - 1)
+      this._notes.forEach(note => note.col = this._keys - note.col - 1)
     } else if (mod === Mod.RD) {
-      const keyArr = new Array(this.#keys).fill(0).map((_, index) => index)
+      const keyArr = new Array(this._keys).fill(0).map((_, index) => index)
       const targetColMap = shuffleArray(keyArr)
-      this.#notes.forEach(note => note.col = targetColMap[note.col])
+      this._notes.forEach(note => note.col = targetColMap[note.col])
     } else if (mod === Mod.HT) {
       this.setRate(0.75)
     } else if (mod === Mod.DT || mod === Mod.NC) {
       this.setRate(1.5)
     } else if (mod === Mod.EZ) {
-      this.#overallDifficulty = Math.round(this.#overallDifficulty * 5) / 10
-      this.#hpDrainRate = Math.round(this.#hpDrainRate * 5) / 10
+      this._overallDifficulty = Math.round(this._overallDifficulty * 5) / 10
+      this._hpDrainRate = Math.round(this._hpDrainRate * 5) / 10
     } else if (mod === Mod.HR) {
-      this.#overallDifficulty = Math.round(this.#overallDifficulty * 7 / 5 * 10) / 10
-      this.#hpDrainRate = Math.round(this.#hpDrainRate * 7 / 5 * 10) / 10
-      this.#overallDifficulty = Math.min(10, this.#overallDifficulty)
-      this.#hpDrainRate = Math.min(10, this.#hpDrainRate)
+      this._overallDifficulty = Math.round(this._overallDifficulty * 7 / 5 * 10) / 10
+      this._hpDrainRate = Math.round(this._hpDrainRate * 7 / 5 * 10) / 10
+      this._overallDifficulty = Math.min(10, this._overallDifficulty)
+      this._hpDrainRate = Math.min(10, this._hpDrainRate)
     } else if (mod === Mod.NF) {
-      this.#hpDrainRate = 0
+      this._hpDrainRate = 0
     } else if (mod === Mod.SD) {
-      this.#hpDrainRate = HpManager.MAX
+      this._hpDrainRate = HpManager.MAX
     }
   }
 
   setRate (rate: number): void {
-    this.#notes.forEach((note) => {
+    this._notes.forEach((note) => {
       note.offset /= rate
       note.end /= rate
     })
-    this.#timingList.forEach((timing) => {
+    this._timingList.forEach((timing) => {
       timing.beatLen /= rate
       timing.offset /= rate
     })
-    this.#length /= rate
+    this._length /= rate
   }
 
   clone (): PlayMap {
     return new PlayMap({
-      notes: [...this.#notes],
-      timingList: [...this.#timingList],
-      overallDifficulty: this.#overallDifficulty,
-      hpDrainRate: this.#hpDrainRate,
-      keys: this.#keys,
-      length: this.#length,
+      notes: [...this._notes],
+      timingList: [...this._timingList],
+      overallDifficulty: this._overallDifficulty,
+      hpDrainRate: this._hpDrainRate,
+      keys: this._keys,
+      length: this._length,
     })
   }
 }

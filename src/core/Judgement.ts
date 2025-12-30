@@ -1,4 +1,4 @@
-export enum JudgementType {
+export const enum JudgementType {
   PERFECT = 320,
   GREAT = 300,
   GOOD = 200,
@@ -31,40 +31,40 @@ export const MAX_MISS_DIVISION: number = JudgementAreaCalculators[JudgementType.
  * the Judgement of hit notes
  */
 export class Judgement {
-  #type: JudgementType
-  #judgeTiming: number
-  #hitTiming: number | undefined
-  #releaseTiming: number | undefined
+  private readonly _type: JudgementType
+  private readonly _judgeTiming: number
+  private readonly _hitTiming: number | undefined
+  private readonly _releaseTiming: number | undefined
 
-  constructor (type: JudgementType, judgeTiming: number, hitTiming?: number, releaseTiming?: number) {
-    this.#type = type
-    this.#judgeTiming = judgeTiming
-    this.#hitTiming = hitTiming
-    this.#releaseTiming = releaseTiming
+  constructor(type: JudgementType, judgeTiming: number, hitTiming?: number, releaseTiming?: number) {
+    this._type = type
+    this._judgeTiming = judgeTiming
+    this._hitTiming = hitTiming
+    this._releaseTiming = releaseTiming
   }
 
-  get type (): JudgementType {
-    return this.#type
+  get type(): JudgementType {
+    return this._type
   }
 
-get hitTiming (): number | undefined {
-    return this.#hitTiming
+  get hitTiming(): number | undefined {
+    return this._hitTiming
   }
 
-get releaseTiming (): number | undefined {
-    return this.#releaseTiming
+  get releaseTiming(): number | undefined {
+    return this._releaseTiming
   }
 
-get judgeTiming (): number {
-    return this.#judgeTiming
+  get judgeTiming(): number {
+    return this._judgeTiming
   }
 
-get hitValue (): number {
-    return this.#type
+  get hitValue(): number {
+    return this._type
   }
 
-get hitBonusValue (): number {
-    switch (this.#type) {
+  get hitBonusValue(): number {
+    switch (this._type) {
       case JudgementType.PERFECT:
         return 32
       case JudgementType.GREAT:
@@ -82,12 +82,12 @@ get hitBonusValue (): number {
     }
   }
 
-get hitBonus (): number {
+  get hitBonus(): number {
     return Math.floor(this.hitBonusValue / 16)
   }
 
-get hitPunishment (): number {
-    switch (this.#type) {
+  get hitPunishment(): number {
+    switch (this._type) {
       case JudgementType.PERFECT:
         return 0
       case JudgementType.GREAT:
@@ -105,8 +105,8 @@ get hitPunishment (): number {
     }
   }
 
-get accuracy (): number {
-    switch (this.#type) {
+  get accuracy(): number {
+    switch (this._type) {
       case JudgementType.PERFECT:
       case JudgementType.GREAT:
         return 1.0

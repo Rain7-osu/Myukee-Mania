@@ -11,7 +11,7 @@ declare global {
 }
 
 export class Program {
-  #canvas: HTMLCanvasElement
+  private _canvas: HTMLCanvasElement
 
   private _resize (): void {
     const clientWidth = document.documentElement.clientWidth
@@ -26,7 +26,7 @@ export class Program {
     } else {
       // 计算当前宽高比
       const aspectRatio = selectedWidth / selectedHeight
-      
+
       // 宽高比最小为 4:3，即当宽高比小于 4:3 时，以宽为基准计算高度
       if (aspectRatio < MIN_ASPECT_RATIO) {
         selectedHeight = selectedWidth * (3 / 4)
@@ -46,17 +46,17 @@ export class Program {
       CLIENT_Y: (clientHeight - selectedHeight) / 2,
     })
 
-    this.#canvas.width = CANVAS.WIDTH
-    this.#canvas.height = CANVAS.HEIGHT
+    this._canvas.width = CANVAS.WIDTH
+    this._canvas.height = CANVAS.HEIGHT
   }
 
   /**
    * @private
    */
   _init () {
-    const canvas = document.getElementById('stage')
+    const canvas = document.getElementById('stage') as HTMLCanvasElement
     canvas.style.display = 'none'
-    this.#canvas = canvas
+    this._canvas = canvas
     this._resize()
   }
 
@@ -69,9 +69,9 @@ export class Program {
     FrameSnapshot.init(CANVAS.WIDTH, CANVAS.HEIGHT)
 
     const container = $('stage-container')
-    container.append(this.#canvas)
+    container.append(this._canvas)
     const entry = $('enter')
-    const main = new MainController(this.#canvas, entry)
+    const main = new MainController(this._canvas, entry)
     window.__MAIN__ = main
     await main.start()
   }

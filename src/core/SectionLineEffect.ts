@@ -2,11 +2,11 @@ import { OffsetRenderObject } from './RenderObject'
 import { Skin } from './Skin'
 
 export class SectionLineEffect extends OffsetRenderObject {
-  #width: number
+  private readonly _width: number
 
   constructor(offset: number, width: number) {
     super(offset)
-    this.#width = width
+    this._width = width
   }
 
   render(context: CanvasRenderingContext2D, offsetY: number, endY: number): void {
@@ -20,6 +20,6 @@ export class SectionLineEffect extends OffsetRenderObject {
       return
     }
     context.fillStyle = color
-    context.fillRect(columnCenter - this.#width / 2, offsetY, this.#width, height)
+    context.fillRect(columnCenter - this._width / 2, offsetY, this._width, height)
   }
 }

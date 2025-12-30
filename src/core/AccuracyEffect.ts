@@ -12,20 +12,20 @@ const formatPercentage = (value: number): string => {
 }
 
 export class AccuracyEffect extends RenderObject {
-  static format (acc: number): string {
+  static format(acc: number): string {
     return formatPercentage(acc)
   }
 
-  #value: number = 0
+  private _value: number = 0
 
-  set acc(value: number) { this.#value = value }
+  set acc(value: number) { this._value = value }
 
-  render (context: CanvasRenderingContext2D): void {
-    const acc = formatPercentage(this.#value)
-    const { x, y, font, textAlign, color } = Skin.config.stage.accuracy
+  render(context: CanvasRenderingContext2D): void {
+    const acc = formatPercentage(this._value)
+    const { x, y, font, color } = Skin.config.stage.accuracy
 
     context.save()
-    this.drawText({
+    RenderObject.drawText({
       context,
       font,
       color,

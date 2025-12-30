@@ -12,7 +12,7 @@ import { MouseEventManager } from './MouseEventManager'
 import { Cursor } from './Cursor'
 import { PauseMenu } from './PauseMenu'
 import { BackgroundEffect } from './BackgroundEffect'
-import { RankingBoard } from './RankingBoard'
+import { RankingBoard, RankingResult } from './RankingBoard'
 import { MainHeader } from './MainHeader'
 import { FlashLightEffect } from './FlashLightEffect'
 import { BackButton } from './BackButton'
@@ -24,148 +24,149 @@ import { ModsInfoEffect } from './ModsInfo'
 import { MAX_SPEED, MIN_SPEED } from './Config'
 import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { SettingsPanel } from './SettingsPanel'
-import { ComboEffect } from './ComboEffect'
+import type { BeatmapItem } from './BeatmapItem'
+import type { ValueChangeEffect } from './ValueChangeEffect'
 
 /**
  * 主界面管理器
  */
 export class MainController {
-  #layoutEngine: LayoutRenderEngine
+  private readonly _layoutEngine: LayoutRenderEngine
 
-  #loadingEffect = new MainLoadingEffect()
+  private _loadingEffect = new MainLoadingEffect()
 
-  #beatmapListManager: BeatmapListManager
+  private _beatmapListManager: BeatmapListManager
 
-  #backgroundDarker = new BackgroundDarker()
+  private _backgroundDarker = new BackgroundDarker()
 
-  #backgroundEffect = new BackgroundEffect()
+  private _backgroundEffect = new BackgroundEffect()
 
-  #flashLightEffect = new FlashLightEffect()
+  private _flashLightEffect = new FlashLightEffect()
 
-  #mainHeader: MainHeader
+  private readonly _mainHeader: MainHeader
 
-  #mainFooter: MainFooter
+  private readonly _mainFooter: MainFooter
 
-  #backButton: BackButton
+  private readonly _backButton: BackButton
 
-  #rankingBoard: RankingBoard
+  private readonly _rankingBoard: RankingBoard
 
-  #pauseMenu: PauseMenu
+  private readonly _pauseMenu: PauseMenu
 
-  #stageController: StageController
+  private _stageController: StageController
 
-  #currentRate: number = 1
+  private _currentRate: number = 1
 
-  #loading = false
-  #playing = false
-  #paused = false
-  #showResults = false
+  private _loading = false
+  private _playing = false
+  private _paused = false
+  private _showResults = false
 
-  #settings = Settings.getInstance()
+  private _settings = Settings.getInstance()
 
-  #canvas: HTMLCanvasElement
-  #entry: HTMLElement
+  private _canvas: HTMLCanvasElement
+  private _entry: HTMLElement
 
-  #autoManager: AudioManager
+  private _autoManager: AudioManager
 
-  #keyboardEventManager: KeyboardEventManager
+  private _keyboardEventManager: KeyboardEventManager
 
-  #mouseEventManager: MouseEventManager
+  private _mouseEventManager: MouseEventManager
 
-  #rateChangeEffect: ValueChangeEffect = null
+  private _rateChangeEffect: ValueChangeEffect | null = null
 
-  #cursor: Cursor
+  private _cursor: Cursor
 
-  #backgroundFading: boolean = false
+  private _backgroundFading: boolean = false
 
-  #randomHistory: BeatmapItem[] = []
+  private _randomHistory: BeatmapItem[] = []
 
-  #fps = new FPS()
+  private _fps = new FPS()
 
-  #selectedMods: Mod[] = []
+  private _selectedMods: Mod[] = []
 
-  #modsPanel: ModsPanel
+  private readonly _modsPanel: ModsPanel
 
-  #speedChangeEffect: SpeedChangeEffect = null
+  private _speedChangeEffect: SpeedChangeEffect | null = null
 
-  #cancelAnimation: number = -1
+  private _cancelAnimation: number = -1
 
-  #settingsPanel: SettingsPanel
+  private readonly _settingsPanel: SettingsPanel
 
-  #modsInfo: ModsInfoEffect
+  private readonly _modsInfo: ModsInfoEffect
 
-  constructor (canvas: HTMLCanvasElement, entry: HTMLElement) {
+  constructor(canvas: HTMLCanvasElement, entry: HTMLElement) {
     if (!canvas) {
       throw new Error('Canvas container can not be null.')
     }
 
-    this.#canvas = canvas
-    this.#entry = entry
-    this.#layoutEngine = new LayoutRenderEngine(canvas)
-    const speed = this.#settings.get('speed')
-    this.#autoManager = new AudioManager()
-    this.#keyboardEventManager = new KeyboardEventManager()
-    this.#mouseEventManager = new MouseEventManager(canvas, 'MainController')
-    this.#stageController = new StageController(canvas, this, this.#layoutEngine)
-    this.#rankingBoard = new RankingBoard(canvas, this)
-    this.#beatmapListManager = new BeatmapListManager(canvas)
-    this.#backButton = new BackButton(canvas, this)
-    this.#modsPanel = new ModsPanel(canvas, this)
-    this.#pauseMenu = new PauseMenu(canvas, this)
-    this.#mainFooter = new MainFooter(canvas, this)
-    this.#mainHeader = new MainHeader(speed)
-    this.#settingsPanel = new SettingsPanel(canvas)
-    this.#modsInfo = new ModsInfoEffect()
-    this.#cursor = new Cursor()
-    this.#modsPanel.display = false
-    this.#settingsPanel.display = false
+    this._canvas = canvas
+    this._entry = entry
+    this._layoutEngine = new LayoutRenderEngine(canvas)
+    const speed = this._settings.get('speed')
+    this._autoManager = new AudioManager()
+    this._keyboardEventManager = new KeyboardEventManager()
+    this._mouseEventManager = new MouseEventManager(canvas, 'MainController')
+    this._stageController = new StageController(canvas, this, this._layoutEngine)
+    this._rankingBoard = new RankingBoard(canvas, this)
+    this._beatmapListManager = new BeatmapListManager(canvas)
+    this._backButton = new BackButton(canvas, this)
+    this._modsPanel = new ModsPanel(canvas, this)
+    this._pauseMenu = new PauseMenu(canvas, this)
+    this._mainFooter = new MainFooter(canvas, this)
+    this._mainHeader = new MainHeader(speed)
+    this._settingsPanel = new SettingsPanel(canvas)
+    this._modsInfo = new ModsInfoEffect()
+    this._cursor = new Cursor()
+    this._modsPanel.display = false
+    this._settingsPanel.display = false
   }
 
-  increaseRate () {
-    this.#currentRate += 0.05
-    if (this.#currentRate >= 2.5) {
-      this.#currentRate = 2.5
+  increaseRate() {
+    this._currentRate += 0.05
+    if (this._currentRate >= 2.5) {
+      this._currentRate = 2.5
     }
-    this.#currentRate = +this.#currentRate.toFixed(2)
-    this.#rateChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
-    this.#autoManager.setRate(this.#currentRate)
-    this.#autoManager.preservesPitch = false
+    this._currentRate = +this._currentRate.toFixed(2)
+    this._rateChangeEffect = new RateChangeEffect(this._currentRate, performance.now())
+    this._autoManager.setRate(this._currentRate)
+    this._autoManager.preservesPitch = false
   }
 
-  decreaseRate () {
-    this.#currentRate -= 0.05
-    if (this.#currentRate <= 0.25) {
-      this.#currentRate = 0.25
+  decreaseRate() {
+    this._currentRate -= 0.05
+    if (this._currentRate <= 0.25) {
+      this._currentRate = 0.25
     }
-    this.#currentRate = +this.#currentRate.toFixed(2)
-    this.#rateChangeEffect = new RateChangeEffect(this.#currentRate, performance.now())
-    this.#autoManager.setRate(this.#currentRate)
-    this.#autoManager.preservesPitch = true
+    this._currentRate = +this._currentRate.toFixed(2)
+    this._rateChangeEffect = new RateChangeEffect(this._currentRate, performance.now())
+    this._autoManager.setRate(this._currentRate)
+    this._autoManager.preservesPitch = true
   }
 
-  async exit () {
+  async exit() {
     await this.fadeOut(0, 2000)
-    this.#canvas.style.display = 'none'
-    this.#entry.style.display = 'flex'
-    this.#autoManager.abort()
+    this._canvas.style.display = 'none'
+    this._entry.style.display = 'flex'
+    this._autoManager.abort()
     this.removeEvents()
-    cancelAnimationFrame(this.#cancelAnimation)
+    cancelAnimationFrame(this._cancelAnimation)
   }
 
   /**
    * 整个控制器的初始化
    * @return {Promise<void>}
    */
-  async start () {
-    this.#canvas.style.display = 'block'
-    this.#entry.style.display = 'none'
+  async start() {
+    this._canvas.style.display = 'block'
+    this._entry.style.display = 'none'
     const songs = await this.loadSongList()
-    this.#layoutEngine.speed = this.#settings.get('speed')
-    this.#beatmapListManager.init(songs)
-    const selectItem = this.#beatmapListManager.firstSelect()
+    this._layoutEngine.speed = this._settings.get('speed')
+    this._beatmapListManager.init(songs)
+    const selectItem = this._beatmapListManager.firstSelect()
     Promise.all([
-      this.#mainHeader.setBeatmap(selectItem.beatmap),
-      this.#backgroundEffect.setImage(selectItem.beatmap.bgImage),
+      this._mainHeader.setBeatmap(selectItem.beatmap),
+      this._backgroundEffect.setImage(selectItem.beatmap.bgImage),
       this.run(),
     ]).then()
     this._registerModsPanelEvents()
@@ -176,125 +177,125 @@ export class MainController {
     this.loopFrame()
   }
 
-  _registerBackButtonEvents () {
-    this.#backButton.initEvents()
+  _registerBackButtonEvents() {
+    this._backButton.initEvents()
   }
 
-  hideRankingBoard () {
-    this.#rankingBoard.hide()
+  hideRankingBoard() {
+    this._rankingBoard.hide()
   }
 
-  showRankingBoard () {
-    return this.#rankingBoard.show()
+  showRankingBoard() {
+    return this._rankingBoard.show()
   }
 
-  async closeModsPanel (selectedMods: Mod[]) {
-    this.#selectedMods = selectedMods
-    await this.#modsPanel.hide()
-    this.#modsInfo.mods = selectedMods
-    this.#mouseEventManager.enableEvents()
-    this.#keyboardEventManager.enableEvents()
-    this.#backButton.enableEvents()
-    this.#mainFooter.enableEvents()
-    this.#beatmapListManager.beatmapList.enableEvents()
-    this.#modsPanel.disableEvents()
+  async closeModsPanel(selectedMods: Mod[]) {
+    this._selectedMods = selectedMods
+    await this._modsPanel.hide()
+    this._modsInfo.mods = selectedMods
+    this._mouseEventManager.enableEvents()
+    this._keyboardEventManager.enableEvents()
+    this._backButton.enableEvents()
+    this._mainFooter.enableEvents()
+    this._beatmapListManager.beatmapList.enableEvents()
+    this._modsPanel.disableEvents()
   }
 
   /**
    * @private
    */
-  _registerModsPanelEvents () {
-    this.#modsPanel.registerEvents()
+  _registerModsPanelEvents() {
+    this._modsPanel.registerEvents()
   }
 
-  _registerFooterEvents () {
-    this.#mainFooter.registerEvents()
+  _registerFooterEvents() {
+    this._mainFooter.registerEvents()
   }
 
-  async showModsPanel () {
-    this.#beatmapListManager.beatmapList.disableEvents()
-    this.#keyboardEventManager.disableEvents()
-    this.#mouseEventManager.disableEvents()
-    this.#backButton.disableEvents()
-    this.#mainFooter.disableEvents()
-    this.#modsPanel.enableEvents()
-    await this.#modsPanel.show()
+  async showModsPanel() {
+    this._beatmapListManager.beatmapList.disableEvents()
+    this._keyboardEventManager.disableEvents()
+    this._mouseEventManager.disableEvents()
+    this._backButton.disableEvents()
+    this._mainFooter.disableEvents()
+    this._modsPanel.enableEvents()
+    await this._modsPanel.show()
   }
 
-  async lastRandom () {
-    if (this.#randomHistory.length) {
-      await this.selectBeatmapItem(this.#randomHistory.pop())
+  async lastRandom() {
+    if (this._randomHistory.length) {
+      await this.selectBeatmapItem(this._randomHistory.pop())
     }
   }
 
-  async random () {
-    this.#randomHistory.push(this.#beatmapListManager.selectedItem)
-    const beatmapItem = this.#beatmapListManager.random()
+  async random() {
+    this._randomHistory.push(this._beatmapListManager.selectedItem!)
+    const beatmapItem = this._beatmapListManager.random()
     await this.selectBeatmapItem(beatmapItem)
   }
 
-  async playAuto (beatmap: Beatmap) {
-    if (this.#autoManager.filename === beatmap.audioFile) {
-      if (!this.#autoManager.playing) {
-        await this.#autoManager.play()
+  async playAuto(beatmap: Beatmap) {
+    if (this._autoManager.filename === beatmap.audioFile) {
+      if (!this._autoManager.playing) {
+        await this._autoManager.play()
       }
       return
     }
-    this.#autoManager.abort()
-    await this.#autoManager.load(beatmap.audioFile, beatmap.previewTime)
-    this.#autoManager.setRate(this.#currentRate)
-    await this.#autoManager.play()
-    this.#autoManager.repeat = true
+    this._autoManager.abort()
+    await this._autoManager.load(beatmap.audioFile, beatmap.previewTime)
+    this._autoManager.setRate(this._currentRate)
+    await this._autoManager.play()
+    this._autoManager.repeat = true
   }
 
-  async abortPlaying () {
-    this.#playing = false
+  async abortPlaying() {
+    this._playing = false
     this.run()
-    this.#keyboardEventManager.enableEvents()
-    this.#beatmapListManager.beatmapList.enableEvents()
-    this.#mainFooter.enableEvents()
-    this.#backButton.enableEvents()
-    this.#mouseEventManager.enableEvents()
-    this.#backgroundDarker.reset()
+    this._keyboardEventManager.enableEvents()
+    this._beatmapListManager.beatmapList.enableEvents()
+    this._mainFooter.enableEvents()
+    this._backButton.enableEvents()
+    this._mouseEventManager.enableEvents()
+    this._backgroundDarker.reset()
   }
 
-  async play (beatmap: Beatmap) {
-    await this.#stageController.init(beatmap, this.#settings, this.#currentRate, this.#selectedMods)
-    this.#stageController.start()
-    this.#playing = true
-    this.#backButton.scene = 'main'
-    this.#showResults = false
-    this.#paused = false
-    this.#cursor.hide()
+  async play(beatmap: Beatmap) {
+    await this._stageController.init(beatmap, this._settings, this._currentRate, this._selectedMods)
+    this._stageController.start()
+    this._playing = true
+    this._backButton.scene = 'main'
+    this._showResults = false
+    this._paused = false
+    this._cursor.hide()
   }
 
-  async preparePlay (beatmap: Beatmap) {
-    this.#backButton.cancelAnimations()
-    this.#backButton.disableEvents()
-    this.#mainFooter.disableEvents()
-    this.#keyboardEventManager.disableEvents()
-    this.#mouseEventManager.disableEvents()
-    this.#beatmapListManager.beatmapList.disableEvents()
-    this.#autoManager.abort()
-    this.#autoManager.abort()
+  async preparePlay(beatmap: Beatmap) {
+    this._backButton.cancelAnimations()
+    this._backButton.disableEvents()
+    this._mainFooter.disableEvents()
+    this._keyboardEventManager.disableEvents()
+    this._mouseEventManager.disableEvents()
+    this._beatmapListManager.beatmapList.disableEvents()
+    this._autoManager.abort()
+    this._autoManager.abort()
     await Promise.all([
-      this.#beatmapListManager.hide(),
-      this.#mainHeader.hide(),
-      this.#mainFooter.hide(),
-      this.#backButton.hide(),
-      this.#modsInfo.hide(),
-      this.#settingsPanel.hide(),
+      this._beatmapListManager.hide(),
+      this._mainHeader.hide(),
+      this._mainFooter.hide(),
+      this._backButton.hide(),
+      this._modsInfo.hide(),
+      this._settingsPanel.hide(),
     ])
     await this.play(beatmap)
-    await this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
+    await this._backgroundDarker.setValue(this._settings.get('backgroundDark'))
   }
 
-  async selectBeatmapItem (beatmapItem: BeatmapItem) {
-    this.#beatmapListManager.selectItem(beatmapItem)
+  async selectBeatmapItem(beatmapItem: BeatmapItem) {
+    this._beatmapListManager.selectItem(beatmapItem)
     await Promise.all([
-      this.#mainHeader.setBeatmap(beatmapItem.beatmap),
-      this.#flashLightEffect.flash(),
-      this.#backgroundEffect.setImage(beatmapItem.beatmap.bgImage),
+      this._mainHeader.setBeatmap(beatmapItem.beatmap),
+      this._flashLightEffect.flash(),
+      this._backgroundEffect.setImage(beatmapItem.beatmap.bgImage),
       this.playAuto(beatmapItem.beatmap),
     ])
   }
@@ -303,16 +304,16 @@ export class MainController {
    * 启动的主函数
    * @private
    */
-  async run () {
-    this.#cursor.show()
-    this.#beatmapListManager.beatmapList.initScrollItems(this.#beatmapListManager.selectedItem)
+  async run() {
+    this._cursor.show()
+    this._beatmapListManager.beatmapList.initScrollItems(this._beatmapListManager.selectedItem!)
 
     /**
      * @param item {BeatmapItem}
      */
     const handleClick = item => {
-      if (this.#beatmapListManager.selectedItem === item) {
-        this.#keyboardEventManager.removeEvents()
+      if (this._beatmapListManager.selectedItem === item) {
+        this._keyboardEventManager.removeEvents()
         this.preparePlay(item.beatmap)
       } else {
         this.selectBeatmapItem(item)
@@ -321,27 +322,27 @@ export class MainController {
 
     this._registerKeyboardEvents()
     this._registerMouseEvents()
-    this.#beatmapListManager.beatmapList.registerEvents({
+    this._beatmapListManager.beatmapList.registerEvents({
       onClick: handleClick,
     })
 
     await Promise.all([
-      this.playAuto(this.#beatmapListManager.selectedItem.beatmap),
-      this.#beatmapListManager.show(),
-      this.#mainHeader.show(),
-      this.#mainFooter.show(),
-      this.#modsInfo.show(),
-      this.#backButton.show(),
+      this.playAuto(this._beatmapListManager.selectedItem!.beatmap),
+      this._beatmapListManager.show(),
+      this._mainHeader.show(),
+      this._mainFooter.show(),
+      this._modsInfo.show(),
+      this._backButton.show(),
     ])
   }
 
-  _registerKeyboardEvents () {
+  _registerKeyboardEvents() {
     /** @type {KeyboardEventHandler} */
     const handleEnter = async e => {
       e.preventDefault()
-      if (!this.#playing) {
-        await this.preparePlay(this.#beatmapListManager.selectedItem.beatmap)
-      } else if (this.#playing && this.#paused) {
+      if (!this._playing) {
+        await this.preparePlay(this._beatmapListManager.selectedItem!.beatmap)
+      } else if (this._playing && this._paused) {
       }
     }
     /** @type {KeyboardEventHandler} */
@@ -362,23 +363,23 @@ export class MainController {
       [KeyCode.O]: e => {
         // process settings
         if (e.ctrlKey) {
-          if (!this.#settingsPanel.display) {
+          if (!this._settingsPanel.display) {
             this.showSettingsPanel()
           }
         } else {
           // input o
         }
       },
-      // [KeyCode.ARROW_UP]: () => this.#beatmapListManager.selectPrev(),
-      // [KeyCode.ARROW_DOWN]: () => this.#beatmapListManager.selectNext(),
+      // [KeyCode.ARROW_UP]: () => this._beatmapListManager.selectPrev(),
+      // [KeyCode.ARROW_DOWN]: () => this._beatmapListManager.selectNext(),
       [KeyCode.ESCAPE]: () => {
-        if (this.#playing) {
-          if (this.#paused) {
+        if (this._playing) {
+          if (this._paused) {
             this.resume()
           } else {
             this.pause()
           }
-        } else if (this.#settingsPanel.display) {
+        } else if (this._settingsPanel.display) {
           this.hideSettingsPanel()
         } else {
           this.exit()
@@ -387,19 +388,19 @@ export class MainController {
       [KeyCode.F1]: () => this.showModsPanel(),
       [KeyCode.F2]: handleRandom,
       [KeyCode.F3]: e => {
-        if (this.#playing) return
+        if (this._playing) return
         if (e.ctrlKey) {
           this.decreaseSpeed()
         }
       },
       [KeyCode.F4]: e => {
-        if (this.#playing) return
+        if (this._playing) return
         if (e.ctrlKey) {
           this.increaseSpeed()
         }
       },
-      [KeyCode.F5]: () => this.#autoManager.resume(),
-      [KeyCode.F6]: () => this.#autoManager.pause(),
+      [KeyCode.F5]: () => this._autoManager.resume(),
+      [KeyCode.F6]: () => this._autoManager.pause(),
       [KeyCode.F7]: e => {
         if (e.ctrlKey) {
           this.decreaseRate()
@@ -412,39 +413,39 @@ export class MainController {
       },
     }
 
-    this.#keyboardEventManager.registerEvents({
+    this._keyboardEventManager.registerEvents({
       keydownEventList,
     })
   }
 
-  showSettingsPanel () {
-    this.#backButton.scene = 'settings'
-    this.#settingsPanel.show()
+  showSettingsPanel() {
+    this._backButton.scene = 'settings'
+    this._settingsPanel.show()
   }
 
-  hideSettingsPanel () {
-    this.#settingsPanel.hide()
-    this.#backButton.scene = 'main'
+  hideSettingsPanel() {
+    this._settingsPanel.hide()
+    this._backButton.scene = 'main'
   }
 
-  _registerMouseEvents () {
+  _registerMouseEvents() {
     let cursorTimer = -1
-    this.#mouseEventManager.registerEvents({
+    this._mouseEventManager.registerEvents({
       mousemoveEvents: [
         () => {
-          if (!this.#playing) {
+          if (!this._playing) {
             return
           }
 
-          if (!this.#cursor.visible) {
-            this.#cursor.show()
+          if (!this._cursor.visible) {
+            this._cursor.show()
           }
 
           // 如果在游玩中，3 秒后自动隐藏
           clearTimeout(cursorTimer)
           cursorTimer = setTimeout(() => {
-            if (this.#playing && !this.#paused) {
-              this.#cursor.hide()
+            if (this._playing && !this._paused) {
+              this._cursor.hide()
             }
           }, 3000)
         },
@@ -454,238 +455,238 @@ export class MainController {
     })
   }
 
-  async pause () {
-    this.#paused = true
-    this.#cursor.show()
-    this.#pauseMenu.showResume = true
-    this.#pauseMenu.showBack = true
-    this.#pauseMenu.showRetry = true
-    this.#keyboardEventManager.removeEvents()
-    await this.#pauseMenu.show()
-    this.#pauseMenu.registerEvents({})
+  async pause() {
+    this._paused = true
+    this._cursor.show()
+    this._pauseMenu.showResume = true
+    this._pauseMenu.showBack = true
+    this._pauseMenu.showRetry = true
+    this._keyboardEventManager.removeEvents()
+    await this._pauseMenu.show()
+    this._pauseMenu.registerEvents()
   }
 
-  async finish (rankingResults: RankingResult) {
-    this.#playing = false
-    this.#showResults = true
-    this.#backButton.scene = 'result'
-    this.#rankingBoard.setResult(rankingResults)
-    this.#cursor.show()
-    this.#rankingBoard.registerEvents()
-    this.#backButton.enableEvents()
+  async finish(rankingResults: RankingResult) {
+    this._playing = false
+    this._showResults = true
+    this._backButton.scene = 'result'
+    this._rankingBoard.setResult(rankingResults)
+    this._cursor.show()
+    this._rankingBoard.registerEvents()
+    this._backButton.enableEvents()
     await this.fadeIn()
     await Promise.all([
-      this.#backButton.show(),
+      this._backButton.show(),
       this.showRankingBoard(),
     ])
   }
 
-  async fail () {
-    this.#cursor.show()
-    this.#pauseMenu.showRetry = true
-    this.#pauseMenu.showBack = true
-    this.#pauseMenu.showResume = false
-    this.#keyboardEventManager.disableEvents()
-    this.#pauseMenu.registerEvents({})
-    await this.#pauseMenu.show(true)
+  async fail() {
+    this._cursor.show()
+    this._pauseMenu.showRetry = true
+    this._pauseMenu.showBack = true
+    this._pauseMenu.showResume = false
+    this._keyboardEventManager.disableEvents()
+    this._pauseMenu.registerEvents()
+    await this._pauseMenu.show(true)
   }
 
-  async backMain () {
-    this.#showResults = false
-    this.#backButton.scene = 'main'
-    this.#playing = false
-    this.#paused = false
-    this.#pauseMenu.hide()
-    this.#stageController.quit()
-    this.#pauseMenu.removeEvents()
-    this.#rankingBoard.removeEvents()
-    this.#backButton.cancelAnimations()
-    this.#beatmapListManager.beatmapList.enableEvents()
-    this.#keyboardEventManager.enableEvents()
-    this.#mouseEventManager.enableEvents()
-    this.#mainFooter.enableEvents()
+  async backMain() {
+    this._showResults = false
+    this._backButton.scene = 'main'
+    this._playing = false
+    this._paused = false
+    this._pauseMenu.hide()
+    this._stageController.quit()
+    this._pauseMenu.removeEvents()
+    this._rankingBoard.removeEvents()
+    this._backButton.cancelAnimations()
+    this._beatmapListManager.beatmapList.enableEvents()
+    this._keyboardEventManager.enableEvents()
+    this._mouseEventManager.enableEvents()
+    this._mainFooter.enableEvents()
   }
 
-  async resume () {
-    this.#paused = false
-    this.#stageController.resume()
-    this.#pauseMenu.hide()
-    this.#pauseMenu.removeEvents()
+  async resume() {
+    this._paused = false
+    this._stageController.resume()
+    this._pauseMenu.hide()
+    this._pauseMenu.removeEvents()
   }
 
-  async retry () {
-    this.#playing = true
-    this.#paused = false
-    this.#showResults = false
-    this.#backButton.scene = 'main'
-    this.#pauseMenu.hide()
-    this.#stageController.retry()
-    this.#pauseMenu.removeEvents()
-    this.#rankingBoard.removeEvents()
-    await this.#backgroundDarker.setValue(this.#settings.get('backgroundDark'))
+  async retry() {
+    this._playing = true
+    this._paused = false
+    this._showResults = false
+    this._backButton.scene = 'main'
+    this._pauseMenu.hide()
+    this._stageController.retry()
+    this._pauseMenu.removeEvents()
+    this._rankingBoard.removeEvents()
+    await this._backgroundDarker.setValue(this._settings.get('backgroundDark'))
   }
 
-  removeEvents () {
-    this.#keyboardEventManager.removeEvents()
-    this.#keyboardEventManager.dispose()
-    this.#mouseEventManager.removeEvents()
-    this.#backButton.removeEvents()
-    this.#mainFooter.removeEvents()
-    this.#beatmapListManager.beatmapList.removeEvents()
-    this.#modsPanel.removeEvents()
+  removeEvents() {
+    this._keyboardEventManager.removeEvents()
+    this._keyboardEventManager.dispose()
+    this._mouseEventManager.removeEvents()
+    this._backButton.removeEvents()
+    this._mainFooter.removeEvents()
+    this._beatmapListManager.beatmapList.removeEvents()
+    this._modsPanel.removeEvents()
   }
 
   /**
    * @private
    */
-  loopFrame () {
-    this.#cancelAnimation = requestAnimationFrame(() => {
+  loopFrame() {
+    this._cancelAnimation = requestAnimationFrame(() => {
       this.updateFrame()
       this.renderFrame()
       this.loopFrame()
     })
   }
 
-  updateFrame () {
+  updateFrame() {
     const now = performance.now()
 
-    this.#fps.update(now)
-    this.#backgroundDarker.updateEffect(now)
+    this._fps.update(now)
+    this._backgroundDarker.updateEffect(now)
 
-    if (!this.#stageController.realStarted) {
-      this.#rankingBoard.updateEffect(now)
-      this.#beatmapListManager.beatmapList.updateEffect(now)
-      this.#mainHeader.updateEffect(now)
-      this.#mainFooter.updateEffect(now)
-      this.#backButton.updateEffect(now)
-      this.#flashLightEffect.updateEffect(now)
-      this.#backgroundDarker.updateEffect(now)
-      this.#modsInfo.updateEffect(now)
-      this.#settingsPanel.updateEffect(now)
-      this.#modsPanel.updateEffect(now)
+    if (!this._stageController.realStarted) {
+      this._rankingBoard.updateEffect(now)
+      this._beatmapListManager.beatmapList.updateEffect(now)
+      this._mainHeader.updateEffect(now)
+      this._mainFooter.updateEffect(now)
+      this._backButton.updateEffect(now)
+      this._flashLightEffect.updateEffect(now)
+      this._backgroundDarker.updateEffect(now)
+      this._modsInfo.updateEffect(now)
+      this._settingsPanel.updateEffect(now)
+      this._modsPanel.updateEffect(now)
     }
 
-    if (this.#paused || this.#stageController.failed) {
-      this.#pauseMenu.updateEffect(now)
+    if (this._paused || this._stageController.failed) {
+      this._pauseMenu.updateEffect(now)
     }
 
-    if (this.#rateChangeEffect) {
-      this.#rateChangeEffect.update(now)
-      if (!this.#rateChangeEffect.active) {
-        this.#rateChangeEffect = null
+    if (this._rateChangeEffect) {
+      this._rateChangeEffect.update(now)
+      if (!this._rateChangeEffect.active) {
+        this._rateChangeEffect = null
       }
     }
 
-    if (this.#speedChangeEffect) {
-      this.#speedChangeEffect.update(now)
+    if (this._speedChangeEffect) {
+      this._speedChangeEffect.update(now)
 
-      if (!this.#speedChangeEffect.active) {
-        this.#speedChangeEffect = null
+      if (!this._speedChangeEffect.active) {
+        this._speedChangeEffect = null
       }
     }
   }
 
-  renderFrame () {
-    this.#layoutEngine.clearBackground()
-    this.#layoutEngine.renderObject(this.#backgroundEffect)
+  renderFrame() {
+    this._layoutEngine.clearBackground()
+    this._layoutEngine.renderObject(this._backgroundEffect)
 
-    // if (this.#loading) {
+    // if (this._loading) {
     //   this.renderLoading()
     // }
 
-    if (this.#playing) {
-      this.#layoutEngine.renderObject(this.#backgroundDarker)
-      this.#stageController.loopFrame()
-      if (this.#paused || this.#stageController.failed) {
+    if (this._playing) {
+      this._layoutEngine.renderObject(this._backgroundDarker)
+      this._stageController.loopFrame()
+      if (this._paused || this._stageController.failed) {
         this.renderFrameSnapshot()
-        this.#layoutEngine.renderObject(this.#pauseMenu)
+        this._layoutEngine.renderObject(this._pauseMenu)
       }
-    } else if (this.#showResults) {
-      this.#layoutEngine.renderObject(this.#rankingBoard)
-      this.#layoutEngine.renderObject(this.#backButton)
+    } else if (this._showResults) {
+      this._layoutEngine.renderObject(this._rankingBoard)
+      this._layoutEngine.renderObject(this._backButton)
     } else {
-      this.#layoutEngine.renderObject(this.#beatmapListManager.beatmapList)
-      this.#layoutEngine.renderObject(this.#mainHeader)
-      this.#layoutEngine.renderObject(this.#modsInfo)
-      this.#layoutEngine.renderObject(this.#mainFooter)
-      this.#layoutEngine.renderObject(this.#settingsPanel)
-      this.#layoutEngine.renderObject(this.#backButton)
-      this.#layoutEngine.renderObject(this.#modsPanel)
+      this._layoutEngine.renderObject(this._beatmapListManager.beatmapList)
+      this._layoutEngine.renderObject(this._mainHeader)
+      this._layoutEngine.renderObject(this._modsInfo)
+      this._layoutEngine.renderObject(this._mainFooter)
+      this._layoutEngine.renderObject(this._settingsPanel)
+      this._layoutEngine.renderObject(this._backButton)
+      this._layoutEngine.renderObject(this._modsPanel)
     }
 
-    this.#layoutEngine.renderObject(this.#flashLightEffect)
+    this._layoutEngine.renderObject(this._flashLightEffect)
 
-    if (this.#backgroundFading) {
-      this.#layoutEngine.renderObject(this.#backgroundDarker)
+    if (this._backgroundFading) {
+      this._layoutEngine.renderObject(this._backgroundDarker)
     }
 
-    if (this.#rateChangeEffect) {
-      this.#layoutEngine.renderObject(this.#rateChangeEffect)
+    if (this._rateChangeEffect) {
+      this._layoutEngine.renderObject(this._rateChangeEffect)
     }
 
-    this.#layoutEngine.renderObject(this.#fps)
+    this._layoutEngine.renderObject(this._fps)
     this.renderSpeedChangeEffects()
   }
 
-  increaseSpeed () {
-    if (this.#layoutEngine.speed >= MAX_SPEED) {
+  increaseSpeed() {
+    if (this._layoutEngine.speed >= MAX_SPEED) {
       return
     }
-    this.#layoutEngine.speed++
-    this.#settings.set('speed', this.#layoutEngine.speed)
-    this.#mainHeader.speed = this.#layoutEngine.speed
-    this.#speedChangeEffect = new SpeedChangeEffect(this.#layoutEngine.speed, performance.now())
+    this._layoutEngine.speed++
+    this._settings.set('speed', this._layoutEngine.speed)
+    this._mainHeader.speed = this._layoutEngine.speed
+    this._speedChangeEffect = new SpeedChangeEffect(this._layoutEngine.speed, performance.now())
   }
 
-  decreaseSpeed () {
-    if (this.#layoutEngine.speed <= MIN_SPEED) {
+  decreaseSpeed() {
+    if (this._layoutEngine.speed <= MIN_SPEED) {
       return
     }
-    this.#layoutEngine.speed--
-    this.#settings.set('speed', this.#layoutEngine.speed)
-    this.#mainHeader.speed = this.#layoutEngine.speed
-    this.#speedChangeEffect = new SpeedChangeEffect(this.#layoutEngine.speed, performance.now())
+    this._layoutEngine.speed--
+    this._settings.set('speed', this._layoutEngine.speed)
+    this._mainHeader.speed = this._layoutEngine.speed
+    this._speedChangeEffect = new SpeedChangeEffect(this._layoutEngine.speed, performance.now())
   }
 
-  renderSpeedChangeEffects () {
-    if (this.#speedChangeEffect && this.#speedChangeEffect.active) {
-      this.#layoutEngine.renderObject(this.#speedChangeEffect)
+  renderSpeedChangeEffects() {
+    if (this._speedChangeEffect && this._speedChangeEffect.active) {
+      this._layoutEngine.renderObject(this._speedChangeEffect)
     }
   }
 
-  renderFrameSnapshot () {
-    const frameSnapshot = this.#stageController.frameSnapshot
+  renderFrameSnapshot() {
+    const frameSnapshot = this._stageController.frameSnapshot
     if (frameSnapshot) {
-      this.#layoutEngine.renderObject(frameSnapshot)
+      this._layoutEngine.renderObject(frameSnapshot)
     }
   }
 
   /**
    * @private
    */
-  renderLoading () {
-    this.#layoutEngine.renderObject(this.#loadingEffect)
+  renderLoading() {
+    this._layoutEngine.renderObject(this._loadingEffect)
   }
 
-  async fadeIn (start = 200, end = 300) {
-    this.#backgroundFading = true
-    await this.#backgroundDarker.setValue(100, start)
-    await this.#backgroundDarker.setValue(0, end)
-    this.#backgroundFading = false
+  async fadeIn(start = 200, end = 300) {
+    this._backgroundFading = true
+    await this._backgroundDarker.setValue(100, start)
+    await this._backgroundDarker.setValue(0, end)
+    this._backgroundFading = false
   }
 
-  async fadeOut (start = 200, end = 300) {
-    this.#backgroundFading = true
-    await this.#backgroundDarker.setValue(0, start)
-    await this.#backgroundDarker.setValue(100, end)
-    this.#backgroundFading = false
+  async fadeOut(start = 200, end = 300) {
+    this._backgroundFading = true
+    await this._backgroundDarker.setValue(0, start)
+    await this._backgroundDarker.setValue(100, end)
+    this._backgroundFading = false
   }
 
   /**
    * @private
    * @return {Promise<any[]>}
    */
-  async loadSongList () {
+  async loadSongList() {
     return await fetch('/beatmaps.json').then(res => res.json())
   }
 }

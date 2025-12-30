@@ -3,28 +3,24 @@ import { Skin } from './Skin'
 import { CANVAS } from './Config'
 
 export class FPS extends RenderObject {
-  #value: string
-
-  constructor () {
-    super()
-  }
+  private _value: string
 
   /**
    * 帧数记录
    */
-  #frameTimeList: number[] = []
+  private _frameTimeList: number[] = []
 
   update (now: number) {
-    this.#frameTimeList.push(now)
-    const first = this.#frameTimeList[0]
-    const last = this.#frameTimeList[this.#frameTimeList.length - 1]
-    const fpsValue = (1000.0 * this.#frameTimeList.length / (last - first)).toFixed(0)
+    this._frameTimeList.push(now)
+    const first = this._frameTimeList[0]
+    const last = this._frameTimeList[this._frameTimeList.length - 1]
+    const fpsValue = (1000.0 * this._frameTimeList.length / (last - first)).toFixed(0)
 
-    if (this.#frameTimeList.length >= 200) {
-      this.#frameTimeList.shift()
+    if (this._frameTimeList.length >= 200) {
+      this._frameTimeList.shift()
     }
 
-    this.#value = fpsValue
+    this._value = fpsValue
   }
 
   render (context: CanvasRenderingContext2D) {
@@ -33,7 +29,7 @@ export class FPS extends RenderObject {
     const y = CANVAS.HEIGHT - height - bottom
 
     context.fillStyle = background
-    this.roundRect({
+    RenderObject.roundRect({
       context,
       x,
       y,
@@ -44,8 +40,8 @@ export class FPS extends RenderObject {
       stroke: false,
     })
 
-    const text = `${this.#value}fps`
-    this.drawText({
+    const text = `${this._value}fps`
+    RenderObject.drawText({
       context,
       x,
       y: y + 2,

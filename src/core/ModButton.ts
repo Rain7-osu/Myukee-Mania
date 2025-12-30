@@ -12,52 +12,52 @@ export interface ModButtonConfig {
 }
 
 export class ModButton extends BaseButton {
-  #mod: Mod | Mod[]
+  private readonly _mod: Mod | Mod[]
 
-  #description: string | string[]
+  private _description: string | string[]
 
-  #backgroundImage: CanvasImageSource | CanvasImageSource[]
+  private readonly _backgroundImage: CanvasImageSource | CanvasImageSource[]
 
-  #currentValue: null | Mod
+  private _currentValue: null | Mod
 
-  #currentIndex = 0
+  private _currentIndex = 0
 
-  #keyBind: KeyCode
+  private readonly _keyBind: KeyCode
 
-  get keyBind (): KeyCode { return this.#keyBind }
+  get keyBind(): KeyCode { return this._keyBind }
 
-  constructor (container: HTMLCanvasElement, config: ModButtonConfig) {
+  constructor(container: HTMLCanvasElement, config: ModButtonConfig) {
     const { mod, description, backgroundImage, keyBind, ...style } = config
     super(container, style)
-    this.#description = description
-    this.#mod = mod
-    this.#backgroundImage = backgroundImage
-    this.#currentValue = null
-    this.#keyBind = keyBind
+    this._description = description
+    this._mod = mod
+    this._backgroundImage = backgroundImage
+    this._currentValue = null
+    this._keyBind = keyBind
     this.style.backgroundImage = Array.isArray(backgroundImage) ? backgroundImage[0] : backgroundImage
   }
 
-  click (): void {
-    const valueList = [null, ...(Array.isArray(this.#mod) ? this.#mod : [this.#mod])]
-    this.#currentIndex += 1
-    this.#currentIndex %= valueList.length
-    this.#currentValue = valueList[this.#currentIndex]
+  click(): void {
+    const valueList = [null, ...(Array.isArray(this._mod) ? this._mod : [this._mod])]
+    this._currentIndex += 1
+    this._currentIndex %= valueList.length
+    this._currentValue = valueList[this._currentIndex]
 
     this._updateState()
   }
 
-  _updateState (): void {
-    const bg: CanvasImageSource[] = Array.isArray(this.#backgroundImage) ? this.#backgroundImage : [this.#backgroundImage]
+  _updateState(): void {
+    const bg: CanvasImageSource[] = Array.isArray(this._backgroundImage) ? this._backgroundImage : [this._backgroundImage]
     const bgList = [bg[0], ...bg]
-    this.style.backgroundImage = bgList[this.#currentIndex]
-    if (this.#currentValue) {
+    this.style.backgroundImage = bgList[this._currentIndex]
+    if (this._currentValue) {
       this.style.rotate = Math.PI / 24
     } else {
       this.style.rotate = 0
     }
   }
 
-  registerEvents (eventMap: { onClick?: () => void }): void {
+  registerEvents(eventMap: { onClick?: () => void }): void {
     super.registerEvents({
       onClick: () => {
         this.click()
@@ -66,21 +66,21 @@ export class ModButton extends BaseButton {
     })
   }
 
-  setValue (mod: Mod | null): void {
-    const valueList: (Mod | null)[] = [null, ...(Array.isArray(this.#mod) ? this.#mod : [this.#mod])]
+  setValue(mod: Mod | null): void {
+    const valueList: (Mod | null)[] = [null, ...(Array.isArray(this._mod) ? this._mod : [this._mod])]
     let index = valueList.indexOf(mod)
     index = index < 0 ? index + valueList.length : index
     index %= valueList.length
-    this.#currentValue = mod
-    this.#currentIndex = index
+    this._currentValue = mod
+    this._currentIndex = index
     this._updateState()
   }
 
-  get value (): Mod | null {
-    return this.#currentValue
+  get value(): Mod | null {
+    return this._currentValue
   }
 
-  get mod (): Mod | Mod[] {
-    return this.#mod
+  get mod(): Mod | Mod[] {
+    return this._mod
   }
 }

@@ -3,25 +3,25 @@ import { Skin } from './Skin'
 import { CANVAS } from './Config'
 
 export class ScoreEffect extends RenderObject {
-  #score: number = 0
+  private _score: number = 0
 
-  #targetScore: number = 0
+  private _targetScore: number = 0
 
-  #textAlign: string = 'left'
+  private readonly _textAlign: string = 'left'
 
   reset(): void {
-    this.#score = 0
-    this.#targetScore = 0
+    this._score = 0
+    this._targetScore = 0
   }
 
-  #right: number | null = null
-  #left: number | null = null
+  private _right: number | null = null
+  private readonly _left: number | null = null
 
-  #top: number = 0
+  private readonly _top: number = 0
 
-  #width: number = 0
+  private _width: number = 0
 
-  #height: number = 0
+  private _height: number = 0
 
   constructor(style?: {
     left: number;
@@ -31,37 +31,37 @@ export class ScoreEffect extends RenderObject {
   }) {
     super()
     if (style) {
-      this.#left = style.left
-      this.#top = style.top
-      this.#width = style.width
-      this.#height = style.height
-      this.#textAlign = 'left'
+      this._left = style.left
+      this._top = style.top
+      this._width = style.width
+      this._height = style.height
+      this._textAlign = 'left'
     } else {
       const { top, right, lineHeight, textAlign } = Skin.config.stage.score
-      this.#left = CANVAS.WIDTH - right
-      this.#top = top
-      this.#height = lineHeight
-      this.#textAlign = textAlign
+      this._left = CANVAS.WIDTH - right
+      this._top = top
+      this._height = lineHeight
+      this._textAlign = textAlign
     }
   }
 
   async setScore(score: number, increasing?: number): Promise<void> {
-    if (score === this.#score) {
+    if (score === this._score) {
       return Promise.resolve()
     }
 
-    const step = increasing || ((this.#targetScore - this.#score) / 10)
+    const step = increasing || ((this._targetScore - this._score) / 10)
 
-    this.#targetScore = score
+    this._targetScore = score
     this.cancelStepTos()
-    return new Promise(resolve => {
-      this.createStepTo(this.#score, this.#targetScore, step, (value) => this.#score = value, () => resolve())
+    return new Promise<void>(resolve => {
+      this.createStepTo(this._score, this._targetScore, step, (value) => this._score = value, () => resolve())
     })
   }
 
   private scoreNumbers(): string {
     // 把 score 数字，数字字符数组，并且长度为 8 位，不足的前置补零，并且 score 是整数，四舍五入
-    return String(Math.round(this.#score)).padStart(8, '0')
+    return String(Math.round(this._score)).padStart(8, '0')
   }
 
   render(context: CanvasRenderingContext2D): void {
@@ -74,17 +74,17 @@ export class ScoreEffect extends RenderObject {
     context.textBaseline = 'top'
     context.lineWidth = 2
 
-    this.drawText({
+    RenderObject.drawText({
       context,
       text: this.scoreNumbers(),
-      x: this.#left,
-      y: this.#top,
+      x: this._left,
+      y: this._top,
       width: 0,
       height: lineHeight,
       font: `${fontWeight} ${fontSize}px ${font}`,
       color,
       strokeColor,
-      textAlign: this.#textAlign,
+      textAlign: this._textAlign,
       textBaseline: 'top',
       stroke: true,
     } as any)

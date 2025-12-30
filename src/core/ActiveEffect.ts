@@ -1,75 +1,77 @@
 import { rgba } from './utils'
 import { dev } from './dev'
 
-type TransitionType = 'easeOut' | 'linear';
+export type TransitionType = 'easeOut' | 'linear';
 
-type TransitionState = {
+interface TransitionState {
   startValue: number;
   endValue: number;
   start: number;
   end: number;
   type: TransitionType;
-};
+}
 
 type TransitionFunc = (startValue: number, endValue: number, start: number, end: number, current: number) => number;
 
-type TransitionConfig = [TransitionState, (value: number) => void, ((value: number) => void)?];
+type TransitionConfig = [TransitionState, (value: number) => void, (value: number) => void?];
 
-type StepToConfig = [
-  {
-    endValue: number;
-    step: number;
-    currentValue: number;
-  },
-  (value: number) => void,
-  (() => void)?,
-];
+interface StepToState {
+  endValue: number;
+  step: number;
+  currentValue: number;
+}
 
-type AnimationConfig = {
-  params: [
-    startValue: number,
-    endValue: number,
-    type: 'spring',
-    update: (value: number) => void,
-  ];
-  status: Record<string, any>;
-};
+type StepToConfig = [StepToState, (value: number) => void, () => void?];
 
-type TimeoutAction = {
+interface AnimationState {
+  startValue: number;
+  endValue: number;
+  type: 'spring';
+  update: (value: number) => void;
+}
+
+interface AnimationConfig {
+  state: AnimationState;
+  data: Record<string, any>;
+}
+
+interface TimeoutAction {
   time: number;
   start: number;
   resolve: () => void;
   reject: () => void;
   id: number;
-};
+}
+
+interface IntervalAction {
+  id: number;
+  resolve: () => void;
+  reject: () => void;
+  interval: number;
+  callback: () => void;
+  endCondition: () => boolean;
+  lastTime: number;
+}
 
 export class ActiveEffect {
   static _timeout_counter: number = 0
 
   static _interval_counter: number = 0
 
-  #updates: TransitionConfig[] = []
+  private _updates: TransitionConfig[] = []
 
-  #stepTos: StepToConfig[] = []
+  private _stepTos: StepToConfig[] = []
 
-  #animations: AnimationConfig[] = []
+  private _animations: AnimationConfig[] = []
 
-  #timeouts: TimeoutAction[] = []
+  private _timeouts: TimeoutAction[] = []
 
-  #intervals: Array<{
-    id: number;
-    resolve: (v: unknown) => void;
-    reject: (v: unknown) => void;
-    interval: number;
-    callback: () => void;
-    endCondition: () => boolean;
-    lastTime: number;
-  }> = []
+  private _intervals: IntervalAction[] = []
 
-  createInterval (callback: () => void, interval: number, endCondition: () => boolean = () => false): [Promise<unknown>, number] {
+  createInterval(callback: () => void, interval: number, endCondition: () => boolean = () => false): [Promise<unknown>, number] {
     const id = ++ActiveEffect._interval_counter
-    const task = new Promise((resolve, reject) => {
-      this.#intervals.push({
+    const task = new Promise<void>((resolve: () => void, reject: () => void) => {
+      this._intervals.push({
         id,
         reject,
         resolve,
@@ -82,11 +84,11 @@ export class ActiveEffect {
     return [task, id]
   }
 
-  updateInterval (now: number): void {
-    if (!this.#intervals.length) {
+  updateInterval(now: number): void {
+    if (!this._intervals.length) {
       return
     }
-    this.#intervals = this.#intervals.filter(({ resolve, callback, endCondition }) => {
+    this._intervals = this._intervals.filter(({ resolve, callback, endCondition }) => {
       if (endCondition()) {
         callback()
         resolve()
@@ -94,7 +96,7 @@ export class ActiveEffect {
       }
       return true
     })
-    this.#intervals.forEach(config => {
+    this._intervals.forEach(config => {
       if (now - config.lastTime >= config.interval) {
         config.callback()
         config.lastTime = now
@@ -102,9 +104,9 @@ export class ActiveEffect {
     })
   }
 
-  cancelInterval (timer?: number): void {
+  cancelInterval(timer?: number): void {
     if (timer) {
-      this.#intervals = this.#intervals.filter(({ id, reject }) => {
+      this._intervals = this._intervals.filter(({ id, reject }) => {
         if (id === timer) {
           reject()
           return false
@@ -112,15 +114,15 @@ export class ActiveEffect {
         return true
       })
     } else {
-      this.#intervals.forEach(({ reject }) => reject())
-      this.#intervals = []
+      this._intervals.forEach(({ reject }) => reject())
+      this._intervals = []
     }
   }
 
-  createTimeout (time: number): [Promise<void>, number] {
+  createTimeout(time: number): [Promise<void>, number] {
     const id = ++ActiveEffect._timeout_counter
-    const task = new Promise((resolve, reject) => {
-      this.#timeouts.push({
+    const task = new Promise<void>((resolve: () => void, reject: () => void) => {
+      this._timeouts.push({
         id,
         time,
         start: performance.now(),
@@ -131,9 +133,9 @@ export class ActiveEffect {
     return [task, id]
   }
 
-  cancelTimeout (timer?: number): void {
+  cancelTimeout(timer?: number): void {
     if (timer) {
-      this.#timeouts = this.#timeouts.filter(({ id, reject }) => {
+      this._timeouts = this._timeouts.filter(({ id, reject }) => {
         if (id === timer) {
           reject()
           return false
@@ -141,16 +143,16 @@ export class ActiveEffect {
         return true
       })
     } else {
-      this.#timeouts.forEach(({ reject }) => reject())
-      this.#timeouts = []
+      this._timeouts.forEach(({ reject }) => reject())
+      this._timeouts = []
     }
   }
 
-  updateTimeout (now: number): void {
-    if (!this.#timeouts.length) {
+  updateTimeout(now: number): void {
+    if (!this._timeouts.length) {
       return
     }
-    this.#timeouts = this.#timeouts.filter(({ start, time, resolve }) => {
+    this._timeouts = this._timeouts.filter(({ start, time, resolve }) => {
       if (now - start >= time) {
         resolve()
         return false
@@ -162,13 +164,20 @@ export class ActiveEffect {
   /**
    * @public
    */
-  createTransitionSync (startValue: number | string, endValue: number | string, duration: number, type: TransitionType, update: (value: number | string) => void, endFn?: (value?: number | string) => void): () => void {
+  createTransitionSync<Value extends string | number = number>(
+    startValue: Value,
+    endValue: Value,
+    duration: number,
+    type: TransitionType,
+    update: (value: Value) => void,
+    endFn?: (value?: Value) => void,
+  ): () => void {
     const start: number = performance.now()
     const end = start + duration
 
     let updateFn: (value: number) => void = update
     let updateEnd: ((value: number) => void) | undefined = endFn
-    if (typeof startValue === 'string' || typeof endValue === 'string') {
+    if (typeof startValue === 'string' && typeof endValue === 'string') {
       if (rgba.isRgba(startValue) && rgba.isRgba(endValue)) {
         const [rs, gs, bs, as] = rgba.toValues(startValue)
         const [re, ge, be, ae] = rgba.toValues(endValue)
@@ -181,7 +190,7 @@ export class ActiveEffect {
             ae !== as ? as + (ae - as) * progress : as,
           ]))
         }
-        this.#updates.push([
+        this._updates.push([
           {
             start,
             end,
@@ -191,12 +200,12 @@ export class ActiveEffect {
           },
           updateFn,
           updateEnd,
-        ])
+        ] as TransitionConfig)
       } else {
         throw new Error('The startValue and endValue must be number or rgba color string!')
       }
     } else {
-      this.#updates.push([
+      this._updates.push([
         {
           start,
           end,
@@ -206,19 +215,25 @@ export class ActiveEffect {
         },
         updateFn,
         updateEnd,
-      ])
+      ] as TransitionConfig)
     }
 
     return () => {
-      this.#updates = this.#updates.filter(u => u[1] !== updateFn)
+      this._updates = this._updates.filter(u => u[1] !== updateFn)
     }
   }
 
   /**
    * @public
    */
-  createTransition<T extends string | number> (startValue: T, endValue: T, duration: number, type: TransitionType, updateFn: (value: T) => void): Promise<void> {
-    return new Promise(resolve => {
+  createTransition<Value extends string | number = number>(
+    startValue: Value,
+    endValue: Value,
+    duration: Value,
+    type: TransitionType,
+    updateFn: (value: Value) => void,
+  ): Promise<void> {
+    return new Promise((resolve: () => void) => {
       this.createTransitionSync(startValue, endValue, duration, type, updateFn, resolve)
     })
   }
@@ -226,26 +241,23 @@ export class ActiveEffect {
   /**
    * @public
    */
-  updateTransition (time?: number): void {
+  updateTransition(time?: number): void {
     const now = time || performance.now()
-    this.#updates = this.#updates.filter(update => {
+    this._updates = this._updates.filter(update => {
       if (update[0].end > now) {
         return true
       }
       const [{ endValue }, updateFn, endFn] = update
       updateFn(endValue)
       endFn?.(endValue)
-      if (updateFn.__debug__) {
-        dev.log('end transition', endValue)
-      }
       return false
     })
 
-    if (!this.#updates.length) {
+    if (!this._updates.length) {
       return
     }
 
-    this.#updates.forEach(update => {
+    this._updates.forEach(update => {
       const [{ start, end, startValue, endValue, type }, updateFn] = update
       let transformer: TransitionFunc
       switch (type) {
@@ -260,9 +272,6 @@ export class ActiveEffect {
       }
 
       const value = transformer(startValue, endValue, start, end, now)
-      if (updateFn.__debug__) {
-        dev.log('update transition', value)
-      }
       updateFn(value)
     })
   }
@@ -270,8 +279,8 @@ export class ActiveEffect {
   /**
    * 创建一个每一帧都更新 step 数量的更新器
    */
-  createStepTo (startValue: number, endValue: number, step: number, updateFn: (value: number) => void, endFn?: (value?: number) => void): () => void {
-    this.#stepTos.push([
+  createStepTo(startValue: number, endValue: number, step: number, updateFn: (value: number) => void, endFn?: (value?: number) => void): () => void {
+    this._stepTos.push([
       {
         endValue,
         currentValue: startValue,
@@ -279,29 +288,29 @@ export class ActiveEffect {
       },
       updateFn,
       endFn,
-    ])
+    ] as StepToConfig)
 
     return () => {
-      this.#stepTos = this.#stepTos.filter(stepTo => stepTo[1] !== updateFn)
+      this._stepTos = this._stepTos.filter(stepTo => stepTo[1] !== updateFn)
     }
   }
 
-  updateStepTo (): void {
-    this.#stepTos = this.#stepTos.filter(stepTo => {
+  updateStepTo(): void {
+    this._stepTos = this._stepTos.filter(stepTo => {
       const [{ endValue, step, currentValue }, updateFn, endFn] = stepTo
       if (step > 0 && currentValue + step >= endValue || step < 0 && currentValue + step <= endValue) {
         updateFn(endValue)
-        endFn?.(endValue)
+        endFn?.()
         return false
       }
       return true
     })
 
-    if (!this.#stepTos.length) {
+    if (!this._stepTos.length) {
       return
     }
 
-    this.#stepTos.forEach(stepTo => {
+    this._stepTos.forEach(stepTo => {
       const [config, updateFn] = stepTo
       const { step } = config
       config.currentValue += step
@@ -312,8 +321,8 @@ export class ActiveEffect {
   /**
    * 创建动画效果
    */
-  createAnimation (startValue: number, endValue: number, type: 'spring', update: (value: number) => void): void {
-    const ANIMATION_INIT_STATUS = {
+  createAnimation(startValue: number, endValue: number, type: 'spring', update: (value: number) => void): void {
+    const ANIMATION_INIT_STATUS: { spring: Record<string, any> } = {
       spring: {
         stiffness: 0.1,  // 弹性系数
         damping: 0.85,    // 阻尼系数
@@ -322,19 +331,19 @@ export class ActiveEffect {
       },
     }
 
-    this.#animations.push({
-      params: [startValue, endValue, type, update],
-      status: { ...ANIMATION_INIT_STATUS[type] },
-    })
+    this._animations.push({
+      state: [startValue, endValue, type, update],
+      data: { ...ANIMATION_INIT_STATUS[type] },
+    } as AnimationConfig)
   }
 
-  updateAnimation (): void {
-    if (!this.#animations.length) {
+  updateAnimation(): void {
+    if (!this._animations.length) {
       return
     }
 
-    this.#animations.forEach(({ params, status }) => {
-      const [startValue, endValue, type, update] = params
+    this._animations.forEach(({ state, data }) => {
+      const [startValue, endValue, type, update] = state
       let animation
       switch (type) {
         case 'spring':
@@ -343,7 +352,7 @@ export class ActiveEffect {
         default:
           animation = ActiveEffect.spring
       }
-      const value = animation(startValue, endValue, status)
+      const value = animation(startValue, endValue, data)
       update(value)
     })
   }
@@ -351,44 +360,44 @@ export class ActiveEffect {
   /**
    * 取消动画
    */
-  cancelAnimations (animations?: Array<(value: number) => void>): void {
+  cancelAnimations(animations?: Array<(value: number) => void>): void {
     if (!animations) {
-      this.#animations = []
+      this._animations = []
       return
     }
-    this.#animations = this.#animations.filter(animation => !animations.includes(animation.params[3]))
+    this._animations = this._animations.filter(animation => !animations.includes(animation.state[3]))
   }
 
   /**
    * 取消步进更新器
    */
-  cancelStepTos (transformers?: Array<(value: number) => void>): void {
+  cancelStepTos(transformers?: Array<(value: number) => void>): void {
     if (!transformers) {
-      this.#stepTos = []
+      this._stepTos = []
       return
     }
-    this.#stepTos = this.#stepTos.filter(stepTo => !transformers.includes(stepTo[1]))
+    this._stepTos = this._stepTos.filter(stepTo => !transformers.includes(stepTo[1]))
   }
 
   /**
    * 取消过渡效果
    */
-  cancelTransitions (transformers?: Array<(value: number) => void>): void {
+  cancelTransitions(transformers?: Array<(value: number) => void>): void {
     if (!transformers) {
-      this.#updates = []
+      this._updates = []
     } else {
-      this.#updates = this.#updates.filter(update => !transformers.includes(update[1]))
+      this._updates = this._updates.filter(update => !transformers.includes(update[1]))
     }
   }
 
-  updateEffect (now: number): void {
+  updateEffect(now: number): void {
     this.updateTimeout(now)
     this.updateTransition(now)
     this.updateStepTo()
     this.updateAnimation()
   }
 
-  cancelEffect (): void {
+  cancelEffect(): void {
     this.cancelAnimations()
     this.cancelTransitions()
     this.cancelStepTos()
@@ -398,7 +407,7 @@ export class ActiveEffect {
   /**
    * easeOut 缓动函数
    */
-  static easeOut (startValue: number, endValue: number, start: number, end: number, current: number): number {
+  static easeOut(startValue: number, endValue: number, start: number, end: number, current: number): number {
     // 确保当前值在区间内
     if (current <= start) return startValue
     if (current >= end) return endValue
@@ -416,7 +425,7 @@ export class ActiveEffect {
   /**
    * linear 线性缓动函数
    */
-  static linear (startValue: number, endValue: number, start: number, end: number, current: number): number {
+  static linear(startValue: number, endValue: number, start: number, end: number, current: number): number {
     // 确保当前值在区间内
     if (current <= start) return startValue
     if (current >= end) return endValue
@@ -429,7 +438,12 @@ export class ActiveEffect {
   /**
    * spring 弹簧物理效果函数
    */
-  static spring (startValue: number, endValue: number, status: { stiffness: number; damping: number; velocity: number; currentValue: number | null }): number {
+  static spring(startValue: number, endValue: number, status: {
+    stiffness: number;
+    damping: number;
+    velocity: number;
+    currentValue: number | null
+  }): number {
     if (status.currentValue === null) {
       status.currentValue = startValue
     }

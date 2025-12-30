@@ -1,9 +1,10 @@
 import { dev } from './dev'
 import { KeyCode } from './KeyCode'
 
-type KeyboardEventHandler = (e: KeyboardEvent) => void
+export type KeyboardEventHandler = (e: KeyboardEvent) => void
 
-const preventDefaultMaps = [
+
+const preventDefaultMaps: string[] = [
   KeyCode.F1,
   KeyCode.F2,
   KeyCode.F3,
@@ -16,55 +17,55 @@ const preventDefaultMaps = [
 ]
 
 export class KeyboardEventManager {
-  #keydownEventList: Record<string, KeyboardEventHandler> = {}
-  #keyupEventList: Record<string, KeyboardEventHandler> = {}
-  #keypressEventList: Record<string, KeyboardEventHandler> = {}
+  private _keydownEventList: Record<string, KeyboardEventHandler> = {}
+  private _keyupEventList: Record<string, KeyboardEventHandler> = {}
+  private _keypressEventList: Record<string, KeyboardEventHandler> = {}
 
-  #hasRegister: boolean = false
+  private _hasRegister: boolean = false
 
-  #disabled: boolean = false
+  private _disabled: boolean = false
 
-  #invokeKeydownEventHandler = (e: KeyboardEvent) => {
+  private _invokeKeydownEventHandler = (e: KeyboardEvent) => {
     const key = e.code
-    if (this.#disabled) return
+    if (this._disabled) return
     dev.debug(`[Keydown]: ${key}`)
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
-    if (this.#keydownEventList[key]) {
-      this.#keydownEventList[key](e)
+    if (this._keydownEventList[key]) {
+      this._keydownEventList[key](e)
     } else {
       dev.debug(`No keydown handler registered for key: ${key}`)
     }
   }
-  #invokeKeyupEventHandler = (e: KeyboardEvent) => {
+  private _invokeKeyupEventHandler = (e: KeyboardEvent) => {
     const key = e.code
-    if (this.#disabled) return
+    if (this._disabled) return
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
     dev.debug(`[Keyup]: ${key}`)
-    if (this.#keyupEventList[key]) {
-      this.#keyupEventList[key](e)
+    if (this._keyupEventList[key]) {
+      this._keyupEventList[key](e)
     } else {
       dev.debug(`No keyup handler registered for key: ${key}`)
     }
   }
-  #invokeKeypressEventHandler = (e: KeyboardEvent) => {
+  private _invokeKeypressEventHandler = (e: KeyboardEvent) => {
     const key = e.code
-    if (this.#disabled) return
+    if (this._disabled) return
     if (preventDefaultMaps.includes(key)) {
       e.preventDefault()
     }
     dev.debug(`[Keypress]: ${key}`)
-    if (this.#keypressEventList[key]) {
-      this.#keypressEventList[key](e)
+    if (this._keypressEventList[key]) {
+      this._keypressEventList[key](e)
     } else {
       dev.debug(`No keypress handler registered for key: ${key}`)
     }
   }
 
-  registerEvents ({
+  registerEvents({
     keydownEventList = {},
     keyupEventList = {},
     keypressEventList = {},
@@ -73,36 +74,36 @@ export class KeyboardEventManager {
     keyupEventList?: Record<string, KeyboardEventHandler>
     keypressEventList?: Record<string, KeyboardEventHandler>
   }): void {
-    this.#keydownEventList = keydownEventList
-    this.#keyupEventList = keyupEventList
-    this.#keypressEventList = keypressEventList
+    this._keydownEventList = keydownEventList
+    this._keyupEventList = keyupEventList
+    this._keypressEventList = keypressEventList
 
-    if (!this.#hasRegister) {
-      document.addEventListener('keydown', this.#invokeKeydownEventHandler)
-      document.addEventListener('keyup', this.#invokeKeyupEventHandler)
-      document.addEventListener('keypress', this.#invokeKeypressEventHandler)
+    if (!this._hasRegister) {
+      document.addEventListener('keydown', this._invokeKeydownEventHandler)
+      document.addEventListener('keyup', this._invokeKeyupEventHandler)
+      document.addEventListener('keypress', this._invokeKeypressEventHandler)
     }
   }
 
-  removeEvents (): void {
-    this.#keypressEventList = {}
-    this.#keydownEventList = {}
-    this.#keyupEventList = {}
+  removeEvents(): void {
+    this._keypressEventList = {}
+    this._keydownEventList = {}
+    this._keyupEventList = {}
   }
 
-  disableEvents (): void {
-    this.#disabled = true
+  disableEvents(): void {
+    this._disabled = true
   }
 
-  enableEvents (): void {
-    this.#disabled = false
+  enableEvents(): void {
+    this._disabled = false
   }
 
-  dispose (): void {
-    if (this.#hasRegister) {
-      document.removeEventListener('keydown', this.#invokeKeydownEventHandler)
-      document.removeEventListener('keyup', this.#invokeKeyupEventHandler)
-      document.removeEventListener('keypress', this.#invokeKeypressEventHandler)
+  dispose(): void {
+    if (this._hasRegister) {
+      document.removeEventListener('keydown', this._invokeKeydownEventHandler)
+      document.removeEventListener('keyup', this._invokeKeyupEventHandler)
+      document.removeEventListener('keypress', this._invokeKeypressEventHandler)
     }
   }
 }

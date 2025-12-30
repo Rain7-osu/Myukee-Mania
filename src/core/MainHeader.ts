@@ -1,110 +1,110 @@
 import { RenderObject } from './RenderObject'
-import { CANVAS } from './Config'
+import { CANVAS, px, py, vw } from './Config'
 import { FrameSnapshot } from './FrameSnapshot'
 import { formatMapTime, rgba } from './utils'
-import { py, px, vw } from './Config'
 import { Skin } from './Skin'
+import type { Beatmap } from './Beatmap'
 
 const TRANSITION_DURATION = 200
 const BG_COLOR = 'rgb(0, 0, 0)'
 const BORDER_COLOR = 'rgb(0, 102, 255)'
 
 export class MainHeader extends RenderObject {
-  #beatmap: Beatmap
+  private _beatmap: Beatmap
 
-  #backgroundSnapshot: FrameSnapshot | null = null
+  private _backgroundSnapshot: FrameSnapshot | null = null
 
-  #headerSnapshot: FrameSnapshot | null = null
+  private _headerSnapshot: FrameSnapshot | null = null
 
-  #translateY = 0
+  private _translateY = 0
 
-  #leftMaskTop = 260
+  private _leftMaskTop = 260
 
-  #textAlpha = 100
+  private _textAlpha = 100
 
-  #switchingBeatmap = false
+  private _switchingBeatmap = false
 
-  #speed: number
+  private _speed: number
 
-  constructor (speed: number) {
+  constructor(speed: number) {
     super()
-    this.#speed = speed
-    this.#leftMaskTop = Skin.config.main.header.title.lineHeight
+    this._speed = speed
+    this._leftMaskTop = Skin.config.main.header.title.lineHeight
   }
 
-  set speed (s: number) {
-    this.#speed = s
+  set speed(s: number) {
+    this._speed = s
   }
 
-  async hide () {
-    if (this.#translateY === -260) {
+  async hide() {
+    if (this._translateY === -260) {
       return Promise.resolve()
     }
-    await this.createTransition(this.#translateY, -280, 600, 'easeOut', value => this.#translateY = value)
+    await this.createTransition(this._translateY, -280, 600, 'easeOut', value => this._translateY = value)
 
   }
 
-  async show () {
-    if (this.#translateY === 0) {
+  async show() {
+    if (this._translateY === 0) {
       return Promise.resolve()
     }
-    await this.createTransition(this.#translateY, 0, 600, 'easeOut', value => this.#translateY = value)
+    await this.createTransition(this._translateY, 0, 600, 'easeOut', value => this._translateY = value)
   }
 
-  async setBeatmap (beatmap: Beatmap) {
+  async setBeatmap(beatmap: Beatmap) {
     const { title: { lineHeight } } = Skin.config.main.header
-    this.#headerSnapshot = null
-    this.#switchingBeatmap = true
-    this.#textAlpha = 0
+    this._headerSnapshot = null
+    this._switchingBeatmap = true
+    this._textAlpha = 0
     this.cancelTransitions()
-    this.#beatmap = beatmap
+    this._beatmap = beatmap
     await Promise.all([
-      this.createTransition(this.#leftMaskTop, lineHeight, TRANSITION_DURATION, 'linear', value => this.#leftMaskTop = value),
-      this.createTransition(this.#textAlpha, 100, TRANSITION_DURATION, 'linear', value => this.#textAlpha = value),
+      this.createTransition(this._leftMaskTop, lineHeight, TRANSITION_DURATION, 'linear', value => this._leftMaskTop = value),
+      this.createTransition(this._textAlpha, 100, TRANSITION_DURATION, 'linear', value => this._textAlpha = value),
     ])
-    this.#switchingBeatmap = false
+    this._switchingBeatmap = false
   }
 
-  render (context) {
+  render(context) {
     this.renderWithSnapshot(context)
-    if (this.#switchingBeatmap) {
+    if (this._switchingBeatmap) {
       this.renderTitleMask(context)
     }
     this.renderSpeed(context)
   }
 
-  renderSpeed (context: CanvasRenderingContext2D) {
+  renderSpeed(context: CanvasRenderingContext2D) {
     const TOP = py(12)
     const RIGHT = CANVAS.WIDTH - py(12)
     const FONT_SIZE = py(48)
     context.save()
     context.font = `${FONT_SIZE}px 微软雅黑`
-    context.fillStyle = 'rgba(255, 255, 255, 0.4)'  
+    context.fillStyle = 'rgba(255, 255, 255, 0.4)'
     context.textBaseline = 'top'
     context.textAlign = 'right'
-    context.fillText(`${this.#speed}(fixed)`, RIGHT, TOP + this.#translateY)
+    context.fillText(`${this._speed}(fixed)`, RIGHT, TOP + this._translateY)
     context.restore()
   }
 
-  renderWithSnapshot (context: CanvasRenderingContext2D) {
-    if (this.#switchingBeatmap) {
+  renderWithSnapshot(context: CanvasRenderingContext2D) {
+    if (this._switchingBeatmap) {
       this.renderBackground(context)
       this.renderBeatmapInfo(context)
     } else {
-      if (!this.#headerSnapshot) {
-        this.#headerSnapshot = FrameSnapshot.createSnapshot(ctx => {
+      if (!this._headerSnapshot) {
+        this._headerSnapshot = FrameSnapshot.createSnapshot(ctx => {
           ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
           this.renderBackground(ctx)
           this.renderBeatmapInfo(ctx)
         })
       }
 
-      this.#headerSnapshot.setStyle(0, this.#translateY, CANVAS.WIDTH, CANVAS.HEIGHT)
-      this.#headerSnapshot.render(context)
+      this._headerSnapshot.setStyle(0, this._translateY, CANVAS.WIDTH, CANVAS.HEIGHT)
+      this._headerSnapshot.render(context)
     }
   }
 
-  renderBeatmapInfo (context: CanvasRenderingContext2D) {
+  renderBeatmapInfo(context: CanvasRenderingContext2D) {
     const {
       color,
       title: titleItem,
@@ -126,7 +126,7 @@ export class MainHeader extends RenderObject {
       hp,
       circles,
       sliders,
-    } = this.#beatmap
+    } = this._beatmap
 
     context.save()
     let offsetY = top
@@ -138,7 +138,7 @@ export class MainHeader extends RenderObject {
     const renderLine = (text, item) => {
       const { font, fontWeight, fontSize, lineHeight } = item
       const [r, g, b] = rgba.toValues(color)
-      context.fillStyle = rgba.format([r, g, b, this.#textAlpha / 100])
+      context.fillStyle = rgba.format([r, g, b, this._textAlpha / 100])
       context.font = `${fontWeight} ${fontSize}px ${font}`
       context.textBaseline = 'top'
       context.textAlign = 'left'
@@ -155,7 +155,7 @@ export class MainHeader extends RenderObject {
     context.restore()
   }
 
-  renderTitleMask (context: CanvasRenderingContext2D) {
+  renderTitleMask(context: CanvasRenderingContext2D) {
     const { leftHeight: LEFT_HEIGHT, title: { lineHeight: LEFT_MASK_TOP } } = Skin.config.main.header
     const LEFT_RIGHT = CANVAS.WIDTH / 3 - vw(120 / 2560)
 
@@ -163,7 +163,7 @@ export class MainHeader extends RenderObject {
     // 从下到上的渐变
     const gradient = context.createLinearGradient(0, LEFT_HEIGHT, 0, LEFT_MASK_TOP)
 
-    const offsetBlack = (LEFT_HEIGHT - this.#leftMaskTop) / (LEFT_HEIGHT - LEFT_MASK_TOP)
+    const offsetBlack = (LEFT_HEIGHT - this._leftMaskTop) / (LEFT_HEIGHT - LEFT_MASK_TOP)
 
     // 从下向上，从不透明到透明
     gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
@@ -176,11 +176,11 @@ export class MainHeader extends RenderObject {
     context.restore()
   }
 
-  renderBackground (context: CanvasRenderingContext2D) {
-    if (!this.#backgroundSnapshot) {
+  renderBackground(context: CanvasRenderingContext2D) {
+    if (!this._backgroundSnapshot) {
       const { leftHeight: LEFT_HEIGHT, rightHeight: RIGHT_HEIGHT } = Skin.config.main.header
 
-      this.#backgroundSnapshot = FrameSnapshot.createSnapshot(ctx => {
+      this._backgroundSnapshot = FrameSnapshot.createSnapshot(ctx => {
         ctx.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
         const RIGHT_LEFT = CANVAS.WIDTH / 3 + px(120)
         const LEFT_RIGHT = CANVAS.WIDTH / 3 - px(120)
@@ -222,6 +222,6 @@ export class MainHeader extends RenderObject {
       })
     }
 
-    this.#backgroundSnapshot.render(context)
+    this._backgroundSnapshot.render(context)
   }
 }

@@ -7,7 +7,7 @@ export class RenderEngine {
 
   timing: number
 
-  #speed: number
+  private _speed: number
 
   constructor (canvas: HTMLCanvasElement) {
     this.context = canvas.getContext('2d')
@@ -21,17 +21,17 @@ export class RenderEngine {
     if (speed > MAX_SPEED || speed < MIN_SPEED) {
       return
     }
-    this.#speed = speed
+    this._speed = speed
   }
 
   get speed (): number {
-    return this.#speed
+    return this._speed
   }
 
   convertOffsetToY (offset: number): number {
     const timing = this.timing
     // per frame fall (10 * speed) px
-    return Math.floor(py((timing - offset) / 10 * this.#speed) + CANVAS.HEIGHT)
+    return Math.floor(py((timing - offset) / 10 * this._speed) + CANVAS.HEIGHT)
   }
 
   renderObject (object: RenderObject): void {

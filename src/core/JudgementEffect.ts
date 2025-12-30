@@ -43,65 +43,65 @@ export const JudgementAssets: Record<JudgementType, JudgementAsset> = {
 }
 
 export class JudgementEffect extends RenderObject {
-  #judgement: Judgement
+  private _judgement: Judgement
 
-  #scale: number
+  private _scale: number
 
-  #alpha: number
+  private _alpha: number
 
-  #phase: 'enlarging' | 'shirking'
+  private _phase: 'enlarging' | 'shirking'
 
-  #maxScale: number = Skin.config.stage.judgement.effect.defaultMaxScale
+  private _maxScale: number = Skin.config.stage.judgement.effect.defaultMaxScale
 
-  #active: boolean
+  private _active: boolean
 
-  get active (): boolean {
-    return this.#active
+  get active(): boolean {
+    return this._active
   }
 
-  constructor (judgement: Judgement) {
+  constructor(judgement: Judgement) {
     super()
-    this.#judgement = judgement
-    this.#active = true
+    this._judgement = judgement
+    this._active = true
     const { initAlpha: INIT_ALPHA, initScale: INIT_SCALE } = Skin.config.stage.judgement.effect
-    this.#scale = INIT_SCALE
-    this.#alpha = INIT_ALPHA
+    this._scale = INIT_SCALE
+    this._alpha = INIT_ALPHA
   }
 
-  render (context: CanvasRenderingContext2D): void {
-    const config = JudgementAssets[this.#judgement.type]
+  render(context: CanvasRenderingContext2D): void {
+    const config = JudgementAssets[this._judgement.type]
     const { judgement: { top }, columnCenter } = Skin.config.stage
 
-    const image = this.#phase === 'enlarging' ? config.image : config.image2 || config.image
+    const image = this._phase === 'enlarging' ? config.image : config.image2 || config.image
 
-    let width = image.width * this.#scale
-    let height = image.height * this.#scale
+    let width = image.width * this._scale
+    let height = image.height * this._scale
 
-    if (config.width && config.height && (width >= config.width * this.#maxScale || height >= config.height * this.#maxScale)) {
-      dev.warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this.#scale}`)
-      width = config.width * this.#maxScale
-      height = config.height * this.#maxScale
+    if (config.width && config.height && (width >= config.width * this._maxScale || height >= config.height * this._maxScale)) {
+      dev.warn(`JudgementEffect: scale is too large, resetting to max scale, current is ${this._scale}`)
+      width = config.width * this._maxScale
+      height = config.height * this._maxScale
     }
 
     const x = columnCenter - width / 2
     const y = top - height / 2
 
     context.save()
-    context.globalAlpha = this.#alpha
+    context.globalAlpha = this._alpha
     context.drawImage(image, x, y, width, height)
     context.restore()
   }
 
-  update (currentTiming: number, nextEffect: JudgementEffect | null): void {
-    const elapsedTime = currentTiming - this.#judgement.judgeTiming
+  update(currentTiming: number, nextEffect: JudgementEffect | null): void {
+    const elapsedTime = currentTiming - this._judgement.judgeTiming
 
     // 如果有下一个 effect，则判断下一个 effect 是不是马上要展示了
     // 如果是的话，则直接渲染下一个 effect，当前 effect 设为不活跃
     if (nextEffect) {
-      const nextEffectTiming = nextEffect.#judgement.judgeTiming
+      const nextEffectTiming = nextEffect._judgement.judgeTiming
       const diffTime = currentTiming - nextEffectTiming
       if (elapsedTime >= diffTime) {
-        this.#active = false
+        this._active = false
         return
       }
     }
@@ -116,16 +116,16 @@ export class JudgementEffect extends RenderObject {
     if (elapsedTime < GROW_TIME) {
       // 放大动画
       const currentPercent = (elapsedTime / GROW_TIME) ** 2
-      this.#scale = 1 + currentPercent * (this.#maxScale - 1)
-      this.#alpha = INIT_ALPHA
-      this.#phase = 'enlarging'
+      this._scale = 1 + currentPercent * (this._maxScale - 1)
+      this._alpha = INIT_ALPHA
+      this._phase = 'enlarging'
     } else if (elapsedTime < BACK_TIME) {
-      this.#phase = 'shirking'
-      this.#scale = this.#maxScale - ((elapsedTime - GROW_TIME) / (BACK_TIME - GROW_TIME)) ** 2 * (this.#maxScale - 1)
+      this._phase = 'shirking'
+      this._scale = this._maxScale - ((elapsedTime - GROW_TIME) / (BACK_TIME - GROW_TIME)) ** 2 * (this._maxScale - 1)
     } else if (elapsedTime < FADE_TIME) {
-      this.#alpha = 1 - (elapsedTime - BACK_TIME) / (FADE_TIME - BACK_TIME)
+      this._alpha = 1 - (elapsedTime - BACK_TIME) / (FADE_TIME - BACK_TIME)
     } else {
-      this.#active = false
+      this._active = false
     }
   }
 }

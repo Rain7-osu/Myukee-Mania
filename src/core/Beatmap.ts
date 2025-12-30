@@ -1,108 +1,108 @@
 import { FileManager } from './FileManager'
 
 export class Beatmap {
-  #artist: string
-  #title: string
-  #version: string
-  #audioFilename: string
-  #previewTime: number
-  #beatmapId: string
-  #creator: string
-  #bg: string
-  #filename: string
-  #starRating: number
-  #length: number
-  #image: HTMLImageElement
-  #od: number
-  #keys: number
-  #hp: number
-  #circles: number
-  #sliders: number
+  private readonly _artist: string
+  private readonly _title: string
+  private readonly _version: string
+  private readonly _audioFilename: string
+  private readonly _previewTime: number
+  private readonly _beatmapId: string
+  private readonly _creator: string
+  private readonly _bg: string
+  private readonly _filename: string
+  private readonly _starRating: number
+  private readonly _length: number
+  private _image: HTMLImageElement
+  private readonly _od: number
+  private readonly _keys: number
+  private readonly _hp: number
+  private readonly _circles: number
+  private readonly _sliders: number
 
-  get id (): string {
-    return this.#beatmapId
+  get id(): string {
+    return this._beatmapId
   }
 
-  get bgImage () {
-    if (!this.#image) {
-      this.#image = FileManager.loadImage(`./beatmaps/${this.bgName}`)
+  get bgImage() {
+    if (!this._image) {
+      this._image = FileManager.loadImage(`./beatmaps/${this.bgName}`)
     }
-    return this.#image
+    return this._image
   }
 
-  get title () {
-    return `${this.#artist} - ${this.#title} [${this.#version}]`
+  get title() {
+    return `${this._artist} - ${this._title} [${this._version}]`
   }
 
-  get creator () {
-    return this.#creator
+  get creator() {
+    return this._creator
   }
 
-  get songName (): string {
-    return this.#title
+  get songName(): string {
+    return this._title
   }
 
-  get description () {
-    return `${this.#artist} // ${this.#creator}`
+  get description() {
+    return `${this._artist} // ${this._creator}`
   }
 
-  get difficulty () {
-    return `${this.#version} (${this.#keys}K)`
+  get difficulty() {
+    return `${this._version} (${this._keys}K)`
   }
 
-  get star () {
-    return this.#starRating
+  get star() {
+    return this._starRating
   }
 
-  get bgName () {
-    return this.#bg
+  get bgName() {
+    return this._bg
   }
 
-  get filename () {
-    return `./beatmaps/${this.#filename}`
+  get filename() {
+    return `./beatmaps/${this._filename}`
   }
 
-  get audioFile () {
-    return `./beatmaps/${this.#audioFilename}`
+  get audioFile() {
+    return `./beatmaps/${this._audioFilename}`
   }
 
-  get length () {
-    return this.#length
+  get length() {
+    return this._length
   }
 
-  get previewTime (): number {
-    return this.#previewTime
+  get previewTime(): number {
+    return this._previewTime
   }
 
-  get bpm () {
+  get bpm() {
     return 180
   }
 
-  get objectCount () {
-    return this.#circles + this.#sliders
+  get objectCount() {
+    return this._circles + this._sliders
   }
 
-  get keys () {
-    return this.#keys
+  get keys() {
+    return this._keys
   }
 
-  get sliders () {
-    return this.#sliders
+  get sliders() {
+    return this._sliders
   }
 
-  get circles () {
-    return this.#circles
+  get circles() {
+    return this._circles
   }
 
-  get hp () {
-    return this.#hp
+  get hp() {
+    return this._hp
   }
 
-  get od () {
-    return this.#od
+  get od() {
+    return this._od
   }
 
-  constructor ({
+  constructor({
     artist,
     title,
     version,
@@ -137,25 +137,25 @@ export class Beatmap {
     circles: number
     sliders: number
   }) {
-    this.#artist = artist
-    this.#title = title
-    this.#version = version
-    this.#audioFilename = audioFilename
-    this.#previewTime = previewTime
-    this.#beatmapId = beatmapId
-    this.#creator = creator
-    this.#bg = bg
-    this.#filename = filename
-    this.#starRating = starRating
-    this.#length = length
-    this.#od = od
-    this.#keys = keys
-    this.#hp = hp
-    this.#circles = circles
-    this.#sliders = sliders
+    this._artist = artist
+    this._title = title
+    this._version = version
+    this._audioFilename = audioFilename
+    this._previewTime = previewTime
+    this._beatmapId = beatmapId
+    this._creator = creator
+    this._bg = bg
+    this._filename = filename
+    this._starRating = starRating
+    this._length = length
+    this._od = od
+    this._keys = keys
+    this._hp = hp
+    this._circles = circles
+    this._sliders = sliders
   }
 
-  static fromConfig (config: any): Beatmap | null {
+  static fromConfig(config: Record<string, Record<string, any>>): Beatmap | null {
     if (!config.Metadata) {
       return null
     }

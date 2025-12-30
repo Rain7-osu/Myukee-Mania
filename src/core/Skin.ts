@@ -1,5 +1,4 @@
-import { CANVAS } from './Config'
-import { py, vh, vw, px } from './Config'
+import { CANVAS, px, py, vh } from './Config'
 
 const YELLOW_NOTE = '#fed336'
 const BLUE_NOTE = '#00dbff'

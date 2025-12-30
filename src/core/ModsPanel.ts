@@ -20,6 +20,7 @@ import {
   RDIcon,
   SDIcon,
 } from './Icons'
+import type { MainController } from './MainController'
 
 const BACKGROUND_COLOR = 'rgba(0, 0, 0, 0.95)'
 const BUTTON_TEXT_COLOR = '#fff'
@@ -47,25 +48,21 @@ const MOD_X_GAP = 78
 const MOD_Y_GAP = 64
 const BUTTON_ACTIVE_COLOR = 'rgba(255, 255, 255, 0.6)'
 
-/**
- * @readonly
- * @enum {string}
- */
-export const Mod = {
-  DT: 'DT',
-  NC: 'NC',
-  HR: 'HR',
-  FD: 'FD',
-  HD: 'HD',
-  FL: 'FL',
-  SD: 'SD',
-  PF: 'PF',
-  HT: 'HT',
-  EZ: 'EZ',
-  NF: 'NF',
-  MR: 'MR',
-  RD: 'RD',
-  AT: 'AT',
+export const enum Mod {
+  DT = 'DT',
+  NC = 'NC',
+  HR = 'HR',
+  FD = 'FD',
+  HD = 'HD',
+  FL = 'FL',
+  SD = 'SD',
+  PF = 'PF',
+  HT = 'HT',
+  EZ = 'EZ',
+  NF = 'NF',
+  MR = 'MR',
+  RD = 'RD',
+  AT = 'AT',
 }
 
 const ConflictModsMap: Mod[][] = [
@@ -83,27 +80,27 @@ interface ModConfigItem {
 }
 
 export class ModsPanel extends RenderObject {
-  #container: HTMLCanvasElement
+  private _container: HTMLCanvasElement
 
-  #resetButton: ModsPanelButton
+  private _resetButton: ModsPanelButton
 
-  #closeButton: ModsPanelButton
+  private _closeButton: ModsPanelButton
 
-  #selectedMods: Mod[] = []
+  private _selectedMods: Mod[] = []
 
-  #modButtons: ModButton[] = []
+  private _modButtons: ModButton[] = []
 
-  #alpha = 0
+  private _alpha = 0
 
-  #keyboardEventManager: KeyboardEventManager
+  private _keyboardEventManager: KeyboardEventManager
 
-  #mainController: MainController
+  private _mainController: MainController
 
   constructor (container: HTMLCanvasElement, mainController: MainController) {
     super()
-    this.#keyboardEventManager = new KeyboardEventManager()
-    this.#container = container
-    this.#mainController = mainController
+    this._keyboardEventManager = new KeyboardEventManager()
+    this._container = container
+    this._mainController = mainController
     const baseModStyle = {
       width: py(MOD_WIDTH),
       height: py(MOD_HEIGHT),
@@ -127,7 +124,7 @@ export class ModsPanel extends RenderObject {
         { mod: Mod.AT, backgroundImage: ATIcon(), keyBind: KeyCode.C },
       ],
     ]
-    this.#modButtons = modConfig.flatMap((item, index) => {
+    this._modButtons = modConfig.flatMap((item, index) => {
       return item.map((subItem, subIndex) => {
         return new ModButton(container, {
           left: px(MOD_LEFT + subIndex * (MOD_WIDTH + MOD_X_GAP)),
@@ -140,7 +137,7 @@ export class ModsPanel extends RenderObject {
         })
       })
     })
-    this.#resetButton = new ModsPanelButton(container, {
+    this._resetButton = new ModsPanelButton(container, {
       text: '1. Reset All Mods',
       left: CANVAS.WIDTH / 2 - px(BUTTON_WIDTH) / 2,
       top: CANVAS.HEIGHT - py(BUTTON_BOTTOM + BUTTON_HEIGHT * 2 + BUTTON_GAP),
@@ -153,7 +150,7 @@ export class ModsPanel extends RenderObject {
       fontSize: py(BUTTON_FONT_SIZE),
       activeBackground: BUTTON_ACTIVE_COLOR,
     })
-    this.#closeButton = new ModsPanelButton(container, {
+    this._closeButton = new ModsPanelButton(container, {
       text: '2. Close',
       left: CANVAS.WIDTH / 2 - px(BUTTON_WIDTH) / 2,
       top: CANVAS.HEIGHT - py(BUTTON_BOTTOM + BUTTON_HEIGHT),
@@ -169,8 +166,8 @@ export class ModsPanel extends RenderObject {
   }
 
   _reset (): void {
-    this.#selectedMods = []
-    this.#modButtons.forEach(btn => {
+    this._selectedMods = []
+    this._modButtons.forEach(btn => {
       btn.setValue(null)
     })
   }
@@ -178,26 +175,28 @@ export class ModsPanel extends RenderObject {
   _updateMods (btn: ModButton): void {
     const newMod = btn.value
     if (!newMod) {
-      if (Array.isArray(btn.mod)) {
-        this.#selectedMods = this.#selectedMods.filter(mod => !btn.mod.includes(mod))
+      const btnMod = btn.mod
+      if (Array.isArray(btnMod)) {
+        this._selectedMods = this._selectedMods.filter(mod => !btnMod.includes(mod))
       } else {
-        this.#selectedMods = this.#selectedMods.filter(mod => btn.mod !== mod)
+        this._selectedMods = this._selectedMods.filter(mod => btnMod !== mod)
       }
     } else {
       const conflictList = ConflictModsMap.find(list => list.includes(newMod))
       if (conflictList) {
-        this.#selectedMods = this.#selectedMods.filter(mod => !conflictList.includes(mod))
+        this._selectedMods = this._selectedMods.filter(mod => !conflictList.includes(mod))
       }
-      this.#selectedMods.push(newMod)
+      this._selectedMods.push(newMod)
     }
-    this.#modButtons.forEach(btn => {
-      if (Array.isArray(btn.mod)) {
-        const found = this.#selectedMods.find(mod => btn.mod.includes(mod))
+    this._modButtons.forEach(btn => {
+      const btnMod = btn.mod
+      if (Array.isArray(btnMod)) {
+        const found = this._selectedMods.find(mod => btnMod.includes(mod))
         if (!found) {
           btn.setValue(null)
         }
       } else {
-        const found = this.#selectedMods.find(mod => btn.mod === mod)
+        const found = this._selectedMods.find(mod => btnMod === mod)
         if (!found) {
           btn.setValue(null)
         }
@@ -207,34 +206,34 @@ export class ModsPanel extends RenderObject {
 
   async show (): Promise<void> {
     this.display = true
-    this.#resetButton.initTranslateDirection = -1
-    this.#closeButton.initTranslateDirection = 1
+    this._resetButton.initTranslateDirection = -1
+    this._closeButton.initTranslateDirection = 1
     await Promise.all([
-      this.createTransition(this.#alpha, 100, 300, 'easeOut', v => this.#alpha = v),
-      this.#resetButton.show(),
-      this.#closeButton.show(),
+      this.createTransition(this._alpha, 100, 300, 'easeOut', v => this._alpha = v),
+      this._resetButton.show(),
+      this._closeButton.show(),
     ])
   }
 
   async hide (): Promise<void> {
-    await this.createTransition(this.#alpha, 0, 300, 'easeOut', v => this.#alpha = v)
+    await this.createTransition(this._alpha, 0, 300, 'easeOut', v => this._alpha = v)
     this.display = false
   }
 
   registerEvents (): void {
-    this.#resetButton.registerEvents({
+    this._resetButton.registerEvents({
       onClick: () => {
         this._reset()
       },
     })
-    this.#closeButton.registerEvents({
+    this._closeButton.registerEvents({
       onClick: () => {
-        this.#mainController.closeModsPanel(this.#selectedMods)
+        this._mainController.closeModsPanel(this._selectedMods)
       },
     })
 
     const modButtonKeyMaps: Record<KeyCode, () => void> = {}
-    this.#modButtons.forEach(btn => {
+    this._modButtons.forEach(btn => {
       btn.registerEvents({ onClick: () => this._updateMods(btn) })
       modButtonKeyMaps[btn.keyBind] = () => {
         btn.click()
@@ -242,16 +241,16 @@ export class ModsPanel extends RenderObject {
       }
     })
 
-    this.#keyboardEventManager.registerEvents({
+    this._keyboardEventManager.registerEvents({
       keydownEventList: {
         [KeyCode.DIGIT1]: () => {
           this._reset()
         },
         [KeyCode.DIGIT2]: () => {
-          this.#mainController.closeModsPanel(this.#selectedMods)
+          this._mainController.closeModsPanel(this._selectedMods)
         },
         [KeyCode.ESCAPE]: () => {
-          this.#mainController.closeModsPanel(this.#selectedMods)
+          this._mainController.closeModsPanel(this._selectedMods)
         },
         ...modButtonKeyMaps,
       },
@@ -259,35 +258,35 @@ export class ModsPanel extends RenderObject {
   }
 
   removeEvents (): void {
-    this.#closeButton.removeEvents()
-    this.#resetButton.removeEvents()
-    this.#modButtons.forEach(btn => btn.removeEvents())
-    this.#keyboardEventManager.removeEvents()
+    this._closeButton.removeEvents()
+    this._resetButton.removeEvents()
+    this._modButtons.forEach(btn => btn.removeEvents())
+    this._keyboardEventManager.removeEvents()
   }
 
   disableEvents (): void {
-    this.#closeButton.disableEvents()
-    this.#resetButton.disableEvents()
-    this.#modButtons.forEach(btn => btn.disableEvents())
-    this.#keyboardEventManager.disableEvents()
+    this._closeButton.disableEvents()
+    this._resetButton.disableEvents()
+    this._modButtons.forEach(btn => btn.disableEvents())
+    this._keyboardEventManager.disableEvents()
   }
 
   enableEvents (): void {
-    this.#closeButton.enableEvents()
-    this.#resetButton.enableEvents()
-    this.#modButtons.forEach(btn => btn.enableEvents())
-    this.#keyboardEventManager.enableEvents()
+    this._closeButton.enableEvents()
+    this._resetButton.enableEvents()
+    this._modButtons.forEach(btn => btn.enableEvents())
+    this._keyboardEventManager.enableEvents()
   }
 
   updateEffect (time: number): void {
     super.updateEffect(time)
-    this.#resetButton.updateEffect(time)
-    this.#closeButton.updateEffect(time)
+    this._resetButton.updateEffect(time)
+    this._closeButton.updateEffect(time)
   }
 
   render (context: CanvasRenderingContext2D): void {
     context.save()
-    context.globalAlpha = this.#alpha / 100
+    context.globalAlpha = this._alpha / 100
 
     const renderBg = () => {
       context.save()
@@ -313,9 +312,9 @@ export class ModsPanel extends RenderObject {
 
     renderBg()
     renderLabel()
-    this.#modButtons.forEach(button => button.render(context))
-    this.#closeButton.render(context)
-    this.#resetButton.render(context)
+    this._modButtons.forEach(button => button.render(context))
+    this._closeButton.render(context)
+    this._resetButton.render(context)
     context.restore()
   }
 }

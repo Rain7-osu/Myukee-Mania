@@ -2,36 +2,36 @@ import { RenderEngine } from './RenderEngine'
 import { CANVAS } from './Config'
 
 export class LayoutRenderEngine extends RenderEngine {
-  constructor (canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement) {
     super(canvas)
   }
 
-  renderBackgroundImage (image: HTMLImageElement) {
+  renderBackgroundImage(image: HTMLImageElement) {
     this.context.drawImage(image, 0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
   }
 
-  renderRect (x: number, y: number, width: number, height: number, color: string) {
+  renderRect(x: number, y: number, width: number, height: number, color: string) {
     this.context.fillStyle = color
     this.context.fillRect(x, y, width, height)
   }
 
-  renderPositionLine () {
+  renderPositionLine() {
     this.context.fillStyle = 'red'
     this.context.fillRect(CANVAS.WIDTH / 2 - 1, 0, 2, CANVAS.HEIGHT)
     this.context.fillRect(0, CANVAS.HEIGHT / 2 - 1, CANVAS.WIDTH, 2)
   }
 
-  renderVerticalLine (x) {
+  renderVerticalLine(x) {
     this.context.fillStyle = 'red'
     this.context.fillRect(x - 1, 0, 2, CANVAS.HEIGHT)
   }
 
-  renderHorizontalLine (y) {
+  renderHorizontalLine(y) {
     this.context.fillStyle = 'red'
     this.context.fillRect(0, y - 1, CANVAS.WIDTH, 2)
   }
 
-  renderGridLine () {
+  renderGridLine() {
     for (let i = 0; i < CANVAS.WIDTH; i += 100) {
       this.renderVerticalLine(i)
     }

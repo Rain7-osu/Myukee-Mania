@@ -2,52 +2,53 @@ import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { FooterMenuButton } from './FooterMenuButton'
 import { Skin } from './Skin'
+import type { MainController } from './MainController'
 
 const MAX_TRANSLATE_Y = 228
 
 export class MainFooter extends RenderObject {
-  #container: HTMLCanvasElement
+  private _container: HTMLCanvasElement
 
-  #modeButton: FooterMenuButton
+  private _modeButton: FooterMenuButton
 
-  #modsButton: FooterMenuButton
+  private _modsButton: FooterMenuButton
 
-  #randomButton: FooterMenuButton
+  private _randomButton: FooterMenuButton
 
-  #beatmapOptionButton: FooterMenuButton
+  private _beatmapOptionButton: FooterMenuButton
 
-  #beatmapOptions: FooterMenuButton
+  private _beatmapOptions: FooterMenuButton
 
-  #mainController: MainController
+  private _mainController: MainController
 
-  #translateY = 0
+  private _translateY = 0
 
-  constructor (container: HTMLCanvasElement, mainController: MainController) {
+  constructor(container: HTMLCanvasElement, mainController: MainController) {
     super()
-    this.#container = container
-    this.#mainController = mainController
-    this.#modeButton = new FooterMenuButton(container, {
+    this._container = container
+    this._mainController = mainController
+    this._modeButton = new FooterMenuButton(container, {
       text: 'Mania',
       key: '',
       borderColor: 'rgb(150, 64, 255)',
       hoverStartColor: 'rgb(138, 59, 238)',
       hoverEndColor: 'rgb(53, 22, 90)',
     }, 0, 1.2)
-    this.#modsButton = new FooterMenuButton(container, {
+    this._modsButton = new FooterMenuButton(container, {
       text: 'Mods',
       key: 'F1',
       borderColor: 'rgb(171, 88, 166)',
       hoverStartColor: 'rgb(213, 71, 173)',
       hoverEndColor: 'rgb(79, 27, 65)',
     }, 1.2)
-    this.#randomButton = new FooterMenuButton(container, {
+    this._randomButton = new FooterMenuButton(container, {
       text: 'Random',
       key: 'F2',
       borderColor: 'rgb(150, 228, 1)',
       hoverStartColor: 'rgb(142, 215, 0)',
       hoverEndColor: 'rgb(53, 80, 1)',
     }, 2.2)
-    this.#beatmapOptionButton = new FooterMenuButton(container, {
+    this._beatmapOptionButton = new FooterMenuButton(container, {
       text: 'Beatmap\nOptions',
       key: 'F3',
       borderColor: 'rgb(2, 163, 250)',
@@ -56,78 +57,78 @@ export class MainFooter extends RenderObject {
     }, 3.2)
   }
 
-  registerEvents () {
-    this.#modeButton.registerEvents({
+  registerEvents() {
+    this._modeButton.registerEvents({
       onClick: () => {
         console.log('modeButton')
       },
     })
-    this.#modsButton.registerEvents({
+    this._modsButton.registerEvents({
       onClick: () => {
-        this.#mainController.showModsPanel()
-        this.#modsButton.hoverOut()
+        this._mainController.showModsPanel()
+        this._modsButton.hoverOut()
       },
     })
-    this.#randomButton.registerEvents({
+    this._randomButton.registerEvents({
       onClick: () => {
-        this.#mainController.random()
+        this._mainController.random()
       },
     })
-    this.#beatmapOptionButton.registerEvents({
+    this._beatmapOptionButton.registerEvents({
       onClick: () => {
         console.log('beatmapOption')
       },
     })
   }
 
-  removeEvents () {
-    this.#modeButton.removeEvents()
-    this.#modsButton.removeEvents()
-    this.#randomButton.removeEvents()
-    this.#beatmapOptionButton.removeEvents()
+  removeEvents() {
+    this._modeButton.removeEvents()
+    this._modsButton.removeEvents()
+    this._randomButton.removeEvents()
+    this._beatmapOptionButton.removeEvents()
   }
 
-  disableEvents () {
-    this.#modeButton.disableEvents()
-    this.#modsButton.disableEvents()
-    this.#randomButton.disableEvents()
-    this.#beatmapOptionButton.disableEvents()
+  disableEvents() {
+    this._modeButton.disableEvents()
+    this._modsButton.disableEvents()
+    this._randomButton.disableEvents()
+    this._beatmapOptionButton.disableEvents()
   }
 
-  enableEvents () {
-    this.#modeButton.enableEvents()
-    this.#modsButton.enableEvents()
-    this.#randomButton.enableEvents()
-    this.#beatmapOptionButton.enableEvents()
+  enableEvents() {
+    this._modeButton.enableEvents()
+    this._modsButton.enableEvents()
+    this._randomButton.enableEvents()
+    this._beatmapOptionButton.enableEvents()
   }
 
-  updateEffect (time) {
+  updateEffect(time) {
     super.updateEffect(time)
-    this.#modeButton.updateEffect(time)
-    this.#modsButton.updateEffect(time)
-    this.#randomButton.updateEffect(time)
-    this.#beatmapOptionButton.updateEffect(time)
+    this._modeButton.updateEffect(time)
+    this._modsButton.updateEffect(time)
+    this._randomButton.updateEffect(time)
+    this._beatmapOptionButton.updateEffect(time)
   }
 
-  _setTranslateY (value: number) {
-    this.#translateY = value
-    this.#modeButton.translateY = value
-    this.#modsButton.translateY = value
-    this.#randomButton.translateY = value
-    this.#beatmapOptionButton.translateY = value
+  _setTranslateY(value: number) {
+    this._translateY = value
+    this._modeButton.translateY = value
+    this._modsButton.translateY = value
+    this._randomButton.translateY = value
+    this._beatmapOptionButton.translateY = value
   }
 
-  async show () {
+  async show() {
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, 0, 100, 'easeOut', value => this._setTranslateY(value))
+    await this.createTransition(this._translateY, 0, 100, 'easeOut', value => this._setTranslateY(value))
   }
 
-  async hide () {
+  async hide() {
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, MAX_TRANSLATE_Y, 100, 'easeOut', value => this._setTranslateY(value))
+    await this.createTransition(this._translateY, MAX_TRANSLATE_Y, 100, 'easeOut', value => this._setTranslateY(value))
   }
 
-  render (context) {
+  render(context) {
     const {
       height: HEIGHT,
       borderWidth: BORDER_WIDTH,
@@ -136,16 +137,16 @@ export class MainFooter extends RenderObject {
     } = Skin.config.main.footer
 
     context.save()
-    const y = CANVAS.HEIGHT - HEIGHT + this.#translateY
+    const y = CANVAS.HEIGHT - HEIGHT + this._translateY
     context.fillStyle = BG_COLOR
     context.fillRect(0, y, CANVAS.WIDTH, HEIGHT)
     context.fillStyle = BORDER_COLOR
     context.fillRect(0, y, CANVAS.WIDTH, -BORDER_WIDTH)
     context.restore()
 
-    this.#modeButton.render(context)
-    this.#modsButton.render(context)
-    this.#randomButton.render(context)
-    this.#beatmapOptionButton.render(context)
+    this._modeButton.render(context)
+    this._modsButton.render(context)
+    this._randomButton.render(context)
+    this._beatmapOptionButton.render(context)
   }
 }

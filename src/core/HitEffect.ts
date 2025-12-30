@@ -7,64 +7,64 @@ import { Skin } from './Skin'
  * 打击特效
  */
 export class HitEffect extends RenderObject {
-  #col: number
-  #color: 'yellow' | 'red' | 'blue'
-  #height = 0
-  #left = 0
-  #width = 0
+  private readonly _color: 'yellow' | 'red' | 'blue'
+  private readonly _left = 0
+  private readonly _width = 0
+  private _col: number
+  private _height = 0
 
-  constructor (
+  constructor(
     col: number,
     color: 'yellow' | 'red' | 'blue',
     style: {
       x: number;
       width: number;
-    }
+    },
   ) {
     super()
-    this.#col = col
-    this.#color = color
-    this.#width = style.width
-    this.#height = 0
-    this.#left = style.x
+    this._col = col
+    this._color = color
+    this._width = style.width
+    this._height = 0
+    this._left = style.x
   }
 
-  reset () {
-    this.#height = 0
+  reset() {
+    this._height = 0
     this.cancelTransitions()
   }
 
-  render (context: CanvasRenderingContext2D): void {
+  render(context: CanvasRenderingContext2D): void {
     context.fillStyle = this._createGradiant(context)
-    context.fillRect(this.#left, CANVAS.HEIGHT - this.#height, this.#width, this.#height)
+    context.fillRect(this._left, CANVAS.HEIGHT - this._height, this._width, this._height)
   }
 
-  push () {
+  push() {
     const { height: HIT_EFFECT_HEIGHT } = Skin.config.stage.hitEffect
     this.cancelTransitions()
-    this.createTransitionSync(this.#height, HIT_EFFECT_HEIGHT, 80, 'easeOut', value => this.#height = value)
+    this.createTransitionSync(this._height, HIT_EFFECT_HEIGHT, 80, 'easeOut', value => this._height = value)
   }
 
-  shift () {
+  shift() {
     this.cancelTransitions()
-    this.createTransitionSync(this.#height, 0, 300, 'easeOut', value => this.#height = value)
+    this.createTransitionSync(this._height, 0, 300, 'easeOut', value => this._height = value)
   }
 
-  _createGradiant (context: CanvasRenderingContext2D): CanvasGradient {
-    if (this.#color === 'yellow') {
+  _createGradiant(context: CanvasRenderingContext2D): CanvasGradient {
+    if (this._color === 'yellow') {
       return this._createYellowGradiant(context)
-    } else if (this.#color === 'blue') {
+    } else if (this._color === 'blue') {
       return this._createBlueGradiant(context)
     } else {
       return this._createRedGradiant(context)
     }
   }
 
-  _createRedGradiant (context: CanvasRenderingContext2D): CanvasGradient {
+  _createRedGradiant(context: CanvasRenderingContext2D): CanvasGradient {
     const { x, y, height } = {
-      x: this.#left,
+      x: this._left,
       y: CANVAS.HEIGHT,
-      height: this.#height,
+      height: this._height,
     }
     const gradient = context.createLinearGradient(
       x, y,
@@ -76,11 +76,11 @@ export class HitEffect extends RenderObject {
     return gradient
   }
 
-  _createBlueGradiant (context: CanvasRenderingContext2D): CanvasGradient {
+  _createBlueGradiant(context: CanvasRenderingContext2D): CanvasGradient {
     const { x, y, height } = {
-      x: this.#left,
+      x: this._left,
       y: CANVAS.HEIGHT,
-      height: this.#height,
+      height: this._height,
     }
     const gradient = context.createLinearGradient(
       x, y,
@@ -92,11 +92,11 @@ export class HitEffect extends RenderObject {
     return gradient
   }
 
-  _createYellowGradiant (context: CanvasRenderingContext2D): CanvasGradient {
+  _createYellowGradiant(context: CanvasRenderingContext2D): CanvasGradient {
     const { x, y, height } = {
-      x: this.#left,
+      x: this._left,
       y: CANVAS.HEIGHT,
-      height: this.#height,
+      height: this._height,
     }
     const gradient = context.createLinearGradient(
       x, y,

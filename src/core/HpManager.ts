@@ -10,58 +10,58 @@ const yd = (x: number): number => {
 export class HpManager {
   static MAX: number = MAX
 
-  #value: number = MAX
+  private _value: number = MAX
 
-  #effect: HpEffect = null
+  private _effect: HpEffect | null = null
 
-  #failed: boolean = false
+  private _failed: boolean = false
 
-  get value (): number { return this.#value }
+  get value(): number { return this._value }
 
-  #hp: number = 8
+  private _hp: number = 8
 
-  #onFail: () => void
+  private _onFail: () => void
 
-  init (hp: number, onFail: () => void, effect: HpEffect): void {
-    this.#hp = hp
-    this.#onFail = onFail
-    this.#effect = effect
+  init(hp: number, onFail: () => void, effect: HpEffect): void {
+    this._hp = hp
+    this._onFail = onFail
+    this._effect = effect
   }
 
-  async drop (): Promise<void> {
-    if (this.#hp === 0) {
+  async drop(): Promise<void> {
+    if (this._hp === 0) {
       return
     }
-    this.#value -= yd(this.#hp)
-    if (this.#value < 0) {
-      this.#value = 0
-      if (!this.#failed) {
-        this.#failed = true
-        this.#onFail()
+    this._value -= yd(this._hp)
+    if (this._value < 0) {
+      this._value = 0
+      if (!this._failed) {
+        this._failed = true
+        this._onFail()
       }
     }
-    await this.#effect.update(this.#value)
+    await this._effect!.update(this._value)
   }
 
-  async restore (judgement: JudgementType): Promise<void> {
+  async restore(judgement: JudgementType): Promise<void> {
     // hp 10 only 320 restore
-    if (this.#value >= 10) {
+    if (this._value >= 10) {
       if (judgement !== JudgementType.PERFECT) {
         return
       }
-      this.#value += 0.5
+      this._value += 0.5
     } else {
-      const restoreValue = (judgement % 100) * 10 / 10 - 3.15 * this.#hp - 3.15
-      if (restoreValue > 0) this.#value += restoreValue
+      const restoreValue = (judgement % 100) * 10 / 10 - 3.15 * this._hp - 3.15
+      if (restoreValue > 0) this._value += restoreValue
     }
 
-    this.#value = Math.min(MAX, this.#value)
-    await this.#effect.update(this.#value)
+    this._value = Math.min(MAX, this._value)
+    await this._effect!.update(this._value)
   }
 
-  reset (): void {
-    this.#value = MAX
-    this.#failed = false
-    this.#effect?.reset()
+  reset(): void {
+    this._value = MAX
+    this._failed = false
+    this._effect?.reset()
   }
 }

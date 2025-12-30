@@ -25,19 +25,19 @@ export interface HitObjectResult {
 }
 
 export class MapResolver {
-  #text: string
+  private _text: string
 
-  #groups: Record<string, string[]>
+  private readonly _groups: Record<string, string[]>
 
-  #lines: string[]
+  private _lines: string[]
 
-  constructor (text: string) {
-    this.#text = text
-    this.#groups = {}
-    this.#lines = []
+  constructor(text: string) {
+    this._text = text
+    this._groups = {}
+    this._lines = []
   }
 
-  static loadFromOsuManiaMap (text: string): PlayMap {
+  static loadFromOsuManiaMap(text: string): PlayMap {
     const resolver = new MapResolver(text)
     resolver.splitLine()
     resolver.splitByGroup()
@@ -51,34 +51,34 @@ export class MapResolver {
     })
   }
 
-  splitLine (): void {
+  splitLine(): void {
     // filter empty line
-    this.#lines = this.#text.split(LINE_WRAP_CHAR).filter(v => !!v)
+    this._lines = this._text.split(LINE_WRAP_CHAR).filter(v => !!v)
   }
 
   /**
    * split by [GroupName], set groups by split result
    */
-  splitByGroup (): void {
+  splitByGroup(): void {
     let currentGroup = ''
 
-    for (let i = 0; i < this.#lines.length; i++) {
-      const currentLine = this.#lines[i]
+    for (let i = 0; i < this._lines.length; i++) {
+      const currentLine = this._lines[i]
       const matchArray = currentLine.match(GROUP_NAME_MATCH)
 
       if (matchArray && matchArray[1]) {
         currentGroup = matchArray[1]
-        this.#groups[currentGroup] = []
+        this._groups[currentGroup] = []
       } else {
         if (currentGroup) {
-          this.#groups[currentGroup].push(currentLine)
+          this._groups[currentGroup].push(currentLine)
         }
       }
     }
   }
 
-  resolveDifficulty (): DifficultyResult {
-    const difficultyGroup = this.#groups.Difficulty
+  resolveDifficulty(): DifficultyResult {
+    const difficultyGroup = this._groups.Difficulty
 
     const result: Record<string, number> = {}
 
@@ -90,9 +90,9 @@ export class MapResolver {
     return result as DifficultyResult
   }
 
-  resolveNotes (circleSize: number): Note[] {
+  resolveNotes(circleSize: number): Note[] {
     const notes: Note[] = []
-    const hitObjects = this.#groups.HitObjects
+    const hitObjects = this._groups.HitObjects
     if (!hitObjects) {
       return notes
     }
@@ -111,8 +111,8 @@ export class MapResolver {
     return notes.sort((a, b) => a.offset - b.offset)
   }
 
-  resolveTiming (): TimingPoint[] {
-    const timingPoints = this.#groups.TimingPoints
+  resolveTiming(): TimingPoint[] {
+    const timingPoints = this._groups.TimingPoints
     if (!timingPoints) {
       return []
     }
@@ -132,7 +132,7 @@ export class MapResolver {
     return timingList
   }
 
-  resolveHitObject (hitObjectStr: string, circleSize: number): HitObjectResult | null {
+  resolveHitObject(hitObjectStr: string, circleSize: number): HitObjectResult | null {
     const hitObject = hitObjectStr.split(',')
     const [col, ___, offset, _, __, endStr] = hitObject
     const [end] = endStr.split(':')

@@ -11,7 +11,7 @@ import { BaseButton } from './BaseButton'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { KeyCode } from './KeyCode'
 
-interface RankingResult {
+export interface RankingResult {
   accuracy: number
   beatmap: any
   score: number
@@ -22,25 +22,25 @@ interface RankingResult {
 }
 
 export class RankingBoard extends RenderObject {
-  #rankingResult: RankingResult
+  private _rankingResult: RankingResult
 
-  #status: Omit<RankingResult, 'beatmap'>
+  private _status: Omit<RankingResult, 'beatmap'>
 
-  #scoreEffect: ScoreEffect
+  private _scoreEffect: ScoreEffect
 
-  #rankingEffect: RankingEffect
+  private _rankingEffect: RankingEffect
 
-  #retryButton: BaseButton
-  #watchReplayButton: BaseButton
-  #hasRegistered: boolean = false
+  private _retryButton: BaseButton
+  private _watchReplayButton: BaseButton
+  private _hasRegistered: boolean = false
 
-  #mainController: any
+  private _mainController: any
 
-  #keyboardEventManager = new KeyboardEventManager()
+  private _keyboardEventManager = new KeyboardEventManager()
 
   constructor(container: HTMLCanvasElement, mainController: any) {
     super()
-    this.#mainController = mainController
+    this._mainController = mainController
     const {
       score: {
         left,
@@ -58,16 +58,16 @@ export class RankingBoard extends RenderObject {
         back,
       },
     } = Skin.config.rankingBoard
-    this.#scoreEffect = new ScoreEffect({
+    this._scoreEffect = new ScoreEffect({
       left: left + valueLeft,
       top: top + valueTop,
     })
-    this.#rankingEffect = new RankingEffect(0, 'large', {
+    this._rankingEffect = new RankingEffect(0, 'large', {
       right: rankingRight,
       top: rankingTop,
       scale: rankingScale,
     })
-    this.#retryButton = new BaseButton(container, {
+    this._retryButton = new BaseButton(container, {
       width: retry.width,
       height: retry.height,
       text: retry.text,
@@ -80,7 +80,7 @@ export class RankingBoard extends RenderObject {
       fontSize: retry.fontSize,
       hoverScale: 100,
     })
-    this.#watchReplayButton = new BaseButton(container, {
+    this._watchReplayButton = new BaseButton(container, {
       width: watchReplay.width,
       height: watchReplay.height,
       left: watchReplay.left,
@@ -95,77 +95,77 @@ export class RankingBoard extends RenderObject {
     })
   }
 
-  #alpha: number = 0
+  private _alpha: number = 0
 
-  #shown: boolean = false
+  private _shown: boolean = false
 
   async show(): Promise<void> {
-    if (this.#alpha === 100) {
+    if (this._alpha === 100) {
       return
     }
     this.cancelTransitions()
-    await this.createTransition(this.#alpha, 100, 500, 'easeOut', value => this.#alpha = value)
-    this.#shown = true
-    const { accuracy, score } = this.#rankingResult
+    await this.createTransition(this._alpha, 100, 500, 'easeOut', value => this._alpha = value)
+    this._shown = true
+    const { accuracy, score } = this._rankingResult
     await Promise.all([
-      this.#scoreEffect.setScore(score, score / 200),
-      this.#rankingEffect.setAccuracy(accuracy),
+      this._scoreEffect.setScore(score, score / 200),
+      this._rankingEffect.setAccuracy(accuracy),
     ])
   }
 
   hide(): void {
-    this.#alpha = 0
+    this._alpha = 0
   }
 
   setResult(rankingResult: RankingResult): void {
-    this.#rankingResult = rankingResult
+    this._rankingResult = rankingResult
   }
 
   updateEffect(now: number): void {
     super.updateEffect(now)
-    this.#rankingEffect.updateEffect(now)
-    this.#watchReplayButton.updateEffect(now)
-    this.#retryButton.updateEffect(now)
-    this.#scoreEffect.updateEffect(now)
+    this._rankingEffect.updateEffect(now)
+    this._watchReplayButton.updateEffect(now)
+    this._retryButton.updateEffect(now)
+    this._scoreEffect.updateEffect(now)
   }
 
   registerEvents(): void {
-    if (this.#hasRegistered) {
+    if (this._hasRegistered) {
       return
     }
-    this.#retryButton.registerEvents({
+    this._retryButton.registerEvents({
       onClick: async () => {
-        await this.#mainController.fadeOut()
+        await this._mainController.fadeOut()
         this.hide()
-        await this.#mainController.retry()
+        await this._mainController.retry()
       },
     })
-    this.#watchReplayButton.registerEvents({
+    this._watchReplayButton.registerEvents({
       onClick: async () => {
         console.log('Not implements')
       },
     })
-    this.#keyboardEventManager.registerEvents({
+    this._keyboardEventManager.registerEvents({
       keydownEventList: {
         [KeyCode.ESCAPE]: () => {
-          this.#mainController.backMain()
+          this._mainController.backMain()
         },
       },
     })
   }
 
   removeEvents(): void {
-    if (!this.#hasRegistered) {
+    if (!this._hasRegistered) {
       return
     }
-    this.#retryButton.removeEvents()
-    this.#watchReplayButton.removeEvents()
-    this.#keyboardEventManager.removeEvents()
+    this._retryButton.removeEvents()
+    this._watchReplayButton.removeEvents()
+    this._keyboardEventManager.removeEvents()
   }
 
   render(context: CanvasRenderingContext2D): void {
     context.save()
-    context.globalAlpha = this.#alpha / 100
+    context.globalAlpha = this._alpha / 100
     const {
       accuracy,
       judgementRecord,
@@ -173,7 +173,7 @@ export class RankingBoard extends RenderObject {
       maxCombo,
       beatmap,
       finishTime,
-    } = this.#rankingResult
+    } = this._rankingResult
 
     const {
       header: HEADER_CONFIG,
@@ -247,7 +247,7 @@ export class RankingBoard extends RenderObject {
       const { top, left, background, height, width, radius } = SCORE_CONFIG
 
       context.fillStyle = background
-      this.roundRect({
+      RenderObject.roundRect({
         context,
         x: left,
         y: top,
@@ -258,7 +258,7 @@ export class RankingBoard extends RenderObject {
         stroke: false,
       })
 
-      this.#scoreEffect.render(context)
+      this._scoreEffect.render(context)
     }
 
     const renderResults = () => {
@@ -290,7 +290,7 @@ export class RankingBoard extends RenderObject {
 
       const renderResultsBg = () => {
         context.fillStyle = background
-        this.roundRect({
+        RenderObject.roundRect({
           context,
           x: RESULTS_LEFT,
           y: RESULTS_TOP,
@@ -372,18 +372,18 @@ export class RankingBoard extends RenderObject {
     }
 
     const renderRanking = () => {
-      this.#rankingEffect.render(context)
+      this._rankingEffect.render(context)
     }
 
     const renderButtons = () => {
-      this.#retryButton.render(context)
-      this.#watchReplayButton.render(context)
+      this._retryButton.render(context)
+      this._watchReplayButton.render(context)
     }
 
     renderHeader()
     renderScore()
     renderResults()
-    if (this.#shown) {
+    if (this._shown) {
       renderRanking()
     }
     renderButtons()

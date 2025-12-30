@@ -5,17 +5,17 @@ import { CANVAS } from './Config'
 import { selectRandomArrayItem } from './utils'
 
 export class BeatmapListManager {
-  #beatmapItemMap: Map<string, BeatmapItem> = new Map()
+  private _beatmapItemMap: Map<string, BeatmapItem> = new Map()
 
-  #selectedBeatmapItem: BeatmapItem | null = null
+  private _selectedBeatmapItem: BeatmapItem | null = null
 
-  #beatmapList: BeatmapList
+  private readonly _beatmapList: BeatmapList
 
-  constructor (container: HTMLElement) {
-    this.#beatmapList = new BeatmapList(container)
+  constructor(container: HTMLElement) {
+    this._beatmapList = new BeatmapList(container)
   }
 
-  private loadConfigs (configs: any[]) {
+  private loadConfigs(configs: any[]) {
     let lastBeatmap: BeatmapItem | null = null
     const result: BeatmapItem[] = []
     for (let i = 0; i < configs.length; i++) {
@@ -24,7 +24,7 @@ export class BeatmapListManager {
         continue
       }
       const beatmapItem = new BeatmapItem(beatmap)
-      this.#beatmapItemMap.set(beatmap.id, beatmapItem)
+      this._beatmapItemMap.set(beatmap.id, beatmapItem)
       result.push(beatmapItem)
     }
 
@@ -41,90 +41,90 @@ export class BeatmapListManager {
       lastBeatmap = beatmapItem
     }
 
-    this.#beatmapList.beatmapItems = sortedBeatmaps
+    this._beatmapList.beatmapItems = sortedBeatmaps
   }
 
-  init (configs: any[]) {
+  init(configs: any[]) {
     this.loadConfigs(configs)
   }
 
-  get selectedItem (): BeatmapItem | null {
-    return this.#selectedBeatmapItem
+  get selectedItem(): BeatmapItem | null {
+    return this._selectedBeatmapItem
   }
 
-  random (): BeatmapItem {
-    const beatmapIds = Array.from(this.#beatmapItemMap.keys())
+  random(): BeatmapItem {
+    const beatmapIds = Array.from(this._beatmapItemMap.keys())
     const randomId = selectRandomArrayItem(beatmapIds)
-    return this.#beatmapItemMap.get(randomId) as BeatmapItem
+    return this._beatmapItemMap.get(randomId) as BeatmapItem
   }
 
   /**
    * 初始化时，随机选一张图
    */
-  firstSelect (): BeatmapItem {
+  firstSelect(): BeatmapItem {
     const randomBeatmap = this.random()
     randomBeatmap.select()
-    this.#beatmapList.select(randomBeatmap)
-    this.#selectedBeatmapItem = randomBeatmap
+    this._beatmapList.select(randomBeatmap)
+    this._selectedBeatmapItem = randomBeatmap
     return randomBeatmap
   }
 
-  selectItem (beatmapItem: BeatmapItem) {
-    this.#selectedBeatmapItem?.cancelSelect()
+  selectItem(beatmapItem: BeatmapItem) {
+    this._selectedBeatmapItem?.cancelSelect()
     beatmapItem.select()
-    this.#beatmapList.select(beatmapItem)
-    this.#selectedBeatmapItem = beatmapItem
-    this.#beatmapList.scrollTo(prev => {
+    this._beatmapList.select(beatmapItem)
+    this._selectedBeatmapItem = beatmapItem
+    this._beatmapList.scrollTo(prev => {
       const [_, top, __, height] = beatmapItem.rect()
       return prev + top + height / 2 - CANVAS.HEIGHT / 2
     })
   }
 
-  selectPrev () {
-    const last = this.#selectedBeatmapItem.last
+  selectPrev() {
+    const last = this._selectedBeatmapItem!.last
     if (last) {
       this.selectItem(last)
     }
   }
 
-  selectNext () {
-    const next = this.#selectedBeatmapItem.next
+  selectNext() {
+    const next = this._selectedBeatmapItem!.next
     if (next) {
       this.selectItem(next)
     }
   }
 
-  async hide () {
+  async hide() {
     const items = this.beatmapList.scrollItems()
     // 临时用这个值代替，确保能大于每一项的宽度
     const targetX = CANVAS.WIDTH / 2
-    this.#beatmapList.cancelTransitions()
+    this._beatmapList.cancelTransitions()
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
       item.cancelEffect()
-      this.#beatmapList.createTransitionSync(item.translateX, item.translateX + targetX, 500, 'easeOut', (value) => {
+      this._beatmapList.createTransitionSync(item.translateX, item.translateX + targetX, 500, 'easeOut', value => {
         item.translateX = value
       })
     }
-    const [task] = this.#beatmapList.createTimeout(800)
+    const [task] = this._beatmapList.createTimeout(800)
     await task
   }
 
-  async show () {
+  async show() {
     const items = this.beatmapList.scrollItems()
-    this.#beatmapList.cancelTransitions()
+    this._beatmapList.cancelTransitions()
     for (let i = 0; i < items.length; i++) {
       const item = items[i]
       item.cancelEffect()
-      this.#beatmapList.createTransitionSync(item.translateX, item.currentStyle.left - item.style.left, 500, 'easeOut', (value) => {
+      this._beatmapList.createTransitionSync(item.translateX, item.currentStyle.left - item.style.left, 500, 'easeOut', value => {
         item.translateX = value
       })
     }
-    const [task] = this.#beatmapList.createTimeout(800)
+    const [task] = this._beatmapList.createTimeout(800)
     await task
   }
 
-  get beatmapList (): BeatmapList {
-    return this.#beatmapList
+  get beatmapList(): BeatmapList {
+    return this._beatmapList
   }
 }

@@ -1,25 +1,25 @@
 import { $ } from './dom'
 
 export class Cursor {
-  #el: HTMLElement
+  private _el: HTMLElement
 
-  #visible: boolean = true
+  private _visible: boolean = true
 
-  constructor () {
-    this.#el = $('custom-cursor')
+  constructor() {
+    this._el = $('custom-cursor')
   }
 
-  hide () {
-    this.#el.style.opacity = '0'
-    this.#visible = false
+  hide() {
+    this._el.style.opacity = '0'
+    this._visible = false
   }
 
-  show () {
-    this.#el.style.opacity = '1'
-    this.#visible = false
+  show() {
+    this._el.style.opacity = '1'
+    this._visible = false
   }
 
   get visible(): boolean {
-    return this.#visible
+    return this._visible
   }
 }

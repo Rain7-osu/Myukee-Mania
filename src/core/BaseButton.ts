@@ -34,21 +34,21 @@ export class BaseButton extends RenderObject {
   /**
    * @type {MouseEventManager}
    */
-  #mouseEventHandler
+  private _mouseEventHandler
 
   /**
    * @type {ButtonStyle}
    */
-  #style
+  private readonly _style
   /**
    * @type {number}
    */
-  #scale
+  private _scale
 
   /**
    * @type {string}
    */
-  #background
+  private _background
 
   /**
    * @protected
@@ -66,9 +66,9 @@ export class BaseButton extends RenderObject {
    * @param container {HTMLCanvasElement}
    * @param style {ButtonStyle}
    */
-  constructor (container, style) {
+  constructor(container, style) {
     super()
-    this.#style = {
+    this._style = {
       left: 0,
       top: 0,
       width: 0,
@@ -81,31 +81,31 @@ export class BaseButton extends RenderObject {
       fontSize: 24,
     }
     this.setStyle(style)
-    this.#mouseEventHandler = new MouseEventManager(container, 'button')
+    this._mouseEventHandler = new MouseEventManager(container, 'button')
   }
 
   /**
    * @param style {Partial<ButtonStyle>}
    */
-  setStyle (style) {
-    Object.assign(this.#style, style)
-    this.#background = this.#background || style.background
-    this.#scale = this.#scale || 100
+  setStyle(style) {
+    Object.assign(this._style, style)
+    this._background = this._background || style.background
+    this._scale = this._scale || 100
   }
 
   /**
    * @private
    */
-  background () {
-    return this.#background
+  background() {
+    return this._background
   }
 
   /**
    * @return {number[]}
    */
-  rect () {
-    const { left, top, width, height, offsetPercentX, offsetPercentY } = this.#style
-    const scale = this.#scale / 100
+  rect() {
+    const { left, top, width, height, offsetPercentX, offsetPercentY } = this._style
+    const scale = this._scale / 100
     const x = left + (1 - scale) * width * offsetPercentX
     const y = top + (1 - scale) * height * offsetPercentY
     const w = width * scale
@@ -117,11 +117,11 @@ export class BaseButton extends RenderObject {
   /**
    * @return {ButtonStyle}
    */
-  get style () {
-    return this.#style
+  get style() {
+    return this._style
   }
 
-  render (context) {
+  render(context) {
     let [x, y, width, height] = this.rect()
     const {
       text,
@@ -153,7 +153,7 @@ export class BaseButton extends RenderObject {
     const fillStyle = this.background()
     if (fillStyle) {
       context.fillStyle = fillStyle
-      this.roundRect({
+      RenderObject.roundRect({
         context,
         x, y, width, height,
         radius,
@@ -163,8 +163,8 @@ export class BaseButton extends RenderObject {
     }
 
     if (text) {
-      const fontSize = initialFontSize * this.#scale / 100
-      this.drawText({
+      const fontSize = initialFontSize * this._scale / 100
+      RenderObject.drawText({
         context,
         text,
         x,
@@ -186,7 +186,7 @@ export class BaseButton extends RenderObject {
    * @param update {(color: string) => void}
    * @return {Promise<void>}
    */
-  async processColorTransition (start, end, current, update) {
+  async processColorTransition(start, end, current, update) {
     await this.createTransition(start, end, TRANSITION_DURATION, 'easeOut', update)
   }
 
@@ -195,65 +195,65 @@ export class BaseButton extends RenderObject {
    * @param targetColor {string}
    * @private
    */
-  async _processColorTransition (fromColor, targetColor) {
-    await this.createTransition(this.#background, targetColor, TRANSITION_DURATION, 'easeOut', color => this.#background = color)
+  async _processColorTransition(fromColor, targetColor) {
+    await this.createTransition(this._background, targetColor, TRANSITION_DURATION, 'easeOut', color => this._background = color)
   }
 
-  async hover () {
+  async hover() {
     this.hovered = true
     this.cancelTransitions()
-    const { hoverBackground, hoverScale, background } = this.#style
+    const { hoverBackground, hoverScale, background } = this._style
     const results = []
     if (hoverBackground) {
       results.push(this._processColorTransition(background, hoverBackground))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
+      results.push(this.createTransition(this._scale, hoverScale, TRANSITION_DURATION, 'easeOut', value => this._scale = value))
     }
     await Promise.all(results)
   }
 
-  async hoverOut () {
+  async hoverOut() {
     this.hovered = false
     this.cancelTransitions()
 
-    const { hoverBackground, hoverScale, background } = this.#style
+    const { hoverBackground, hoverScale, background } = this._style
     const results = []
     if (hoverBackground) {
       results.push(this._processColorTransition(hoverBackground, background))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
+      results.push(this.createTransition(this._scale, 100, TRANSITION_DURATION, 'easeOut', value => this._scale = value))
     }
     await Promise.all(results)
   }
 
-  async activeIn () {
+  async activeIn() {
     this.hovered = true
     this.cancelTransitions()
-    const { activeBackground, hoverScale, background, hoverBackground } = this.#style
+    const { activeBackground, hoverScale, background, hoverBackground } = this._style
 
     const results = []
     if (activeBackground) {
       results.push(this._processColorTransition(this.hovered ? hoverBackground : background, activeBackground))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, hoverScale, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
+      results.push(this.createTransition(this._scale, hoverScale, TRANSITION_DURATION, 'easeOut', value => this._scale = value))
     }
     await Promise.all(results)
   }
 
-  async activeOut () {
+  async activeOut() {
     this.hovered = false
     this.cancelTransitions()
 
-    const { activeBackground, hoverScale, background, hoverBackground } = this.#style
+    const { activeBackground, hoverScale, background, hoverBackground } = this._style
     const results = []
     if (activeBackground) {
       results.push(this._processColorTransition(activeBackground, this.hovered ? hoverBackground : background))
     }
     if (hoverScale) {
-      results.push(this.createTransition(this.#scale, 100, TRANSITION_DURATION, 'easeOut', value => this.#scale = value))
+      results.push(this.createTransition(this._scale, 100, TRANSITION_DURATION, 'easeOut', value => this._scale = value))
     }
     await Promise.all(results)
   }
@@ -262,7 +262,7 @@ export class BaseButton extends RenderObject {
    * @private
    * @param e {MouseEvent}
    */
-  isMouseIn (e) {
+  isMouseIn(e) {
     const { clientY, clientX } = e
     const [x, y, width, height] = this.rect()
     const xDelta = clientX - x
@@ -275,10 +275,10 @@ export class BaseButton extends RenderObject {
    *   onClick?: Function
    * }}
    */
-  registerEvents (eventMap) {
+  registerEvents(eventMap) {
     const { onClick } = eventMap || {}
 
-    this.#mouseEventHandler.registerEvents({
+    this._mouseEventHandler.registerEvents({
       mousemoveEvents: [
         e => {
           if (this.isMouseIn(e)) {
@@ -316,14 +316,14 @@ export class BaseButton extends RenderObject {
   }
 
   disableEvents() {
-    this.#mouseEventHandler.disableEvents()
+    this._mouseEventHandler.disableEvents()
   }
 
   enableEvents() {
-    this.#mouseEventHandler.enableEvents()
+    this._mouseEventHandler.enableEvents()
   }
 
-  removeEvents () {
-    this.#mouseEventHandler.removeEvents()
+  removeEvents() {
+    this._mouseEventHandler.removeEvents()
   }
 }

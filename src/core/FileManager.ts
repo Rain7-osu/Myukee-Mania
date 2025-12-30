@@ -1,7 +1,7 @@
 export class FileManager {
-  #file: File | null = null
+  private _file: File | null = null
 
-  #fileReader: FileReader = new FileReader()
+  private _fileReader: FileReader = new FileReader()
 
   /**
    * use file in maps folder
@@ -19,23 +19,23 @@ export class FileManager {
 
   exportText(): Promise<string> {
     return new Promise((resolve, reject) => {
-      if (!this.#file) {
+      if (!this._file) {
         reject('please selected osu file first!')
         return
       }
 
-      this.#fileReader.readAsText(this.#file)
+      this._fileReader.readAsText(this._file)
 
       const _this = this
-      this.#fileReader.addEventListener('load', function (e) {
+      this._fileReader.addEventListener('load', function (e) {
         if (e.type === 'load') {
-          resolve(_this.#fileReader.result as string)
+          resolve(_this._fileReader.result as string)
         }
       })
     })
   }
 
   get file(): File | null {
-    return this.#file
+    return this._file
   }
 }

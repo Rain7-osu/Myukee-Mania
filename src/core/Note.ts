@@ -3,92 +3,87 @@ import { OffsetRenderObject } from './RenderObject'
 import { Skin } from './Skin'
 import { Judgement } from './Judgement'
 
-/**
- * @description 0 - 480
- */
 export class Note extends OffsetRenderObject {
-  #color: string
+  private readonly _color: string
 
-  #col: number
-  #keys: number
+  private _col: number
+  private _keys: number
 
-  get keys () { return this.#keys}
+  get keys () { return this._keys}
 
-  get col () { return this.#col }
+  get col () { return this._col }
 
-  set col (c: number) { this.#col = c }
+  set col (c: number) { this._col = c }
 
-  #type: NoteType
-  get type () { return this.#type }
+  private readonly _type: NoteType
+  get type () { return this._type }
 
-  #isHit: boolean = false
-  get isHit () { return this.#isHit }
+  private _isHit: boolean = false
+  get isHit () { return this._isHit }
 
-  #judgement: Judgement | null = null
-  set judgement (value: Judgement | null) { this.#judgement = value }
+  private _judgement: Judgement | null = null
+  set judgement (value: Judgement | null) { this._judgement = value }
 
-  get judgement (): Judgement | null { return this.#judgement }
+  get judgement (): Judgement | null { return this._judgement }
 
-  #score: number | null = null
+  private _score: number | null = null
 
-  get score () { return this.#score }
+  get score () { return this._score }
 
-  set score (value: number | null) { this.#score = value }
+  set score (value: number | null) { this._score = value }
 
-  #bonus: number = 100
-  get bonus (): number { return this.#bonus }
+  private _bonus: number = 100
+  get bonus (): number { return this._bonus }
 
-  set bonus (value: number) { this.#bonus = value }
+  set bonus (value: number) { this._bonus = value }
 
-  #isHeld: boolean = false
-  get isHeld (): boolean { return this.#isHeld }
+  private _isHeld: boolean = false
+  get isHeld (): boolean { return this._isHeld }
 
-  set isHeld (value: boolean) { this.#isHeld = value }
+  set isHeld (value: boolean) { this._isHeld = value }
 
-  #combo: boolean
+  private _hitTiming: number | null = null
+  get hitTiming (): number | null { return this._hitTiming }
 
-  #hitTiming: number | null = null
-  get hitTiming (): number | null { return this.#hitTiming }
+  set hitTiming (value: number | null) { this._hitTiming = value }
 
-  set hitTiming (value: number | null) { this.#hitTiming = value }
+  private _releaseTiming: number | null = null
+  get releaseTiming (): number | null { return this._releaseTiming }
 
-  #releaseTiming: number | null = null
-  get releaseTiming (): number | null { return this.#releaseTiming }
+  set releaseTiming (value: number) { this._releaseTiming = value }
 
-  set releaseTiming (value: number) { this.#releaseTiming = value }
+  private _grayed: boolean = false
+  set grayed (value: boolean) { this._grayed = value }
 
-  #grayed: boolean = false
-  set grayed (value: boolean) { this.#grayed = value }
-
-  get grayed (): boolean { return this.#grayed }
+  get grayed (): boolean { return this._grayed }
 
   constructor (col: number, type: NoteType, offset: number, end: number, keys: number) {
     super(offset, end)
-    this.#col = col
-    this.#type = type
-    this.#keys = keys
+    this._col = col
+    this._type = type
+    this._keys = keys
     const {
       color,
     } = Skin.config.stage.keys[`keys${keys}`].note
-    this.#color = color[col]
+    this._color = color[col]
   }
 
-  set keys (keys: number) { this.#keys = keys}
+  set keys (keys: number) { this._keys = keys}
 
   /**
    * 当前 note 已被打击处理过，无需再处理
    */
-  hit () { this.#isHit = true }
+  hit () { this._isHit = true }
 
   reset () {
-    this.#grayed = false
-    this.#hitTiming = null
-    this.#releaseTiming = null
-    this.#isHeld = false
-    this.#bonus = 100
-    this.#score = 0
-    this.#judgement = null
-    this.#isHit = false
+    this._grayed = false
+    this._hitTiming = null
+    this._releaseTiming = null
+    this._isHeld = false
+    this._bonus = 100
+    this._score = 0
+    this._judgement = null
+    this._isHit = false
   }
 
   render (context: CanvasRenderingContext2D, offsetY: number, endY?: number) {
@@ -97,22 +92,22 @@ export class Note extends OffsetRenderObject {
       note: {
         width: NOTE_WIDTH, height: NOTE_HEIGHT, gap: NOTE_GAP,
       },
-    } = keys[`keys${this.#keys}`]
-    const halfWidth = this.#keys * NOTE_WIDTH / 2
+    } = keys[`keys${this._keys}`]
+    const halfWidth = this._keys * NOTE_WIDTH / 2
     const columnStart = columnCenter - halfWidth
-    const LEFT = this.#col * NOTE_WIDTH + (this.#col + 1) * NOTE_GAP / 2 + columnStart
+    const LEFT = this._col * NOTE_WIDTH + (this._col + 1) * NOTE_GAP / 2 + columnStart
 
-    if (this.#type === NoteType.TAP) {
-      if (offsetY > 0 && !this.#isHit) {
-        context.fillStyle = this.#color
+    if (this._type === NoteType.TAP) {
+      if (offsetY > 0 && !this._isHit) {
+        context.fillStyle = this._color
         // y - NOTE_HEIGHT: judgement on the bottom of note
         context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
-    } else if (this.#type === NoteType.HOLD) {
+    } else if (this._type === NoteType.HOLD) {
       if (offsetY > 0) {
         const height = offsetY - endY
         context.fillStyle = 'rgb(186, 191, 195)'
-        if (this.#grayed) {
+        if (this._grayed) {
           context.fillStyle = 'rgba(186, 191, 195, 0.5)'
         }
 
@@ -139,7 +134,7 @@ export class Note extends OffsetRenderObject {
           }
         }
 
-        context.fillStyle = this.#color
+        context.fillStyle = this._color
         context.fillRect(LEFT, offsetY - NOTE_HEIGHT, NOTE_WIDTH - NOTE_GAP, NOTE_HEIGHT)
       }
     }

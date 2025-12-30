@@ -12,31 +12,31 @@ const INNER_WIDTH = 10
 const INNER_BOTTOM = 20
 
 export class HpEffect extends RenderObject {
-  #value: number = 0
-  #left: number = 0
+  private _value: number = 0
+  private _left: number = 0
 
-  init (left: number): void {
-    this.#left = left
+  init(left: number): void {
+    this._left = left
   }
 
-  async update (value: number): Promise<void> {
+  async update(value: number): Promise<void> {
     this.cancelTransitions()
-    await this.createTransition(this.#value, value, 300, 'easeOut', value => this.#value = value)
+    await this.createTransition(this._value, value, 300, 'easeOut', value => this._value = value)
   }
 
-  async start (): Promise<void> {
+  async start(): Promise<void> {
     this.cancelTransitions()
-    await this.createTransition(0, HpManager.MAX, 600, 'easeOut', value => this.#value = value)
+    await this.createTransition(0, HpManager.MAX, 600, 'easeOut', value => this._value = value)
   }
 
-  reset (): void {
+  reset(): void {
     this.cancelTransitions()
-    this.#value = HpManager.MAX
+    this._value = HpManager.MAX
   }
 
-  render (context: CanvasRenderingContext2D): void {
+  render(context: CanvasRenderingContext2D): void {
     const height = vh(HEIGHT_VH)
-    const x = this.#left
+    const x = this._left
     const y = vh(TOP)
 
     // fill border
@@ -69,7 +69,7 @@ export class HpEffect extends RenderObject {
     // fill hp bar
     context.strokeStyle = BAR_COLOR
     context.beginPath()
-    const y1 = Math.round(y + py(40) + (HpManager.MAX - this.#value) / HpManager.MAX * (height - py(INNER_BOTTOM)))
+    const y1 = Math.round(y + py(40) + (HpManager.MAX - this._value) / HpManager.MAX * (height - py(INNER_BOTTOM)))
     if (y1 < CANVAS.HEIGHT - py(INNER_BOTTOM)) {
       context.moveTo(x + py(WIDTH) / 2, y1)
       context.lineTo(x + py(WIDTH) / 2, CANVAS.HEIGHT - py(INNER_BOTTOM))

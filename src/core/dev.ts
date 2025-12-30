@@ -1,13 +1,4 @@
 const searchParams = new URLSearchParams(location.search)
-declare global {
-  interface Window {
-    __FORCE_FINISH__: boolean
-    __DEV__: boolean
-    __DEBUG__: boolean
-    __MOUSE_MOVE__SOURCE__: string
-    __SHOW_SCROLL_BOX__: boolean
-  }
-}
 
 window.__FORCE_FINISH__ = false
 window.__DEV__ = import.meta.env.DEV
@@ -15,19 +6,19 @@ window.__DEBUG__ = searchParams.get('__DEBUG__') === 'true'
 window.__MOUSE_MOVE__SOURCE__ = ''
 window.__SHOW_SCROLL_BOX__ = false
 
-function debug (...args: any[]): void {
+function debug(...args: any[]): void {
   if (window.__DEBUG__) {
     console.log(performance.now(), ...args)
   }
 }
 
-function warn (...args: any[]): void {
+function warn(...args: any[]): void {
   if (window.__DEV__) {
     console.warn(performance.now(), ...args)
   }
 }
 
-function log (...args: any[]): void {
+function log(...args: any[]): void {
   if (window.__DEV__) {
     console.log(performance.now(), ...args)
   }
@@ -39,7 +30,7 @@ export const dev = {
   debug,
 }
 
-export function createLimitLog (limit: number, delay: number = 0): (...args: any[]) => void {
+export function createLimitLog(limit: number, delay: number = 0): (...args: any[]) => void {
   let times = 0
   return (...args) => {
     if (times - delay < limit) {
@@ -51,7 +42,7 @@ export function createLimitLog (limit: number, delay: number = 0): (...args: any
   }
 }
 
-export function createCollectMaxValues (max: number): (value: number) => void {
+export function createCollectMaxValues(max: number): (value: number) => void {
   const values = []
   let hasLog = false
   return (value) => {

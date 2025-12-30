@@ -3,31 +3,31 @@ import { AccuracyEffect } from './AccuracyEffect'
 import { Note } from './Note'
 
 export class AccuracyManager {
-  #notes: Note[]
+  private _notes: Note[]
 
-  #acc: number = 1.0
+  private _acc: number = 1.0
 
-  #accEffect: AccuracyEffect = new AccuracyEffect()
+  private _accEffect: AccuracyEffect = new AccuracyEffect()
 
-  get accEffect (): AccuracyEffect { return this.#accEffect }
+  get accEffect(): AccuracyEffect { return this._accEffect }
 
-  #rankingEffect: RankingEffect = new RankingEffect(0)
+  private _rankingEffect: RankingEffect = new RankingEffect(0)
 
-  get rankingEffect (): RankingEffect { return this.#rankingEffect }
+  get rankingEffect(): RankingEffect { return this._rankingEffect }
 
-  init (notes: Note[]): void {
-    this.#notes = notes
+  init(notes: Note[]): void {
+    this._notes = notes
   }
 
-  private _calcAcc (): number {
-    if (this.#notes.length === 0) {
+  private _calcAcc(): number {
+    if (this._notes.length === 0) {
       return 1.0
     }
 
     let acc = 0.0
     let hitCount = 0
-    for (let i = 0; i < this.#notes.length; i++) {
-      const note = this.#notes[i]
+    for (let i = 0; i < this._notes.length; i++) {
+      const note = this._notes[i]
 
       if (note.judgement) {
         acc += note.judgement.accuracy
@@ -42,14 +42,14 @@ export class AccuracyManager {
     return acc / hitCount
   }
 
-  update (): void {
+  update(): void {
     const acc = this._calcAcc()
-    this.#acc = acc
-    this.#accEffect.acc = acc
-    this.#rankingEffect.type = RankingEffect.calcRankingType(acc)
+    this._acc = acc
+    this._accEffect.acc = acc
+    this._rankingEffect.type = RankingEffect.calcRankingType(acc)
   }
 
-  get acc (): number {
-    return this.#acc
+  get acc(): number {
+    return this._acc
   }
 }

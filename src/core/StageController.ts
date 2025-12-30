@@ -2,17 +2,12 @@ import { DEFAULT_DELAY_TIME } from './Config'
 import { KeyboardEventManager } from './KeyboardEventManager'
 import { RenderEngine } from './RenderEngine'
 import { HitEffectManager } from './HitEffectManager'
-import { SectionLineEffect } from './SectionLineEffect.js'
 import { ComboEffect } from './ComboEffect'
 import { JudgementManager } from './JudgementManager'
 import { KeyCode } from './KeyCode'
 import { ScoreManager } from './ScoreManager'
-import { JudgementRecordEffect } from './JudgementRecordEffect'
-import { ProgressPercentEffect } from './ProgressEffect'
-import { AccuracyEffect } from './AccuracyEffect'
 import { AccuracyManager } from './AccuracyManager'
 import { StageBoard } from './StageBoard'
-import { RankingEffect } from './RankingEffect'
 import { FrameSnapshot } from './FrameSnapshot'
 import { AudioManager } from './AudioManager'
 import { FileManager } from './FileManager'
@@ -25,216 +20,129 @@ import { ActiveEffect } from './ActiveEffect'
 import { ModEffect } from './ModEffect'
 import { Mod } from './ModsPanel'
 import { HpEffect } from './HpEffect'
-import { SectionLineManager } from './SectionLineManager.js'
-import { ProgressPercentManager } from './ProgressPercentManager.js'
-
-/**
- * @callback Callback
- * @callback FinishCallback
- * @param rankingResult {RankingResult}
- */
+import { SectionLineManager } from './SectionLineManager'
+import { ProgressPercentManager } from './ProgressPercentManager'
+import type { PlayMap } from './PlayMap'
+import type { RankingResult } from './RankingBoard'
+import type { Beatmap } from './Beatmap'
+import type { MainController } from './MainController'
 
 export class StageController extends ActiveEffect {
-  /**
-   * @type {Settings}
-   */
-  #settings
-  /**
-   * @type {RenderEngine}
-   */
-  #renderEngine
+  private _settings: Settings
+  private _renderEngine: RenderEngine
 
-  /**
-   * @type {PlayMap | null}
-   */
-  #playingMap
+  private _playingMap: PlayMap | null
 
-  /**
-   * @type {AudioManager | null}
-   */
-  #playingAudio
+  private _playingAudio: AudioManager | null
 
   /**
    * 是否在一局游戏中处于暂停状态
-   * @type {boolean}
    */
-  #paused
+  private _paused: boolean
 
   /**
    * start rendered time
-   * @type {number}
    */
-  #startTime = -1
+  private _startTime = -1
 
   /**
    * 上次按暂停的时间
-   * @type {number}
    */
-  #lastPausedTime = 0
+  private _lastPausedTime = 0
 
   /**
    * 本局游戏总共的暂停时间
-   * @type {number}
    */
-  #totalPauseTime = 0
+  private _totalPauseTime = 0
 
-  /**
-   * @type {Beatmap}
-   */
-  #beatmap
+  private _beatmap: Beatmap
 
-  /**
-   * @type {KeyboardEventManager}
-   */
-  #keyboardEventManager
+  private _keyboardEventManager: KeyboardEventManager
 
-  /**
-   * @type {JudgementManager}
-   */
-  #judgementManager
+  private _judgementManager: JudgementManager
 
-  /** @type {ScoreManager} */
-  #scoreManager
+  private _scoreManager: ScoreManager
 
-  /**
-   * @type {SkipHeadEffect}
-   */
-  #skipHeadEffect = null
+  private _skipHeadEffect: SkipHeadEffect | null = null
 
-  /**
-   * @type {HpEffect}
-   */
-  #hpEffect = new HpEffect()
+  private _hpEffect = new HpEffect()
 
-  /**
-   * @type {ModEffect}
-   */
-  #modEffect = null
+  private _modEffect: ModEffect | null = null
 
-  /**
-   * @type {HitEffectManager}
-   */
-  #hitEffectManager
+  private readonly _hitEffectManager: HitEffectManager
 
-  /**
-   * @type {SectionLineManager}
-   */
-  #sectionLineManager = new SectionLineManager()
+  private _sectionLineManager = new SectionLineManager()
 
-  #progressPercentManager = new ProgressPercentManager()
+  private _progressPercentManager = new ProgressPercentManager()
 
-  #comboEffect = new ComboEffect()
+  private _comboEffect = new ComboEffect()
 
-  /**
-   * @type {{ [key: KeyCode]: boolean }}
-   */
-  #keyStatus = {}
+  private _keyStatus: { [key: KeyCode]: boolean } = {}
 
-  /** @type {AccuracyManager} */
-  #accuracyManager
+  private _accuracyManager: AccuracyManager
 
-  /** @type {StageBoard} */
-  #stageBoard
+  private readonly _stageBoard: StageBoard
 
   /**
    * 是否在一局游戏中
-   * @type {boolean}
    */
-  #playing = false
+  private _playing = false
   /**
    * 是否结束
-   * @type {boolean}
    */
-  #finished = false
+  private _finished = false
 
-  /**
-   * @type {boolean}
-   */
-  #quited = false
+  private _quited = false
 
-  /**
-   * @type {boolean}
-   */
-  #failed = false
+  private _failed = false
 
   /**
    * 是否真正开始，默认开始有一定的延迟，如果在这个时间段按暂停，会直接退到主屏幕
-   * @type {boolean}
    */
-  #realStarted = false
-  /**
-   * @type {null | number}
-   */
-  #delayStartTimer = null
+  private _realStarted = false
+  private _delayStartTimer: null | number = null
 
-  /**
-   * @type {number}
-   */
-  #duration = 0
+  private _duration = 0
 
-  /**
-   * @type {MainController}
-   */
-  #mainController
+  private _mainController: MainController
 
-  /**
-   * @return {boolean}
-   */
-  get failed () { return this.#failed }
+  get failed (): boolean { return this._failed }
 
-  /**
-   * @return {boolean}
-   */
-  get realStarted () { return this.#realStarted }
+  get realStarted (): boolean { return this._realStarted }
 
-  /**
-   * @type {HTMLCanvasElement}
-   */
-  #canvas
-  /**
-   * @type {FrameSnapshot | null}
-   */
-  #frameSnapshot = null
+  private readonly _canvas: HTMLCanvasElement
+  private _frameSnapshot: FrameSnapshot | null = null
 
-  #stageWidth = 0
+  private _stageWidth = 0
 
-  #skippedTiming = 0
+  private _skippedTiming = 0
 
-  /**
-   * @type {MouseEventManager}
-   */
-  #mouseEventHandler
+  private _mouseEventHandler: MouseEventManager
 
-  #pf = false
+  private _pf = false
 
-  #auto = false
+  private _auto = false
 
-  /**
-   * @constructor
-   * @param canvas {HTMLCanvasElement} canvas node name
-   * @param mainController {MainController}
-   * @param renderEngine {RenderEngine}
-   */
-  constructor (canvas, mainController, renderEngine) {
+  constructor (canvas: HTMLCanvasElement, mainController: MainController, renderEngine: RenderEngine) {
     super()
-    this.#canvas = canvas
-    this.#mainController = mainController
-    this.#renderEngine = renderEngine
-    this.#keyboardEventManager = new KeyboardEventManager()
-    this.#hitEffectManager = new HitEffectManager()
-    this.#judgementManager = new JudgementManager()
-    this.#scoreManager = new ScoreManager()
-    this.#accuracyManager = new AccuracyManager()
-    this.#stageBoard = new StageBoard()
-    this.#mouseEventHandler = new MouseEventManager(canvas, 'StageController')
+    this._canvas = canvas
+    this._mainController = mainController
+    this._renderEngine = renderEngine
+    this._keyboardEventManager = new KeyboardEventManager()
+    this._hitEffectManager = new HitEffectManager()
+    this._judgementManager = new JudgementManager()
+    this._scoreManager = new ScoreManager()
+    this._accuracyManager = new AccuracyManager()
+    this._stageBoard = new StageBoard()
+    this._mouseEventHandler = new MouseEventManager(canvas, 'StageController')
   }
 
-  skipHead () {
+  skipHead (): void {
     if (this.canSkip()) {
-      this.#skippedTiming = this.#playingMap.startTiming - this.getGameTiming() - 3000
-      this.#playingAudio.setCurrentTime(this.getGameTiming() / 1000)
-      this.#mouseEventHandler.remove(this.#skipHeadEffect)
-      this.#skipHeadEffect = null
+      this._skippedTiming = this._playingMap!.startTiming - this.getGameTiming() - 3000
+      this._playingAudio!.setCurrentTime(this.getGameTiming() / 1000)
+      this._mouseEventHandler.remove(this._skipHeadEffect!)
+      this._skipHeadEffect = null
     }
   }
 
@@ -242,29 +150,22 @@ export class StageController extends ActiveEffect {
    * 计算游戏局时，对于一首曲目基于音频时长的游戏局时间
    * 减去暂停时间
    */
-  getGameTiming () {
-    const now = performance.now() + this.#skippedTiming
-    return now - this.#startTime - this.#totalPauseTime
+  getGameTiming (): number {
+    const now = performance.now() + this._skippedTiming
+    return now - this._startTime - this._totalPauseTime
   }
 
-  canSkip () {
-    return this.getGameTiming() - this.#playingMap.startTiming < -3000
+  canSkip (): boolean {
+    return this.getGameTiming() - this._playingMap!.startTiming < -3000
   }
 
-  /**
-   * @param beatmap {Beatmap}
-   * @param settings {Settings}
-   * @param rate {number}
-   * @param mods {Mod[]}
-   * @return void
-   */
-  async init (beatmap, settings, rate, mods) {
+  async init (beatmap: Beatmap, settings: Settings, rate: number, mods: Mod[]): Promise<void> {
     const { keys } = Skin.config.stage
-    this.#settings = settings
+    this._settings = settings
     this.reset()
 
     // map
-    this.#beatmap = beatmap
+    this._beatmap = beatmap
     const mapFile = await FileManager.loadMapFile(beatmap.filename)
     const currentMap = MapResolver.loadFromOsuManiaMap(mapFile)
     currentMap.setRate(rate)
@@ -273,16 +174,17 @@ export class StageController extends ActiveEffect {
     // keys
     const { keys: keysCount, notes, overallDifficulty, hpDrainRate } = currentMap
     const { note: { width } } = keys[`keys${keysCount}`]
-    this.#stageBoard.init(keysCount)
-    this.#hitEffectManager.keys = keysCount
-    this.#stageWidth = keysCount * width
-    this.#hpEffect.init(this.#stageBoard.boundary.right)
-    const coverMod = mods.find(v => [Mod.FD, Mod.FL, Mod.HD].includes(v))
+    this._stageBoard.init(keysCount)
+    this._hitEffectManager.keys = keysCount
+    this._stageWidth = keysCount * width
+    this._hpEffect.init(this._stageBoard.boundary.right)
+    const coverModList = [Mod.FD, Mod.FL, Mod.HD]
+    const coverMod = mods.find(v => coverModList.includes(v))
     if (coverMod) {
-      this.#modEffect = new ModEffect(coverMod)
-      this.#modEffect.keys = keysCount
+      this._modEffect = new ModEffect(coverMod)
+      this._modEffect.keys = keysCount
     } else {
-      this.#modEffect = null
+      this._modEffect = null
     }
 
     // audio
@@ -292,83 +194,74 @@ export class StageController extends ActiveEffect {
 
     audio.setRate(rate)
     mods.forEach(mod => audio.applyMod(mod))
-    this.#duration = duration
-    this.#playingMap = currentMap
-    this.#playingAudio = audio
-    this.#progressPercentManager.duration = duration
+    this._duration = duration
+    this._playingMap = currentMap
+    this._playingAudio = audio
+    this._progressPercentManager.duration = duration
 
     // init
-    this.#pf = mods.includes(Mod.PF)
-    this.#auto = mods.includes(Mod.AT)
-    this.#sectionLineManager.init(currentMap, audio, this.#stageWidth)
-    this.#judgementManager.init({
+    this._pf = mods.includes(Mod.PF)
+    this._auto = mods.includes(Mod.AT)
+    this._sectionLineManager.init(currentMap, audio, this._stageWidth)
+    this._judgementManager.init({
       notes,
       od: overallDifficulty,
       hp: hpDrainRate,
-      auto: this.#auto,
+      auto: this._auto,
       onFail: () => this.fail(),
-      hpEffect: this.#hpEffect,
+      hpEffect: this._hpEffect,
     })
-    this.#scoreManager.init(notes)
-    this.#accuracyManager.init(notes)
-    this.#mouseEventHandler.registerEvents({})
+    this._scoreManager.init(notes)
+    this._accuracyManager.init(notes)
+    this._mouseEventHandler.registerEvents({})
   }
 
-  /**
-   * @return void
-   */
-  reset () {
-    this.#paused = false
-    this.#failed = false
-    this.#frameSnapshot = null
-    this.#realStarted = false
-    this.#startTime = 0
-    this.#totalPauseTime = 0
-    this.#lastPausedTime = 0
-    this.#skippedTiming = 0
-    this.#hitEffectManager.reset()
-    this.#playingMap?.reset()
-    this.#judgementManager.reset()
-    this.#scoreManager.reset()
-    this.#playingAudio?.abort()
-    this.#keyboardEventManager.removeEvents()
+  reset (): void {
+    this._paused = false
+    this._failed = false
+    this._frameSnapshot = null
+    this._realStarted = false
+    this._startTime = 0
+    this._totalPauseTime = 0
+    this._lastPausedTime = 0
+    this._skippedTiming = 0
+    this._hitEffectManager.reset()
+    this._playingMap?.reset()
+    this._judgementManager.reset()
+    this._scoreManager.reset()
+    this._playingAudio?.abort()
+    this._keyboardEventManager.removeEvents()
   }
 
-  /**
-   * @param flag {boolean} true: run in resume
-   * @return Promise<void>
-   */
-  async playAudio (flag) {
+  async playAudio (flag: boolean): Promise<void> {
     if (flag) {
-      await this.#playingAudio.resume()
+      await this._playingAudio!.resume()
     } else {
       await new Promise(resolve => setTimeout(resolve, DEFAULT_DELAY_TIME))
-      this.#realStarted = true
-      await this.#playingAudio.play()
+      this._realStarted = true
+      await this._playingAudio!.play()
     }
   }
 
-  registerStageEvent () {
-    /** @type {Record<number, KeyCode>} */
-    const keyBinds = this.#settings.get('maniaKeyBinds')[`keys${this.#playingMap.keys}`]
+  registerStageEvent (): void {
+    const keyBinds: Record<number, KeyCode> = this._settings.get('maniaKeyBinds')[`keys${this._playingMap!.keys}`]
 
-    /** @type {KeyCode[]} */
-    const hitObjectKeys = Object.values(keyBinds)
+    const hitObjectKeys: KeyCode[] = Object.values(keyBinds)
 
     const hitObjectsUpEvents = hitObjectKeys.reduce((acc, key) => {
       return {
         ...acc,
         [key]: () => {
-          if (this.#paused || !this.#playing || this.#auto) {
+          if (this._paused || !this._playing || this._auto) {
             return
           }
-          if (this.#keyStatus[key]) {
+          if (this._keyStatus[key]) {
             const col = hitObjectKeys.indexOf(key)
-            this.#hitEffectManager.releaseKey(col)
-            if (col >= 0 && this.#playing && !this.#paused) {
-              this.#judgementManager.checkRelease(this.getGameTiming(), col)
+            this._hitEffectManager.releaseKey(col)
+            if (col >= 0 && this._playing && !this._paused) {
+              this._judgementManager.checkRelease(this.getGameTiming(), col)
             }
-            this.#keyStatus[key] = false
+            this._keyStatus[key] = false
           }
         },
       }
@@ -378,44 +271,44 @@ export class StageController extends ActiveEffect {
       return {
         ...acc,
         [key]: () => {
-          if (this.#paused || !this.#playing || this.#auto) {
+          if (this._paused || !this._playing || this._auto) {
             return
           }
           const col = hitObjectKeys.indexOf(key)
-          this.#hitEffectManager.pressKey(col)
-          if (col >= 0 && this.#playing && !this.#paused) {
-            this.#judgementManager.checkHit(this.getGameTiming(), col)
-            this.#keyStatus[key] = true
+          this._hitEffectManager.pressKey(col)
+          if (col >= 0 && this._playing && !this._paused) {
+            this._judgementManager.checkHit(this.getGameTiming(), col)
+            this._keyStatus[key] = true
           }
         },
       }
     }, {})
 
     const optionKeyEvents = {
-      [KeyCode.F4]: e => {
+      [KeyCode.F4]: (e: KeyboardEvent) => {
         e.preventDefault()
-        this.#mainController.increaseSpeed()
+        this._mainController.increaseSpeed()
       },
-      [KeyCode.F3]: e => {
+      [KeyCode.F3]: (e: KeyboardEvent) => {
         e.preventDefault()
-        this.#mainController.decreaseSpeed()
+        this._mainController.decreaseSpeed()
       },
-      [KeyCode.TILED]: e => {
+      [KeyCode.TILED]: (e: KeyboardEvent) => {
         e.preventDefault()
         this.retry()
       },
       [KeyCode.SPACE]: () => {
-        if (this.#skipHeadEffect) {
+        if (this._skipHeadEffect) {
           this.skipHead()
         } else {
           hitObjectsDownEvents[KeyCode.SPACE]?.()
         }
       },
       [KeyCode.ESCAPE]: () => {
-        if (!this.realStarted || this.#auto) {
+        if (!this.realStarted || this._auto) {
           this.quit()
         }
-        if (this.#paused) {
+        if (this._paused) {
           this.resume()
         } else {
           this.pause()
@@ -423,8 +316,8 @@ export class StageController extends ActiveEffect {
       },
     }
 
-    this.#keyboardEventManager.registerEvents({
-      keypressEventList: [],
+    this._keyboardEventManager.registerEvents({
+      keypressEventList: {},
       keyupEventList: {
         ...hitObjectsUpEvents,
       },
@@ -435,44 +328,40 @@ export class StageController extends ActiveEffect {
     })
   }
 
-  quit () {
-    this.#delayStartTimer && clearTimeout(this.#delayStartTimer)
-    this.#quited = true
-    this.#playingAudio?.abort()
+  quit (): void {
+    this._delayStartTimer && clearTimeout(this._delayStartTimer)
+    this._quited = true
+    this._playingAudio?.abort()
     this.reset()
-    this.#mainController.abortPlaying()
+    this._mainController.abortPlaying()
   }
 
-  finish () {
-    this.#finished = false
-    /** @type {RankingResult} */
-    const results = {
-      accuracy: this.#accuracyManager.acc,
-      maxCombo: this.#judgementManager.maxCombo,
-      judgementRecord: this.#judgementManager.judgementRecord,
-      fullCombo: this.#judgementManager.fullCombo,
+  finish (): void {
+    this._finished = false
+    const results: RankingResult = {
+      accuracy: this._accuracyManager.acc,
+      maxCombo: this._judgementManager.maxCombo,
+      judgementRecord: this._judgementManager.judgementRecord,
+      fullCombo: this._judgementManager.fullCombo,
       finishTime: new Date().getTime(),
-      score: this.#scoreManager.score,
-      beatmap: this.#beatmap,
+      score: this._scoreManager.score,
+      beatmap: this._beatmap,
     }
-    this.#mainController.finish(results)
+    this._mainController.finish(results)
     this.reset()
   }
 
-  /**
-   * @return void
-   */
-  start () {
-    this.#playing = true
-    this.#finished = false
-    this.#startTime = performance.now() + DEFAULT_DELAY_TIME
-    this.#stageBoard.show()
-    this.#hpEffect.start()
+  start (): void {
+    this._playing = true
+    this._finished = false
+    this._startTime = performance.now() + DEFAULT_DELAY_TIME
+    this._stageBoard.show()
+    this._hpEffect.start()
     this.playAudio(false).then(() => {
       if (this.canSkip()) {
-        this.#skipHeadEffect = new SkipHeadEffect()
-        this.#mouseEventHandler.bind(this.#skipHeadEffect, () => {
-          this.#mouseEventHandler.remove(this.#skipHeadEffect)
+        this._skipHeadEffect = new SkipHeadEffect()
+        this._mouseEventHandler.bind(this._skipHeadEffect, () => {
+          this._mouseEventHandler.remove(this._skipHeadEffect!)
           this.skipHead()
         })
       }
@@ -480,66 +369,59 @@ export class StageController extends ActiveEffect {
     this.registerStageEvent()
   }
 
-  /** @type {number | null} */
-  #resumeTimer = null
+  private _resumeTimer: number | null = null
 
-  /**
-   * @return void
-   */
-  pause () {
-    this.#keyboardEventManager.removeEvents()
+  pause (): void {
+    this._keyboardEventManager.removeEvents()
     // 有 resumeTimer，说明是暂停状态下，点了继续，但是还没开始继续下落，在 DELAY 状态，此时则不取消暂停状态，继续暂停就行
-    if (this.#resumeTimer !== null && this.#resumeTimer > 0) {
-      this.cancelTimeout(this.#resumeTimer)
-      this.#resumeTimer = null
+    if (this._resumeTimer !== null && this._resumeTimer > 0) {
+      this.cancelTimeout(this._resumeTimer)
+      this._resumeTimer = null
     } else {
-      this.#paused = true
-      this.#lastPausedTime = performance.now()
-      this.#playingAudio.pause()
-      this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
+      this._paused = true
+      this._lastPausedTime = performance.now()
+      this._playingAudio!.pause()
+      this._frameSnapshot = FrameSnapshot.saveSnapshot(this._canvas)
     }
-    this.#mainController.pause()
+    this._mainController.pause()
   }
 
-  async fail () {
+  async fail (): Promise<void> {
     await this.createTimeout(300)[0]
-    this.#keyboardEventManager.removeEvents()
-    this.#playingAudio.abort()
-    this.#frameSnapshot = FrameSnapshot.saveSnapshot(this.#canvas)
-    this.#failed = true
-    await this.#mainController.fail()
+    this._keyboardEventManager.removeEvents()
+    this._playingAudio!.abort()
+    this._frameSnapshot = FrameSnapshot.saveSnapshot(this._canvas)
+    this._failed = true
+    await this._mainController.fail()
   }
 
-  /**
-   * @return void
-   */
-  async resume () {
+  async resume (): Promise<void> {
     const [task, timer] = this.createTimeout(DEFAULT_DELAY_TIME)
-    this.#resumeTimer = timer
+    this._resumeTimer = timer
     await task
     this.registerStageEvent()
-    this.#paused = false
-    this.#frameSnapshot = null
+    this._paused = false
+    this._frameSnapshot = null
     const now = performance.now()
-    const currentPausedTime = now - this.#lastPausedTime
-    this.#totalPauseTime += currentPausedTime
+    const currentPausedTime = now - this._lastPausedTime
+    this._totalPauseTime += currentPausedTime
     this.playAudio(true)
-    this.cancelTimeout(this.#resumeTimer)
-    this.#resumeTimer = null
+    this.cancelTimeout(this._resumeTimer)
+    this._resumeTimer = null
   }
 
-  retry () {
-    this.#stageBoard.hide()
-    this.#frameSnapshot = null
-    this.#playingAudio.abort()
+  retry (): void {
+    this._stageBoard.hide()
+    this._frameSnapshot = null
+    this._playingAudio!.abort()
     this.reset()
     this.start()
   }
 
-  renderFrame () {
-    if (this.#playing) {
+  renderFrame (): void {
+    if (this._playing) {
       this.renderStageBoard()
-      if (!this.#finished) {
+      if (!this._finished) {
         this.renderSectionLine()
         this.renderNotes()
         this.renderHitEffects()
@@ -556,10 +438,10 @@ export class StageController extends ActiveEffect {
     }
   }
 
-  loopFrame () {
+  loopFrame (): void {
     // Quit 之后，下一帧重置状态，直接就退出 loopFrame 了
-    if (this.#quited) {
-      this.#quited = false
+    if (this._quited) {
+      this._quited = false
       return
     }
 
@@ -567,23 +449,23 @@ export class StageController extends ActiveEffect {
     this.renderFrame()
   }
 
-  updateFrame () {
-    if (this.#modEffect) {
-      this.#modEffect.combo = this.#judgementManager.combo
+  updateFrame (): void {
+    if (this._modEffect) {
+      this._modEffect.combo = this._judgementManager.combo
     }
     const gameTiming = this.getGameTiming()
-    if (this.#playing && this.#playingMap.length < gameTiming || __FORCE_FINISH__) {
-      this.#paused = false
-      this.#failed = false
+    if (this._playing && this._playingMap!.length < gameTiming || window.__FORCE_FINISH__) {
+      this._paused = false
+      this._failed = false
 
       // 1200ms 后隐藏打击面板
-      if (this.#stageBoard.visible && this.#playingMap.length < gameTiming - 1200) {
-        this.#finished = true
-        this.#stageBoard.hide()
+      if (this._stageBoard.visible && this._playingMap!.length < gameTiming - 1200) {
+        this._finished = true
+        this._stageBoard.hide()
       }
 
       // 2000ms 后开始展示结果面板
-      if (this.#playingMap.length < gameTiming - 2000 || __FORCE_FINISH__) {
+      if (this._playingMap!.length < gameTiming - 2000 || window.__FORCE_FINISH__) {
         this.finish()
         return
       }
@@ -592,94 +474,94 @@ export class StageController extends ActiveEffect {
     const now = performance.now()
     this.updateTimeout(now)
 
-    if (this.#playing && !this.#paused && !this.#failed) {
-      this.#renderEngine.setTiming(gameTiming)
-      if (this.#auto) {
-        this.#judgementManager.autoPlay(gameTiming, this.#hitEffectManager)
+    if (this._playing && !this._paused && !this._failed) {
+      this._renderEngine.setTiming(gameTiming)
+      if (this._auto) {
+        this._judgementManager.autoPlay(gameTiming, this._hitEffectManager)
       } else {
-        this.#judgementManager.update(gameTiming)
+        this._judgementManager.update(gameTiming)
       }
-      this.#comboEffect.value = this.#judgementManager.combo
-      this.#scoreManager.update(now, gameTiming)
-      this.#accuracyManager.update()
-      if (this.#pf && this.#accuracyManager.acc < 1) {
+      this._comboEffect.value = this._judgementManager.combo
+      this._scoreManager.update(now, gameTiming)
+      this._accuracyManager.update()
+      if (this._pf && this._accuracyManager.acc < 1) {
         this.retry()
         return
       }
-      this.#progressPercentManager.update(gameTiming)
-      this.#hpEffect.updateEffect(now)
-      this.#hitEffectManager.update(now)
+      this._progressPercentManager.update(gameTiming)
+      this._hpEffect.updateEffect(now)
+      this._hitEffectManager.update(now)
     }
 
-    this.#stageBoard.updateEffect(now)
+    this._stageBoard.updateEffect(now)
 
-    if (this.#skipHeadEffect) {
+    if (this._skipHeadEffect) {
       if (!this.canSkip()) {
-        this.#skipHeadEffect = null
+        this._skipHeadEffect = null
       }
     }
   }
 
-  renderCoverEffect () {
-    this.#modEffect && this.#renderEngine.renderObject(this.#modEffect)
+  renderCoverEffect (): void {
+    this._modEffect && this._renderEngine.renderObject(this._modEffect)
   }
 
-  renderJudgementDeviations () {
-    this.#renderEngine.renderObject(this.#judgementManager.activeDeviations)
+  renderJudgementDeviations (): void {
+    this._renderEngine.renderObject(this._judgementManager.activeDeviations)
   }
 
-  renderStageBoard () {
-    this.#renderEngine.renderObject(this.#stageBoard)
+  renderStageBoard (): void {
+    this._renderEngine.renderObject(this._stageBoard)
   }
 
-  renderAccuracyEffect () {
-    this.#renderEngine.renderObject(this.#accuracyManager.accEffect)
-    this.#renderEngine.renderObject(this.#accuracyManager.rankingEffect)
+  renderAccuracyEffect (): void {
+    this._renderEngine.renderObject(this._accuracyManager.accEffect)
+    this._renderEngine.renderObject(this._accuracyManager.rankingEffect)
   }
 
-  renderSkip () {
-    if (this.#skipHeadEffect) {
-      this.#renderEngine.renderObject(this.#skipHeadEffect)
+  renderSkip (): void {
+    if (this._skipHeadEffect) {
+      this._renderEngine.renderObject(this._skipHeadEffect)
     }
   }
 
-  renderProgressEffect () {
-    this.#renderEngine.renderObject(this.#progressPercentManager.effect)
+  renderProgressEffect (): void {
+    this._renderEngine.renderObject(this._progressPercentManager.effect)
   }
 
-  renderScoreEffect () {
-    this.#renderEngine.renderObject(this.#scoreManager.effect)
+  renderScoreEffect (): void {
+    this._renderEngine.renderObject(this._scoreManager.effect)
   }
 
-  renderJudgementEffects () {
-    this.#judgementManager.activeEffects.forEach(e => {
-      this.#renderEngine.renderObject(e)
+  renderJudgementEffects (): void {
+    this._judgementManager.activeEffects.forEach(e => {
+      this._renderEngine.renderObject(e)
     })
   }
 
-  renderComboEffect () {
-    this.#renderEngine.renderObject(this.#comboEffect)
+  renderComboEffect (): void {
+    this._renderEngine.renderObject(this._comboEffect)
   }
 
-  renderHitEffects () {
-    this.#hitEffectManager.effects.forEach(effect => this.#renderEngine.renderObject(effect))
+  renderHitEffects (): void {
+    this._hitEffectManager.effects.forEach(effect => this._renderEngine.renderObject(effect))
   }
 
-  renderNotes () {
-    this.#playingMap.notes.forEach(note => {
-      this.#renderEngine.renderOffsetObject(note)
+  renderNotes (): void {
+    this._playingMap!.notes.forEach(note => {
+      this._renderEngine.renderOffsetObject(note)
     })
   }
 
-  renderSectionLine () {
-    this.#renderEngine.renderObject(this.#sectionLineManager)
+  renderSectionLine (): void {
+    this._sectionLineManager.effects.forEach(effect => this._renderEngine.renderOffsetObject(effect))
   }
 
-  renderHpEffect () {
-    this.#renderEngine.renderObject(this.#hpEffect)
+  renderHpEffect (): void {
+    this._renderEngine.renderObject(this._hpEffect)
   }
 
-  get frameSnapshot () {
-    return this.#frameSnapshot
+  get frameSnapshot (): FrameSnapshot | null {
+    return this._frameSnapshot
   }
 }

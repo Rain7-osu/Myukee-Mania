@@ -14,59 +14,59 @@ const FADE_START_HEIGHT = 0.2
 const FL_HEIGHT = 0.4
 
 export class ModEffect extends RenderObject {
-  #mod: Mod
+  private readonly _mod: Mod
 
-  #combo = 0
+  private _combo = 0
 
-  #columnStart = 0
+  private _columnStart = 0
 
-  #keys = 4
+  private _keys = 4
 
-  #width = 0
+  private _width = 0
 
-  constructor (mod: Mod) {
+  constructor(mod: Mod) {
     super()
-    this.#mod = mod
+    this._mod = mod
   }
 
-  set keys (k: number) {
-    this.#keys = k
+  set keys(k: number) {
+    this._keys = k
     const { keys, columnCenter } = Skin.config.stage
-    const { note: { width } } = keys[`keys${this.#keys}`]
-    this.#width = width * this.#keys
-    this.#columnStart = columnCenter - width * k / 2
+    const { note: { width } } = keys[`keys${this._keys}`]
+    this._width = width * this._keys
+    this._columnStart = columnCenter - width * k / 2
   }
 
-  render (context: CanvasRenderingContext2D) {
+  render(context: CanvasRenderingContext2D) {
     const coverFadeHeight = vh(COVER_FADE_HEIGHT)
-    const phase = Math.ceil(this.#combo / 50)
+    const phase = Math.ceil(this._combo / 50)
 
-    if (this.#mod === Mod.HD) {
+    if (this._mod === Mod.HD) {
       const heightVh = phase / HIDDEN_PHASE * (HIDDEN_MAX_HEIGHT - HIDDEN_START_HEIGHT) + HIDDEN_START_HEIGHT
       const height = vh(Math.min(heightVh, HIDDEN_MAX_HEIGHT))
       context.save()
       context.fillStyle = 'rgb(0,0,0)'
-      context.fillRect(this.#columnStart, CANVAS.HEIGHT, this.#width, -height)
+      context.fillRect(this._columnStart, CANVAS.HEIGHT, this._width, -height)
       const y0 = CANVAS.HEIGHT - height - coverFadeHeight
       const gradient = context.createLinearGradient(0, y0, 0, y0 + coverFadeHeight)
       gradient.addColorStop(0, 'rgba(0, 0, 0, 0)')
       gradient.addColorStop(1, 'rgba(0, 0, 0, 1)')
       context.fillStyle = gradient
-      context.fillRect(this.#columnStart, y0, this.#width, coverFadeHeight)
+      context.fillRect(this._columnStart, y0, this._width, coverFadeHeight)
       context.restore()
-    } else if (this.#mod === Mod.FD) {
+    } else if (this._mod === Mod.FD) {
       const heightVh = phase / FADE_PHASE * (FADE_MAX_HEIGHT - FADE_START_HEIGHT) + FADE_START_HEIGHT
       const height = vh(Math.min(heightVh, FADE_MAX_HEIGHT))
       context.save()
       context.fillStyle = 'rgb(0,0,0)'
-      context.fillRect(this.#columnStart, 0, this.#width, height)
+      context.fillRect(this._columnStart, 0, this._width, height)
       const gradient = context.createLinearGradient(0, height, 0, height + coverFadeHeight)
       gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')
       gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
       context.fillStyle = gradient
-      context.fillRect(this.#columnStart, height, this.#width, height + coverFadeHeight)
+      context.fillRect(this._columnStart, height, this._width, height + coverFadeHeight)
       context.restore()
-    } else if (this.#mod === Mod.FL) {
+    } else if (this._mod === Mod.FL) {
       const height = vh(FL_HEIGHT)
       const coverFadeH = 40
       context.save()
@@ -88,7 +88,7 @@ export class ModEffect extends RenderObject {
     }
   }
 
-  set combo (combo: number) {
-    this.#combo = combo
+  set combo(combo: number) {
+    this._combo = combo
   }
 }

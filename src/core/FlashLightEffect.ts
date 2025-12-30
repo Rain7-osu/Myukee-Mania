@@ -1,21 +1,22 @@
 import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
+import type { TransitionType } from './ActiveEffect'
 
 export class FlashLightEffect extends RenderObject {
-  #value: number = 0
+  private _value: number = 0
 
   /**
    * [x, y, w, h]
    */
-  #area: number[]
+  private _area: number[]
 
-  constructor (area?: number[]) {
+  constructor(area?: number[]) {
     super()
-    this.#area = area || [0, 0, CANVAS.WIDTH, CANVAS.HEIGHT]
+    this._area = area || [0, 0, CANVAS.WIDTH, CANVAS.HEIGHT]
   }
 
-  set area (area: number[]) {
-    this.#area = area
+  set area(area: number[]) {
+    this._area = area
   }
 
   /**
@@ -23,23 +24,23 @@ export class FlashLightEffect extends RenderObject {
    * @param duration flash duration
    * @param mode transition mode
    */
-  async flash (maxValue: number = 5, duration: number = 60, mode: string = 'easeOut'): Promise<void> {
+  async flash(maxValue: number = 5, duration: number = 60, mode: TransitionType = 'easeOut'): Promise<void> {
     const target = Math.max(Math.min(maxValue, 100), 0)
     this.cancelTransitions()
-    await this.createTransition(this.#value, target, duration, mode, (v) => this.#value = v)
-    await this.createTransition(this.#value, 0, duration, mode, (v) => this.#value = v)
+    await this.createTransition<number>(this._value, target, duration, mode, v => this._value = v)
+    await this.createTransition<number>(this._value, 0, duration, mode, v => this._value = v)
   }
 
-  reset () {
-    this.#value = 0
+  reset() {
+    this._value = 0
   }
 
-  render (context: CanvasRenderingContext2D) {
-    if (this.#value <= 0) {
+  render(context: CanvasRenderingContext2D) {
+    if (this._value <= 0) {
       return
     }
-    const alpha = this.#value
+    const alpha = this._value
     context.fillStyle = `rgba(255, 255, 255, ${alpha / 100})`
-    context.fillRect(...this.#area)
+    context.fillRect(...this._area)
   }
 }

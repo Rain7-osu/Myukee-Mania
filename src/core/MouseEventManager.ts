@@ -1,3 +1,7 @@
+import { RenderObject } from './RenderObject'
+import { dev } from './dev'
+import { CANVAS } from './Config'
+
 export type MouseEventHandler = (e: MouseEvent) => void
 
 export interface EventsMaps {
@@ -8,99 +12,101 @@ export interface EventsMaps {
   mouseupEvents?: MouseEventHandler[]
 }
 
-import { RenderObject } from './RenderObject'
-import { dev } from './dev'
-import { CANVAS } from './Config'
-
 export class MouseEventManager {
-  #mousemoveEvents: MouseEventHandler[] = []
-  #wheelEvents: MouseEventHandler[] = []
-  #clickEvents: MouseEventHandler[] = []
-  #mousedownEvents: MouseEventHandler[] = []
-  #mouseupEvents: MouseEventHandler[] = []
+  private _mousemoveEvents: MouseEventHandler[] = []
+  private _wheelEvents: MouseEventHandler[] = []
+  private _clickEvents: MouseEventHandler[] = []
+  private _mousedownEvents: MouseEventHandler[] = []
+  private _mouseupEvents: MouseEventHandler[] = []
 
-  #shapeEvents: Map<RenderObject, MouseEventHandler>
+  private _shapeEvents: Map<RenderObject, MouseEventHandler>
 
-  #container: HTMLElement
+  private readonly _container: HTMLElement
 
-  #hasRegistered = false
+  private _hasRegistered = false
 
-  #source = 'global'
+  private readonly _source = 'global'
 
-  #disabled = false
+  private _disabled = false
 
-  constructor (container: HTMLElement, source: string) {
-    this.#container = container
-    this.#source = source
+  constructor(container: HTMLElement, source: string) {
+    this._container = container
+    this._source = source
   }
 
-  _buildEvent(e: MouseEvent) {
+  private _buildMouseEvent(e: MouseEvent) {
     return {
       ...e,
       clientX: e.clientX - CANVAS.CLIENT_X,
       clientY: e.clientY - CANVAS.CLIENT_Y,
       preventDefault: e.preventDefault.bind(e),
       stopPropagation: e.stopPropagation.bind(e),
+    }
+  }
+
+  private _buildWheelEvent(e: WheelEvent) {
+    return {
+      ...this._buildMouseEvent(e),
       deltaY: e.deltaY,
       deltaX: e.deltaX,
     }
   }
 
-  #invokeMousemoveEventHandler = (e: MouseEvent) => {
+  private _invokeWheelEventHandler = (e: WheelEvent) => {
     e.preventDefault()
-    if (this.#disabled) return
-    dev.debug(this.#source, 'mousemove', e)
-    this.#mousemoveEvents.forEach(handler => handler(this._buildEvent(e)))
+    if (this._disabled) return
+    dev.debug(this._source, 'wheel', e)
+    this._wheelEvents.forEach(handler => handler(this._buildWheelEvent(e as any)))
   }
 
-  #invokeWheelEventHandler = (e: WheelEvent) => {
+  private _invokeMousemoveEventHandler = (e: MouseEvent) => {
     e.preventDefault()
-    if (this.#disabled) return
-    dev.debug(this.#source, 'wheel', e)
-    this.#wheelEvents.forEach(handler => handler(this._buildEvent(e as any)))
+    if (this._disabled) return
+    dev.debug(this._source, 'mousemove', e)
+    this._mousemoveEvents.forEach(handler => handler(this._buildMouseEvent(e)))
   }
 
-  #invokeClickEventHandler = (e: MouseEvent) => {
+  private _invokeClickEventHandler = (e: MouseEvent) => {
     e.preventDefault()
-    if (this.#disabled) return
-    dev.debug(this.#source, 'click', e)
-    if (this.#shapeEvents) {
-      [...this.#shapeEvents.values()].forEach(handler => handler(this._buildEvent(e)))
+    if (this._disabled) return
+    dev.debug(this._source, 'click', e)
+    if (this._shapeEvents) {
+      [...this._shapeEvents.values()].forEach(handler => handler(this._buildMouseEvent(e)))
     }
-    this.#clickEvents.forEach(handler => handler(this._buildEvent(e)))
+    this._clickEvents.forEach(handler => handler(this._buildMouseEvent(e)))
   }
 
-  #invokeMouseDownEventHandler = (e: MouseEvent) => {
+  private _invokeMouseDownEventHandler = (e: MouseEvent) => {
     e.preventDefault()
-    if (this.#disabled) return
-    dev.debug(this.#source, 'mousedown', e)
-    this.#mousedownEvents.forEach(handler => handler(this._buildEvent(e)))
+    if (this._disabled) return
+    dev.debug(this._source, 'mousedown', e)
+    this._mousedownEvents.forEach(handler => handler(this._buildMouseEvent(e)))
   }
 
-  #invokeMouseUpEventHandler = (e: MouseEvent) => {
+  private _invokeMouseUpEventHandler = (e: MouseEvent) => {
     e.preventDefault()
-    if (this.#disabled) return
-    dev.debug(this.#source, 'mouseup', e)
-    this.#mouseupEvents.forEach(handler => handler(this._buildEvent(e)))
+    if (this._disabled) return
+    dev.debug(this._source, 'mouseup', e)
+    this._mouseupEvents.forEach(handler => handler(this._buildMouseEvent(e)))
   }
 
-  bind (shape: RenderObject, handler: MouseEventHandler): void {
-    if (!this.#shapeEvents) {
-      this.#shapeEvents = new Map()
+  bind(shape: RenderObject, handler: MouseEventHandler): void {
+    if (!this._shapeEvents) {
+      this._shapeEvents = new Map()
     }
     const [x, y, w, h] = shape.hotArea
-    this.#shapeEvents.set(shape, e => {
+    this._shapeEvents.set(shape, e => {
       if (e.clientX > x && e.clientY > y && e.clientX < x + w && e.clientY < y + h) {
         handler(e)
       }
     })
   }
 
-  remove (shape: RenderObject): void {
-    this.#shapeEvents.delete(shape)
+  remove(shape: RenderObject): void {
+    this._shapeEvents.delete(shape)
   }
 
-  registerEvents (maps: EventsMaps): void {
+  registerEvents(maps: EventsMaps): void {
     const {
       mousemoveEvents = [],
       clickEvents = [],
@@ -108,46 +114,46 @@ export class MouseEventManager {
       mouseupEvents = [],
       mousedownEvents = [],
     } = maps
-    this.#clickEvents = clickEvents
-    this.#mousemoveEvents = mousemoveEvents
-    this.#wheelEvents = wheelEvents
-    this.#mousedownEvents = mousedownEvents
-    this.#mouseupEvents = mouseupEvents
+    this._clickEvents = clickEvents
+    this._mousemoveEvents = mousemoveEvents
+    this._wheelEvents = wheelEvents
+    this._mousedownEvents = mousedownEvents
+    this._mouseupEvents = mouseupEvents
 
-    if (!this.#hasRegistered) {
-      const container = this.#container
-      container.addEventListener('click', this.#invokeClickEventHandler)
-      container.addEventListener('wheel', this.#invokeWheelEventHandler)
-      container.addEventListener('mousemove', this.#invokeMousemoveEventHandler)
-      container.addEventListener('mouseup', this.#invokeMouseUpEventHandler)
-      container.addEventListener('mousedown', this.#invokeMouseDownEventHandler)
-      this.#hasRegistered = true
+    if (!this._hasRegistered) {
+      const container = this._container
+      container.addEventListener('click', this._invokeClickEventHandler)
+      container.addEventListener('wheel', this._invokeWheelEventHandler)
+      container.addEventListener('mousemove', this._invokeMousemoveEventHandler)
+      container.addEventListener('mouseup', this._invokeMouseUpEventHandler)
+      container.addEventListener('mousedown', this._invokeMouseDownEventHandler)
+      this._hasRegistered = true
     }
   }
 
-  removeEvents (): void {
-    if (this.#hasRegistered) {
-      this.#clickEvents = []
-      this.#mousemoveEvents = []
-      this.#wheelEvents = []
-      this.#mousedownEvents = []
-      this.#mouseupEvents = []
+  removeEvents(): void {
+    if (this._hasRegistered) {
+      this._clickEvents = []
+      this._mousemoveEvents = []
+      this._wheelEvents = []
+      this._mousedownEvents = []
+      this._mouseupEvents = []
 
-      const container = this.#container
-      container.removeEventListener('click', this.#invokeClickEventHandler)
-      container.removeEventListener('wheel', this.#invokeWheelEventHandler)
-      container.removeEventListener('mousemove', this.#invokeMousemoveEventHandler)
-      container.removeEventListener('mouseup', this.#invokeMouseUpEventHandler)
-      container.removeEventListener('mousedown', this.#invokeMouseDownEventHandler)
-      this.#hasRegistered = false
+      const container = this._container
+      container.removeEventListener('click', this._invokeClickEventHandler)
+      container.removeEventListener('wheel', this._invokeWheelEventHandler)
+      container.removeEventListener('mousemove', this._invokeMousemoveEventHandler)
+      container.removeEventListener('mouseup', this._invokeMouseUpEventHandler)
+      container.removeEventListener('mousedown', this._invokeMouseDownEventHandler)
+      this._hasRegistered = false
     }
   }
 
-  disableEvents (): void {
-    this.#disabled = true
+  disableEvents(): void {
+    this._disabled = true
   }
 
-  enableEvents (): void {
-    this.#disabled = false
+  enableEvents(): void {
+    this._disabled = false
   }
 }

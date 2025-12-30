@@ -2,6 +2,7 @@ import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 import { ActiveEffect } from './ActiveEffect'
 import { FlashLightEffect } from './FlashLightEffect'
+import { dev } from './dev';
 
 const DURATION = 600
 const DISTANCE_FOR_DURATION = 200
@@ -14,17 +15,10 @@ interface Style {
   left: number;
 }
 
-interface RenderInfo {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-}
+export abstract class ScrollItem<T extends ScrollItem = ScrollItem> extends RenderObject {
+  private _flashLight = new FlashLightEffect()
 
-export abstract class ScrollItem extends RenderObject {
-  #flashLight = new FlashLightEffect()
-
-  #style: Style = {
+  private _style: Style = {
     marginTop: 0,
     marginBottom: 0,
     width: 0,
@@ -32,7 +26,7 @@ export abstract class ScrollItem extends RenderObject {
     left: 0,
   }
 
-  #hoverStyle: Style = {
+  private _hoverStyle: Style = {
     marginTop: 0,
     marginBottom: 0,
     width: 0,
@@ -40,7 +34,7 @@ export abstract class ScrollItem extends RenderObject {
     left: 0,
   }
 
-  #activeStyle: Style = {
+  private _activeStyle: Style = {
     marginTop: 0,
     marginBottom: 0,
     width: 0,
@@ -48,7 +42,7 @@ export abstract class ScrollItem extends RenderObject {
     left: 0,
   }
 
-  #activeHoverStyle: Style = {
+  private _activeHoverStyle: Style = {
     marginTop: 0,
     marginBottom: 0,
     width: 0,
@@ -56,135 +50,136 @@ export abstract class ScrollItem extends RenderObject {
     left: 0,
   }
 
-  #hovered: boolean = false
+  private _hovered: boolean = false
 
-  #active: boolean = false
+  private _active: boolean = false
 
-  #offsetY: number = 0
+  private _offsetY: number = 0
 
-  #offsetX: number = 0
+  private _offsetX: number = 0
 
-  #scrollY: number = 0
+  private _scrollY: number = 0
 
-  #scrollX: number = 0
+  private _scrollX: number = 0
 
-  #translateY: number = 0
+  private _translateY: number = 0
 
-  #translateX: number = 0
+  private _translateX: number = 0
 
-  #translateXEffect = new ActiveEffect()
+  private _translateXEffect = new ActiveEffect()
 
-  #offsetXEffect = new ActiveEffect()
+  private _offsetXEffect = new ActiveEffect()
 
-  get offsetXEffect(): ActiveEffect { return this.#offsetXEffect }
+  get offsetXEffect(): ActiveEffect { return this._offsetXEffect }
 
   set translateY(y: number) {
-    this.#translateY = Math.round(y)
+    this._translateY = Math.round(y)
   }
 
   get translateY(): number {
-    return this.#translateY
+    return this._translateY
   }
 
   set translateX(x: number) {
-    this.#translateX = Math.round(x)
+    this._translateX = Math.round(x)
   }
 
   get translateX(): number {
-    return this.#translateX
+    return this._translateX
   }
 
-  #next: ScrollItem | null = null
+  private _next: T | null = null
 
-  set next(next: ScrollItem | null) {
-    this.#next = next
+  set next(next: T | null) {
+    this._next = next
   }
 
-  get next(): ScrollItem | null {
-    return this.#next
+  get next(): T | null {
+    return this._next
   }
 
-  #last: ScrollItem | null = null
+  private _last: T | null = null
 
-  set last(last: ScrollItem | null) {
-    this.#last = last
+  set last(last: T | null) {
+    this._last = last
   }
 
-  get last(): ScrollItem | null {
-    return this.#last
+  get last(): T | null {
+    return this._last
   }
 
   set style(style: Style) {
-    this.#style = style
+    this._style = style
   }
 
   set hoverStyle(style: Style) {
-    this.#hoverStyle = style
+    this._hoverStyle = style
   }
 
   set activeStyle(style: Style) {
-    this.#activeStyle = style
+    this._activeStyle = style
   }
 
   set activeHoverStyle(style: Style) {
-    this.#activeHoverStyle = style
+    this._activeHoverStyle = style
   }
 
   set offsetY(offsetY: number) {
-    this.#offsetY = Math.round(offsetY)
+    this._offsetY = Math.round(offsetY)
   }
 
   set scrollY(scrollY: number) {
-    this.#scrollY = Math.round(scrollY)
+    this._scrollY = Math.round(scrollY)
   }
 
   get scrollY(): number {
-    return this.#scrollY
+    return this._scrollY
   }
 
   set scrollX(x: number) {
-    this.#scrollX = Math.round(x)
+    this._scrollX = Math.round(x)
   }
 
   get scrollX(): number {
-    return this.#scrollX
+    return this._scrollX
   }
 
   get y(): number {
-    return this.#offsetY - this.#scrollY
+    return this._offsetY - this._scrollY
   }
 
   get x(): number {
-    return this.#offsetX + this.#style.left
+    return this._offsetX + this._style.left
   }
 
   get offsetY(): number {
-    return this.#offsetY
+    return this._offsetY
   }
 
   set hovered(val: boolean) {
-    this.#hovered = val
+    this._hovered = val
   }
 
   get hovered(): boolean {
-    return this.#hovered
+    return this._hovered
   }
 
   set active(val: boolean) {
-    this.#active = val
+    this._active = val
   }
 
   get active(): boolean {
-    return this.#active
+    return this._active
   }
 
   private async _processTransition(duration: number = DURATION, phase: string): Promise<void> {
     const currentStyle = this.currentStyle.left
     const target = currentStyle - this.style.left
-    this.#translateXEffect.cancelTransitions()
+    this._translateXEffect.cancelTransitions()
+    dev.debug(phase)
     const update = (value: number) => this.translateX = value
 
-    await this.#translateXEffect.createTransition(
+    await this._translateXEffect.createTransition(
       this.translateX, target,
       Math.abs(target - this.translateX) / DISTANCE_FOR_DURATION * duration, 'easeOut',
       update,
@@ -196,7 +191,7 @@ export abstract class ScrollItem extends RenderObject {
       this.hovered = true
       await Promise.all([
         this._processTransition(DURATION, 'hoverIn'),
-        !this.active && this.#flashLight.flash(10),
+        !this.active && this._flashLight.flash(10),
       ])
     }
   }
@@ -223,25 +218,25 @@ export abstract class ScrollItem extends RenderObject {
   }
 
   set offsetX(offsetX: number) {
-    this.#offsetX = Math.round(offsetX)
+    this._offsetX = Math.round(offsetX)
   }
 
   get offsetX(): number {
-    return this.#offsetX
+    return this._offsetX
   }
 
   updateEffect(now: number): void {
     super.updateEffect(now)
-    this.#flashLight.updateEffect(now)
-    this.#translateXEffect.updateEffect(now)
-    this.#offsetXEffect.updateEffect(now)
+    this._flashLight.updateEffect(now)
+    this._translateXEffect.updateEffect(now)
+    this._offsetXEffect.updateEffect(now)
   }
 
   cancelEffect(): void {
     super.cancelEffect()
-    this.#flashLight.cancelEffect()
-    this.#translateXEffect.cancelEffect()
-    this.#offsetXEffect.cancelEffect()
+    this._flashLight.cancelEffect()
+    this._translateXEffect.cancelEffect()
+    this._offsetXEffect.cancelEffect()
   }
 
   render(context: CanvasRenderingContext2D): void {
@@ -252,20 +247,20 @@ export abstract class ScrollItem extends RenderObject {
     }
 
     this.renderByStyle(context, x, y, w, h)
-    this.#flashLight.area = rect
-    this.#flashLight.render(context)
+    this._flashLight.area = rect
+    this._flashLight.render(context)
 
-    if (__SHOW_SCROLL_BOX__) {
-      context.save()
-      context.strokeStyle = '#f00'
-      context.lineWidth = 2
-      context.strokeRect(this.offsetX, this.y, w, h)
-
-      context.strokeStyle = '#00f'
-      context.strokeRect(x - 2, y - 2, w + 4, h + 4)
-      context.strokeStyle = undefined
-      context.restore()
-    }
+    // if (__SHOW_SCROLL_BOX__) {
+    //   context.save()
+    //   context.strokeStyle = '#f00'
+    //   context.lineWidth = 2
+    //   context.strokeRect(this.offsetX, this.y, w, h)
+    //
+    //   context.strokeStyle = '#00f'
+    //   context.strokeRect(x - 2, y - 2, w + 4, h + 4)
+    //   context.strokeStyle = undefined
+    //   context.restore()
+    // }
   }
 
   abstract renderByStyle(context: CanvasRenderingContext2D, left: number, top: number, width: number, height: number): void
@@ -273,31 +268,31 @@ export abstract class ScrollItem extends RenderObject {
   get currentStyle(): Style {
     let style
     if (this.active && this.hovered) {
-      style = this.#activeHoverStyle
+      style = this._activeHoverStyle
     } else if (this.active) {
-      style = this.#activeStyle
+      style = this._activeStyle
     } else if (this.hovered) {
-      style = this.#hoverStyle
+      style = this._hoverStyle
     } else {
-      style = this.#style
+      style = this._style
     }
     return style
   }
 
   get activeStyle(): Style {
-    return this.#activeStyle
+    return this._activeStyle
   }
 
   get activeHoverStyle(): Style {
-    return this.#activeHoverStyle
+    return this._activeHoverStyle
   }
 
   get hoverStyle(): Style {
-    return this.#hoverStyle
+    return this._hoverStyle
   }
 
   get style(): Style {
-    return this.#style
+    return this._style
   }
 
   rect(): [number, number, number, number] {

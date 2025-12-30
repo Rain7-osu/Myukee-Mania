@@ -10,26 +10,26 @@ interface InnerStyle {
 }
 
 export class SettingsPanel extends RenderObject {
-  #container: HTMLCanvasElement
+  private _container: HTMLCanvasElement
 
-  #innerStyle: InnerStyle = {
+  private _innerStyle: InnerStyle = {
     width: 0,
     maxWidth: Skin.config.settingsPanel.width,
   }
 
   constructor(container: HTMLCanvasElement) {
     super()
-    this.#container = container
+    this._container = container
   }
 
   get width(): number {
-    return this.#innerStyle.width
+    return this._innerStyle.width
   }
 
   async show () {
     this.display = true
     this.cancelTransitions()
-    await this.createTransition(this.#innerStyle.width, this.#innerStyle.maxWidth, TRANSITION_DURATION, 'easeOut', value => this.#innerStyle.width = value)
+    await this.createTransition(this._innerStyle.width, this._innerStyle.maxWidth, TRANSITION_DURATION, 'easeOut', value => this._innerStyle.width = value)
   }
 
   async hide () {
@@ -37,7 +37,7 @@ export class SettingsPanel extends RenderObject {
       return Promise.resolve()
     }
     this.cancelTransitions()
-    await this.createTransition(this.#innerStyle.width, 0, TRANSITION_DURATION, 'easeOut', value => this.#innerStyle.width = value)
+    await this.createTransition(this._innerStyle.width, 0, TRANSITION_DURATION, 'easeOut', value => this._innerStyle.width = value)
     this.display = false
   }
 

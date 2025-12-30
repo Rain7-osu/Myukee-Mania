@@ -1,8 +1,8 @@
 import { SectionLineEffect } from './SectionLineEffect'
 import { RenderObject } from './RenderObject'
 
-export class SectionLineManager extends RenderObject {
-  #sectionLines: SectionLineEffect[] = []
+export class SectionLineManager {
+  private _sectionLines: SectionLineEffect[] = []
 
   init(map: any, audio: any, width: number): void {
     const timingList = map.timingList
@@ -17,12 +17,12 @@ export class SectionLineManager extends RenderObject {
 
       for (let j = 0; j + startOffset < endOffset; j += sectionLen) {
         currentSection = startOffset + j
-        this.#sectionLines.push(new SectionLineEffect(currentSection, width))
+        this._sectionLines.push(new SectionLineEffect(currentSection, width))
       }
     }
   }
 
-  render(context: CanvasRenderingContext2D): void {
-    this.#sectionLines.forEach(line => line.render(context))
+  get effects(): SectionLineEffect[] {
+    return this._sectionLines
   }
 }

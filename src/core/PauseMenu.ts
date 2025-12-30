@@ -4,80 +4,48 @@ import { BaseButton } from './BaseButton'
 import { CANVAS, py } from './Config'
 import { KeyCode } from './KeyCode'
 import { Skin } from './Skin'
+import { MainController } from './MainController'
 
 export class PauseMenu extends RenderObject {
-  #keyboardEventManager = new KeyboardEventManager()
-  /**
-   * @type {BaseButton}
-   */
-  #resumeButton
-  /**
-   * @type {BaseButton}
-   */
-  #retryButton
-  /**
-   * @type {BaseButton}
-   */
-  #backButton
+  private _keyboardEventManager = new KeyboardEventManager()
+  private _resumeButton: BaseButton
+  private _retryButton: BaseButton
+  private _backButton: BaseButton
 
-  #alpha = 0
+  private _alpha = 0
 
-  #backgroundColor = 'rgba(0, 0, 0, .85)'
+  private _backgroundColor = 'rgba(0, 0, 0, .85)'
 
-  #showRetry = true
+  private _showRetry = true
 
-  /**   * @type {MainController}
-   */
-  #mainController
+  private _mainController: MainController
 
-  /**
-   * @type {null | 'Resume' | 'Retry' | 'Back'}
-   */
-  #currentSelect = null
+  private _currentSelect: null | 'Resume' | 'Retry' | 'Back' = null
 
-  /**
-   * @type {number | null}
-   */
-  #currentSelectIndex = null
+  private _currentSelectIndex: number | null = null
 
-  /**
-   * @type {Array<'Resume' | 'Retry' | 'Back'>}
-   */
-  #currentMenus
+  private readonly _currentMenus: Array<'Resume' | 'Retry' | 'Back'>
 
-  #failed = false
+  private _failed = false
 
-  /**
-   * @param show {boolean}
-   */
-  set showRetry (show) {
-    this.#showRetry = show
+  set showRetry (show: boolean) {
+    this._showRetry = show
   }
 
-  #showResume = true
-  /**
-   * @param show {boolean}
-   */
-  set showResume (show) {
-    this.#showResume = show
+  private _showResume = true
+  set showResume (show: boolean) {
+    this._showResume = show
   }
 
-  #showBack = true
-  /**
-   * @param show {boolean}
-   */
-  set showBack (show) {
-    this.#showBack = show
+  private _showBack = true
+  set showBack (show: boolean) {
+    this._showBack = show
   }
 
-  /**
-   * @param container {HTMLElement}
-   * @param mainController {MainController}
-   */
-  constructor (container, mainController) {
+  constructor (container: HTMLElement, mainController: MainController) {
     super()
-    this.#mainController = mainController
-    this.#currentMenus = [
+    this._mainController = mainController
+    this._currentMenus = [
       'Resume',
       'Retry',
       'Back',
@@ -91,7 +59,7 @@ export class PauseMenu extends RenderObject {
     } = Skin.config.pauseMenu.buttons
 
     let offsetY = top
-    this.#resumeButton = new BaseButton(container, {
+    this._resumeButton = new BaseButton(container, {
       left,
       top: offsetY,
       width,
@@ -105,7 +73,7 @@ export class PauseMenu extends RenderObject {
       hoverScale: 105,
     })
     offsetY += gap + height
-    this.#retryButton = new BaseButton(container, {
+    this._retryButton = new BaseButton(container, {
       left,
       top: offsetY,
       width,
@@ -119,7 +87,7 @@ export class PauseMenu extends RenderObject {
       hoverScale: 105,
     })
     offsetY += gap + height
-    this.#backButton = new BaseButton(container, {
+    this._backButton = new BaseButton(container, {
       left,
       top: offsetY,
       width,
@@ -134,45 +102,42 @@ export class PauseMenu extends RenderObject {
     })
   }
 
-  /**
-   * @param arrow {'up' | 'down'}
-   */
-  changeOption (arrow) {
-    const menus = this.#currentMenus
+  changeOption (arrow: 'up' | 'down'): void {
+    const menus = this._currentMenus
 
-    if (!this.#currentSelect) {
+    if (!this._currentSelect) {
       if (arrow === 'up') {
-        this.#currentSelectIndex = menus.length - 1
+        this._currentSelectIndex = menus.length - 1
       } else {
-        this.#currentSelectIndex = 0
+        this._currentSelectIndex = 0
       }
-      this.#currentSelect = menus[this.#currentSelectIndex]
+      this._currentSelect = menus[this._currentSelectIndex]
     } else {
       const delta = arrow === 'up' ? -1 : 1
-      const index = (this.#currentSelectIndex + delta) % menus.length
-      this.#currentSelectIndex = index < 0 ? index + menus.length : index
-      this.#currentSelect = menus[this.#currentSelectIndex]
+      const index = (this._currentSelectIndex + delta) % menus.length
+      this._currentSelectIndex = index < 0 ? index + menus.length : index
+      this._currentSelect = menus[this._currentSelectIndex]
     }
 
-    if (this.#currentSelect === 'Resume' && !this.#showResume) {
+    if (this._currentSelect === 'Resume' && !this._showResume) {
       this.changeOption(arrow)
-    } else if (this.#currentSelect === 'Retry' && !this.#showRetry) {
+    } else if (this._currentSelect === 'Retry' && !this._showRetry) {
       this.changeOption(arrow)
-    } else if (this.#currentSelect === 'Back' && !this.#showBack) {
+    } else if (this._currentSelect === 'Back' && !this._showBack) {
       this.changeOption(arrow)
     }
   }
 
-  registerEvents () {
+  registerEvents (): void {
     const eventsMap = {
       onResume: async () => {
-        await this.#mainController.resume()
+        await this._mainController.resume()
       },
       onRetry: async () => {
-        await this.#mainController.retry()
+        await this._mainController.retry()
       },
       onBack: async () => {
-        await this.#mainController.backMain()
+        await this._mainController.backMain()
       },
     }
     const {
@@ -180,17 +145,17 @@ export class PauseMenu extends RenderObject {
       onRetry,
       onResume,
     } = eventsMap
-    this.#showResume && this.#resumeButton.registerEvents({ onClick: onResume })
-    this.#showRetry && this.#retryButton.registerEvents({ onClick: onRetry })
-    this.#showBack && this.#backButton.registerEvents({ onClick: onBack })
+    this._showResume && this._resumeButton.registerEvents({ onClick: onResume })
+    this._showRetry && this._retryButton.registerEvents({ onClick: onRetry })
+    this._showBack && this._backButton.registerEvents({ onClick: onBack })
 
-    this.#keyboardEventManager.registerEvents({
+    this._keyboardEventManager.registerEvents({
       keydownEventList: {
         [KeyCode.ENTER]: () => {
-          if (!this.#currentSelect) {
+          if (!this._currentSelect) {
             onResume?.()
           } else {
-            eventsMap[`on${this.#currentSelect}`]?.()
+            eventsMap[`on${this._currentSelect}`]?.()
           }
         },
         [KeyCode.ARROW_UP]: () => {
@@ -203,69 +168,62 @@ export class PauseMenu extends RenderObject {
     })
   }
 
-  /**
-   * @param failed {boolean}
-   * @return {Promise<void>}
-   */
-  async show (failed = false) {
-    this.#failed = failed
-    this.#currentSelect = null
-    this.#currentSelectIndex = null
+  async show (failed: boolean = false): Promise<void> {
+    this._failed = failed
+    this._currentSelect = null
+    this._currentSelectIndex = null
     await this.createTransition(0, 100, 800, 'easeOut', value => {
-      this.#alpha = value / 100
+      this._alpha = value / 100
     })
   }
 
-  async hide () {
-    this.#failed = false
-    this.#currentSelect = null
-    this.#currentSelectIndex = null
+  async hide (): Promise<void> {
+    this._failed = false
+    this._currentSelect = null
+    this._currentSelectIndex = null
     await this.createTransition(100, 0, 600, 'easeOut', value => {
-      this.#alpha = value / 100
+      this._alpha = value / 100
     })
   }
 
-  removeEvents () {
-    this.#keyboardEventManager.removeEvents()
-    this.#retryButton.removeEvents()
-    this.#backButton.removeEvents()
-    this.#resumeButton.removeEvents()
-    // this.#fullscreenButton.removeEvents()
+  removeEvents (): void {
+    this._keyboardEventManager.removeEvents()
+    this._retryButton.removeEvents()
+    this._backButton.removeEvents()
+    this._resumeButton.removeEvents()
+    // this._fullscreenButton.removeEvents()
   }
 
-  updateTransition (time) {
+  updateTransition (time: number): void {
     super.updateTransition(time)
-    this.#resumeButton.updateTransition(time)
-    this.#retryButton.updateTransition(time)
-    this.#backButton.updateTransition(time)
+    this._resumeButton.updateTransition(time)
+    this._retryButton.updateTransition(time)
+    this._backButton.updateTransition(time)
   }
 
-  render (context) {
-    context.globalAlpha = this.#alpha
+  render (context: CanvasRenderingContext2D): void {
+    context.globalAlpha = this._alpha
 
-    context.fillStyle = this.#backgroundColor
+    context.fillStyle = this._backgroundColor
     context.fillRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)
-    this.#showResume && this.#resumeButton.render(context)
-    this.#showRetry && this.#retryButton.render(context)
-    this.#showBack && this.#backButton.render(context)
+    this._showResume && this._resumeButton.render(context)
+    this._showRetry && this._retryButton.render(context)
+    this._showBack && this._backButton.render(context)
 
     context.globalAlpha = 1
 
-    if (this.#currentSelect) {
+    if (this._currentSelect) {
       this.renderArrow(context)
     }
 
-    if (this.#failed) {
+    if (this._failed) {
       this.renderFailed(context)
     }
   }
 
-  /**
-   * @param context {CanvasRenderingContext2D}
-   */
-  renderFailed (context) {
+  renderFailed (context: CanvasRenderingContext2D): void {
     context.save()
-    this.drawText({
+    RenderObject.drawText({
       context,
       x: 0,
       width: CANVAS.WIDTH,
@@ -281,10 +239,7 @@ export class PauseMenu extends RenderObject {
     context.restore()
   }
 
-  /**
-   * @param context {CanvasRenderingContext2D}
-   */
-  renderArrow (context) {
+  renderArrow (context: CanvasRenderingContext2D): void {
     const {
       buttons: {
         base: { height, gap, top },
@@ -293,10 +248,10 @@ export class PauseMenu extends RenderObject {
     } = Skin.config.pauseMenu
 
     let offsetY = top
-    offsetY += (gap + height) * this.#currentSelectIndex
+    offsetY += (gap + height) * this._currentSelectIndex
 
     context.save()
-    this.drawArrow({
+    RenderObject.drawArrow({
       size,
       context,
       color,
@@ -305,7 +260,7 @@ export class PauseMenu extends RenderObject {
       direction: 'right',
       stroke: false,
     })
-    this.drawArrow({
+    RenderObject.drawArrow({
       size,
       context,
       color,

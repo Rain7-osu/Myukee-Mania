@@ -1,98 +1,101 @@
 import { Mod } from './ModsPanel'
+import { DEFAULT_DELAY_TIME } from './Config'
 
 export class AudioManager {
-  #audio: HTMLAudioElement
+  private _audio: HTMLAudioElement
   /**
    * the length of the audio
    */
-  #duration = 0
-  #filename = ''
-  #playing = false
-  #startTime = 0
+  private _duration = 0
+  private _filename = ''
+  private _playing = false
+  private _startTime = 0
 
-  constructor () {
-    this.#audio = new Audio()
-    document.body.appendChild(this.#audio)
-    this.#audio.style.position = 'fixed'
-    this.#audio.style.top = '50%'
-    this.#audio.style.zIndex = '999'
-    this.#audio.id = 'test'
+  constructor() {
+    this._audio = new Audio()
+    document.body.appendChild(this._audio)
+    this._audio.style.position = 'fixed'
+    this._audio.style.top = '50%'
+    this._audio.style.zIndex = '999'
+    this._audio.id = 'test'
   }
 
-  async load (filename: string, startTime: number = 0): Promise<void> {
-    this.#startTime = startTime
-    if (this.#filename === filename) {
+  async load(filename: string, startTime: number = 0): Promise<void> {
+    this._startTime = startTime
+    if (this._filename === filename) {
       return Promise.resolve()
     }
 
-    this.#filename = filename
+    this._filename = filename
     const res = await fetch(filename)
     const blob = await res.blob()
     const src = URL.createObjectURL(blob)
 
-    return new Promise((resolve) => {
-      this.#audio.src = src
-      this.#audio.controls = false
-      this.#audio.autoplay = false
-      this.#audio.currentTime = startTime / 1000
+    return new Promise<void>(resolve => {
+      this._audio.src = src
+      this._audio.controls = false
+      this._audio.autoplay = false
+      this._audio.currentTime = startTime / 1000
 
       const onLoad = () => {
-        if (this.#audio.duration) {
-          this.#duration = this.#audio.duration * 1000
-          this.#audio.removeEventListener('canplaythrough', onLoad)
+        if (this._audio.duration) {
+          this._duration = this._audio.duration * 1000
+          this._audio.removeEventListener('canplaythrough', onLoad)
           resolve()
         }
       }
 
-      this.#audio.addEventListener('canplaythrough', onLoad)
+      this._audio.addEventListener('canplaythrough', onLoad)
     })
   }
 
-  set repeat (value: boolean) {
+  private _repeatPlay = () => {
+    this._audio.currentTime = this._startTime / 1000
+    setTimeout(() => {
+      this.play()
+    }, DEFAULT_DELAY_TIME)
+  }
+
+  set repeat(value: boolean) {
     if (value) {
-      this.#audio.onended = () => {
-        this.#audio.currentTime = this.#startTime / 1000
-        setTimeout(() => {
-          this.play()
-        }, 1000)
-      }
+      this._audio.addEventListener('ended', this._repeatPlay)
     } else {
-      this.#audio.onended = undefined
+      this._audio.removeEventListener('ended', this._repeatPlay)
     }
   }
 
-  get filename (): string { return this.#filename}
+  get filename(): string { return this._filename}
 
-  setCurrentTime (time: number): void {
-    this.#audio.currentTime = time
+  setCurrentTime(time: number): void {
+    this._audio.currentTime = time
   }
 
-  setRate (value: number): void {
-    this.#audio.playbackRate = value
-    this.#audio.preservesPitch = false
+  setRate(value: number): void {
+    this._audio.playbackRate = value
+    this._audio.preservesPitch = false
   }
 
-  set preservesPitch (value: boolean) {
-    this.#audio.preservesPitch = value
+  set preservesPitch(value: boolean) {
+    this._audio.preservesPitch = value
   }
 
-  async play (): Promise<void> {
-    await this.#audio.play()
-    this.#playing = true
+  async play(): Promise<void> {
+    await this._audio.play()
+    this._playing = true
   }
 
-  abort (): void {
-    this.#audio.pause()
-    this.#playing = false
-    this.#audio.currentTime = 0
+  abort(): void {
+    this._audio.pause()
+    this._playing = false
+    this._audio.currentTime = 0
   }
 
-  pause (): void {
-    this.#audio.pause()
-    this.#playing = false
+  pause(): void {
+    this._audio.pause()
+    this._playing = false
   }
 
-  applyMod (mod: Mod): void {
+  applyMod(mod: Mod): void {
     if (mod === Mod.HT) {
       this.setRate(0.75)
     } else if (mod === Mod.DT) {
@@ -103,15 +106,15 @@ export class AudioManager {
     }
   }
 
-  async resume (): Promise<void> {
-    await this.#audio.play()
-    this.#playing = true
+  async resume(): Promise<void> {
+    await this._audio.play()
+    this._playing = true
   }
 
-  get duration (): number {
-    return this.#duration
+  get duration(): number {
+    return this._duration
   }
 
-  get playing (): boolean { return this.#playing }
+  get playing(): boolean { return this._playing }
 
 }

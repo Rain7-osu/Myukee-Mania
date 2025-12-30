@@ -1,22 +1,23 @@
 import { BaseButton } from './BaseButton'
 import { Skin } from './Skin'
-import { CANVAS } from './Config'
+import { CANVAS, py } from './Config'
 import { vh } from './Config'
+import { RenderObject } from './RenderObject'
 
 type Scene = 'main' | 'result' | 'settings'
 
 export class BackButton extends BaseButton {
-  #defaultWidth: number = 200
+  private readonly _defaultWidth: number = 200
 
-  #currentBackground: string = 'rgb(238, 52, 153, 1)'
+  private _currentBackground: string = 'rgb(238, 52, 153, 1)'
 
-  #iconScale: number = 1
+  private _iconScale: number = 1
 
-  #translateY: number = 0
+  private _translateY: number = 0
 
-  #scene: Scene = 'main'
+  private _scene: Scene = 'main'
 
-  #mainController: any
+  private _mainController: any
 
   constructor(container: HTMLCanvasElement, mainController: any) {
     const { buttons: { back } } = Skin.config.rankingBoard
@@ -36,17 +37,17 @@ export class BackButton extends BaseButton {
       hoverScale: 100,
       offsetPercentX: 0,
     })
-    this.#mainController = mainController
-    this.#currentBackground = back.background
-    this.#defaultWidth = back.width
+    this._mainController = mainController
+    this._currentBackground = back.background
+    this._defaultWidth = back.width
   }
 
   set scene(scene: Scene) {
-    this.#scene = scene
+    this._scene = scene
   }
 
   get scene(): Scene {
-    return this.#scene
+    return this._scene
   }
 
   override async hover(): Promise<void> {
@@ -54,40 +55,40 @@ export class BackButton extends BaseButton {
     this.cancelAnimations()
     const { hoverWidth, width, hoverBackground, background } = this.style
     this.createAnimation(width, hoverWidth, 'spring', (value: number) => this.style.width = value)
-    await this.processColorTransition(background, hoverBackground, this.#currentBackground, (color: string) => this.#currentBackground = color)
+    await this.processColorTransition(background, hoverBackground, this._currentBackground, (color: string) => this._currentBackground = color)
   }
 
   override async hoverOut(): Promise<void> {
     this.hovered = false
     this.cancelAnimations()
     const { width, background, hoverBackground } = this.style
-    this.createAnimation(width, this.#defaultWidth, 'spring', (value: number) => this.style.width = value)
-    await this.processColorTransition(hoverBackground, background, this.#currentBackground, (color: string) => this.#currentBackground = color)
+    this.createAnimation(width, this._defaultWidth, 'spring', (value: number) => this.style.width = value)
+    await this.processColorTransition(hoverBackground, background, this._currentBackground, (color: string) => this._currentBackground = color)
   }
 
   async hide(): Promise<void> {
     const { buttons: { back: { top } } } = Skin.config.rankingBoard
     const target = CANVAS.HEIGHT - top
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, target, 100, 'easeOut', (value: number) => this.#translateY = value)
+    await this.createTransition(this._translateY, target, 100, 'easeOut', (value: number) => this._translateY = value)
   }
 
   async show(): Promise<void> {
     this.cancelTransitions()
-    await this.createTransition(this.#translateY, 0, 100, 'easeOut', (value: number) => this.#translateY = value)
+    await this.createTransition(this._translateY, 0, 100, 'easeOut', (value: number) => this._translateY = value)
   }
 
   initEvents(): void {
     this.registerEvents({
       onClick: async () => {
         if (this.scene === 'result') {
-          await this.#mainController.fadeOut()
-          this.#mainController.hideRankingBoard()
-          await this.#mainController.backMain()
-        } else if (this.#scene === 'settings') {
-          await this.#mainController.hideSettingsPanel()
+          await this._mainController.fadeOut()
+          this._mainController.hideRankingBoard()
+          await this._mainController.backMain()
+        } else if (this._scene === 'settings') {
+          await this._mainController.hideSettingsPanel()
         } else {
-          await this.#mainController.exit()
+          await this._mainController.exit()
         }
       },
     })
@@ -95,7 +96,7 @@ export class BackButton extends BaseButton {
 
   rect(): [number, number, number, number] {
     const [x, y, w, h] = super.rect()
-    return [x, y + this.#translateY, w, h]
+    return [x, y + this._translateY, w, h]
   }
 
   render(context: CanvasRenderingContext2D): void {
@@ -120,7 +121,7 @@ export class BackButton extends BaseButton {
     const moveDelta = (width - baseWidth) / 2
 
     // draw background
-    context.fillStyle = this.#currentBackground
+    context.fillStyle = this._currentBackground
     context.save()
     context.beginPath()
     context.moveTo(x, y)
@@ -133,7 +134,6 @@ export class BackButton extends BaseButton {
 
     // draw light text background
     context.save()
-    context.globalCompositeOperation = 'destination-cover'
     context.fillStyle = background
     context.beginPath()
     context.moveTo(x + shortPosition + moveDelta, y)
@@ -146,7 +146,6 @@ export class BackButton extends BaseButton {
 
     // draw center line shadow
     context.save()
-    context.globalCompositeOperation = 'destination-cover'
     context.shadowBlur = 15
     context.shadowColor = hoverBackground
     context.fillStyle = hoverBackground
@@ -161,18 +160,17 @@ export class BackButton extends BaseButton {
 
     // draw back text
     context.save()
-    context.globalCompositeOperation = 'destination-cover'
-    this.drawText({
+    RenderObject.drawText({
       context,
       text,
       x: x + shortPosition + moveDelta,
-      y: y + vh(5 / 1440), // 稍微往下一点，视觉上更对齐
+      y: y + py(5), // 稍微往下一点，视觉上更对齐
       width: width - shortPosition - moveDelta,
       height,
       font: `${fontSize}px ${font}`,
       color,
       stroke: false,
-    } as any)
+    })
     context.restore()
 
     const iconCenter = (shortPosition + moveDelta) / 2
@@ -180,7 +178,6 @@ export class BackButton extends BaseButton {
     context.save()
     context.shadowColor = '#666'
     context.shadowBlur = 5
-    context.globalCompositeOperation = 'destination-cover'
     context.fillStyle = color
     context.beginPath()
     context.arc(x + iconCenter, y + height / 2, iconSize / 2, 0, Math.PI * 2)
@@ -193,8 +190,8 @@ export class BackButton extends BaseButton {
     context.lineTo(x + iconCenter + iconSize / 10, y + height / 2 + iconSize / 4)
     context.lineWidth = 5
     context.lineCap = 'round'
-    context.strokeStyle = this.#currentBackground
-    context.scale(this.#iconScale, this.#iconScale)
+    context.strokeStyle = this._currentBackground
+    context.scale(this._iconScale, this._iconScale)
     context.stroke()
     context.restore()
   }

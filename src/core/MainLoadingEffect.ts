@@ -2,9 +2,9 @@ import { RenderObject } from './RenderObject'
 import { CANVAS } from './Config'
 
 export class MainLoadingEffect extends RenderObject {
-  #rotate = 0
+  private _rotate = 0
 
-  #lastTiming = 0
+  private _lastTiming = 0
 
   render (context: CanvasRenderingContext2D) {
     context.clearRect(0, 0, CANVAS.WIDTH, CANVAS.HEIGHT)

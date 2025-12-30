@@ -1,15 +1,14 @@
 import { Beatmap } from './Beatmap'
-import { CANVAS } from './Config'
+import { CANVAS, px, py } from './Config'
 import { Skin } from './Skin'
 import { ScrollItem } from './ScrollItem'
-import { py, px, vh, vw } from './Config'
 
-export class BeatmapItem extends ScrollItem {
-  #beatmap: Beatmap
+export class BeatmapItem extends ScrollItem<BeatmapItem> {
+  private readonly _beatmap: Beatmap
 
-  constructor (beatmap: Beatmap) {
+  constructor(beatmap: Beatmap) {
     super()
-    this.#beatmap = beatmap
+    this._beatmap = beatmap
     const {
       select: { gap: SELECT_GAP, left: activeLeft },
       hover: { gap: HOVER_GAP, left: hoverLeft },
@@ -50,13 +49,13 @@ export class BeatmapItem extends ScrollItem {
     }
   }
 
-  rect () {
+  rect() {
     const { base: { gap: BASE_GAP } } = Skin.config.main.beatmap.item
     const [x, y, w, h] = super.rect()
     return [x, y + BASE_GAP / 2, w, h - BASE_GAP]
   }
 
-  renderByStyle (context, x, y, width, height) {
+  renderByStyle(context, x, y, width, height) {
     const {
       select: { bgColor: SELECTED_BG },
       hover: { bgColor: HOVER_BG },
@@ -89,17 +88,17 @@ export class BeatmapItem extends ScrollItem {
     context.fillStyle = TITLE_COLOR
     context.font = TITLE_FONT
     context.textAlign = 'left'
-    context.fillText(this.#beatmap.songName, paddingLeft, offsetY += py(40))
+    context.fillText(this._beatmap.songName, paddingLeft, offsetY += py(40))
 
     context.font = DESC_FONT
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.description, paddingLeft, offsetY += py(24))
+    context.fillText(this._beatmap.description, paddingLeft, offsetY += py(24))
 
     context.font = SUBTITLE_FONT
     context.fillStyle = TITLE_COLOR
-    context.fillText(this.#beatmap.difficulty, paddingLeft, offsetY += py(28))
+    context.fillText(this._beatmap.difficulty, paddingLeft, offsetY += py(28))
 
-    const star = Math.min(10, this.#beatmap.star)
+    const star = Math.min(10, this._beatmap.star)
 
     let i = 0
     let size = py(24)
@@ -140,15 +139,15 @@ export class BeatmapItem extends ScrollItem {
     })
   }
 
-  get beatmap (): Beatmap {
-    return this.#beatmap
+  get beatmap(): Beatmap {
+    return this._beatmap
   }
 
-  select () {
+  select() {
     this.activeIn()
   }
 
-  cancelSelect () {
+  cancelSelect() {
     this.activeOut()
   }
 }

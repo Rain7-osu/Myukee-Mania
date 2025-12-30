@@ -485,12 +485,11 @@ export const RDIcon = createModIcon({
     context.closePath()
     context.stroke()
 
-
     // [x, y, width, rotate]
     const dots = [
       [centerX, centerY - halfCornHeight, baseEllipseWidth, 0],
       [centerX - halfCornWidth / 3, centerY + halfCornHeight / 3, baseEllipseWidth - 4, Math.PI / 3],
-      [centerX - halfCornWidth / 3  * 2, centerY + halfCornHeight / 3 * 2, baseEllipseWidth - 6, Math.PI / 3],
+      [centerX - halfCornWidth / 3 * 2, centerY + halfCornHeight / 3 * 2, baseEllipseWidth - 6, Math.PI / 3],
       [centerX + halfCornWidth / 3, centerY + halfCornHeight / 4, baseEllipseWidth - 6, -Math.PI / 3],
       [centerX + halfCornWidth / 2, centerY + halfCornHeight / 2, baseEllipseWidth - 7, -Math.PI / 3],
       [centerX + halfCornWidth / 3 * 2, centerY + halfCornHeight / 4 * 3, baseEllipseWidth - 9, -Math.PI / 3],

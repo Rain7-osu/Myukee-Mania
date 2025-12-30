@@ -1,5 +1,5 @@
 
-export enum NoteType {
+export const enum NoteType {
   HOLD = 'HOLD',
   TAP = 'TAP',
 }

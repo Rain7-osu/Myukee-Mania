@@ -1,5 +1,6 @@
 import { JudgementType, MAX_MISS_DIVISION } from './Judgement'
 import { ScoreEffect } from './ScoreEffect'
+import type { Note } from './Note'
 
 const MAX_SCORE = 1_000_000
 
@@ -10,34 +11,34 @@ const clamp = (value: number): number => {
 }
 
 export class ScoreManager {
-  #notes: any[]
+  private _notes: Note[]
 
-  #baseEveryNoteScore: number = 0
+  private _baseEveryNoteScore: number = 0
 
-  #lastBonus: number = 100
+  private _lastBonus: number = 100
 
-  #effect = new ScoreEffect()
-  get effect(): ScoreEffect { return this.#effect }
+  private _effect = new ScoreEffect()
+  get effect(): ScoreEffect { return this._effect }
 
-  #score: number = 0
+  private _score: number = 0
 
-  get score(): number { return this.#score }
+  get score(): number { return this._score }
 
   constructor () {
-    this.#notes = []
+    this._notes = []
   }
 
   reset(): void {
-    const TOTAL_NOTES = this.#notes.length
-    this.#baseEveryNoteScore = MAX_SCORE * 0.5 / TOTAL_NOTES
-    this.#lastBonus = 100
-    this.#score = 0
+    const TOTAL_NOTES = this._notes.length
+    this._baseEveryNoteScore = MAX_SCORE * 0.5 / TOTAL_NOTES
+    this._lastBonus = 100
+    this._score = 0
   }
 
   init(notes: any[]): void {
-    this.#notes = notes
-    const TOTAL_NOTES = this.#notes.length
-    this.#baseEveryNoteScore = MAX_SCORE * 0.5 / TOTAL_NOTES
+    this._notes = notes
+    const TOTAL_NOTES = this._notes.length
+    this._baseEveryNoteScore = MAX_SCORE * 0.5 / TOTAL_NOTES
   }
 
   private calcEachNoteScore(note: any): number {
@@ -51,32 +52,32 @@ export class ScoreManager {
       return 0
     }
 
-    const baseScore = this.#baseEveryNoteScore * (judgement.hitValue / JudgementType.PERFECT)
-    const bonus = clamp(this.#lastBonus + judgement.hitBonus - judgement.hitPunishment)
-    const bonusScore = this.#baseEveryNoteScore * (judgement.hitBonusValue * Math.sqrt(bonus) / JudgementType.PERFECT)
+    const baseScore = this._baseEveryNoteScore * (judgement.hitValue / JudgementType.PERFECT)
+    const bonus = clamp(this._lastBonus + judgement.hitBonus - judgement.hitPunishment)
+    const bonusScore = this._baseEveryNoteScore * (judgement.hitBonusValue * Math.sqrt(bonus) / JudgementType.PERFECT)
     note.bonus = bonus
-    this.#lastBonus = bonus
+    this._lastBonus = bonus
 
     return baseScore + bonusScore
   }
 
-  #lastScoreValue = 0
+  private _lastScoreValue = 0
 
-  #lastScoreNoteIndex = 0
+  private _lastScoreNoteIndex = 0
 
   update(time: number, gameTiming: number): void {
     let totalScore = 0
 
-    for (let i = this.#lastScoreNoteIndex; i < this.#notes.length; i++) {
-      const note = this.#notes[i]
+    for (let i = this._lastScoreNoteIndex; i < this._notes.length; i++) {
+      const note = this._notes[i]
 
       if (note.score !== null) {
         totalScore += note.score
-        this.#lastBonus = note.bonus
+        this._lastBonus = note.bonus
       } else if (note.isHit) {
         note.score = this.calcEachNoteScore(note)
         totalScore += note.score
-        this.#lastBonus = note.bonus
+        this._lastBonus = note.bonus
       } else if (!note.isHit) {
 
       }
@@ -86,8 +87,8 @@ export class ScoreManager {
       }
     }
 
-    this.#score = totalScore
-    this.#effect.setScore(totalScore)
-    this.#effect.updateStepTo(time)
+    this._score = totalScore
+    this._effect.setScore(totalScore)
+    this._effect.updateStepTo()
   }
 }

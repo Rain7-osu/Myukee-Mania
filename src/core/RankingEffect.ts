@@ -18,7 +18,7 @@ export enum RankType {
   D = 5,
 }
 
-const SmallResource: Promise<HTMLImageElement>[] = [
+const SmallResource: HTMLImageElement[] = [
   FileManager.loadImage('./skin/ranking-X-small.png'),
   FileManager.loadImage('./skin/ranking-S-small.png'),
   FileManager.loadImage('./skin/ranking-A-small.png'),
@@ -27,7 +27,7 @@ const SmallResource: Promise<HTMLImageElement>[] = [
   FileManager.loadImage('./skin/ranking-D-small.png'),
 ]
 
-const LargeResource: Promise<HTMLImageElement>[] = [
+const LargeResource: HTMLImageElement[] = [
   FileManager.loadImage('./skin/ranking-X.png'),
   FileManager.loadImage('./skin/ranking-S.png'),
   FileManager.loadImage('./skin/ranking-A.png'),
@@ -37,13 +37,13 @@ const LargeResource: Promise<HTMLImageElement>[] = [
 ]
 
 export class RankingEffect extends RenderObject {
-  #size: 'small' | 'large' = 'small'
+  private _size: 'small' | 'large' = 'small'
 
-  #style: RankingEffectStyle
+  private _style: RankingEffectStyle
 
-  #renderScale: number = 1.44
+  private _renderScale: number = 1.44
 
-  #type: RankType
+  private _type: RankType
 
   static calcRankingType(acc: number): RankType {
     let type
@@ -65,36 +65,36 @@ export class RankingEffect extends RenderObject {
 
   constructor(acc: number, size: 'small' | 'large' = 'small', style?: RankingEffectStyle) {
     super()
-    this.#size = size
-    this.#style = style || Skin.config.stage.ranking
-    this.#type = RankingEffect.calcRankingType(acc)
-    this.#renderScale = this.#style.scale
+    this._size = size
+    this._style = style || Skin.config.stage.ranking
+    this._type = RankingEffect.calcRankingType(acc)
+    this._renderScale = this._style.scale
   }
 
   set type(type: RankType) {
-    this.#type = type
+    this._type = type
   }
 
   async setAccuracy(acc: number): Promise<void> {
-    this.#type = RankingEffect.calcRankingType(acc)
-    const targetScale = this.#size === 'large' ? Skin.config.rankingBoard.ranking.scale : Skin.config.stage.ranking.scale
+    this._type = RankingEffect.calcRankingType(acc)
+    const targetScale = this._size === 'large' ? Skin.config.rankingBoard.ranking.scale : Skin.config.stage.ranking.scale
     const startScale = Skin.config.rankingBoard.ranking.startScale
     this.cancelTransitions()
     await this.createTransition(startScale, targetScale, 2000, 'easeOut', value => {
-      this.#renderScale = value
+      this._renderScale = value
     })
   }
 
   render(context: CanvasRenderingContext2D): void {
-    const resources = this.#size === 'large' ? LargeResource : SmallResource
-    const img = resources[this.#type]
+    const resources = this._size === 'large' ? LargeResource : SmallResource
+    const img = resources[this._type]
     const { width, height } = img
-    const { right, top, scale } = this.#style
+    const { right, top, scale } = this._style
     const bw = width * scale
     const bh = height * scale
     const left = CANVAS.WIDTH - right - bw
-    const dw = width * this.#renderScale
-    const dh = height * this.#renderScale
+    const dw = width * this._renderScale
+    const dh = height * this._renderScale
     const x = (bw - dw) / 2 + left
     const y = (bh - dh) / 2 + top
     context.drawImage(img, x, y, dw, dh)

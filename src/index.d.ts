@@ -1,12 +1,9 @@
-
-export type KeyboardEventHandler = (e: KeyboardEvent) => void
-
-export type BpmList = Array<{ offset: number; value: number }>
-
-export type ContainerProps = {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  background: string;
+declare global {
+  interface Window {
+    __FORCE_FINISH__: boolean
+    __DEV__: boolean
+    __DEBUG__: boolean
+    __MOUSE_MOVE__SOURCE__: string
+    __SHOW_SCROLL_BOX__: boolean
+  }
 }

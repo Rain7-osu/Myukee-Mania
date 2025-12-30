@@ -1,15 +1,16 @@
 import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
+import * as console from 'console'
 
 export class ComboEffect extends RenderObject {
-  #value: number
+  private _value: number
 
-  set value(value: number) { this.#value = value }
+  set value(value: number) { this._value = value }
 
-  get value(): number { return this.#value }
+  get value(): number { return this._value }
 
   render (context: CanvasRenderingContext2D) {
-    if (!this.#value) {
+    if (!this._value) {
       return
     }
 
@@ -18,15 +19,15 @@ export class ComboEffect extends RenderObject {
       combo: { top: TOP, font, fontSize, lineHeight, color },
     } = Skin.config.stage
 
-    this.drawText({
+    RenderObject.drawText({
       context,
-      text: this.#value,
+      text: this._value,
       x: columnCenter,
       y: TOP,
       width: 0,
       height: lineHeight,
-      textAlign: 'center',
-      textBaseline: 'middle',
+      textAlign: 'center' as const,
+      textBaseline: 'middle' as const,
       font: `${fontSize}px ${font}`,
       stroke: false,
       color,

@@ -2,20 +2,20 @@ import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 
 export class ProgressPercentEffect extends RenderObject {
-  #percent: number
+  private _percent: number
 
-  set percent(value: number) { this.#percent = value }
+  set percent(value: number) { this._percent = value }
 
-  get percent(): number { return this.#percent }
+  get percent(): number { return this._percent }
 
   constructor (percent: number) {
     super()
-    this.#percent = percent
+    this._percent = percent
   }
 
   render (context: CanvasRenderingContext2D): void {
     const { centerX, centerY, radius, lineWidth } = Skin.config.stage.progress
-    const percent = this.#percent > 0 ? this.#percent : 0
+    const percent = this._percent > 0 ? this._percent : 0
     // 绘制进度弧
     const startAngle = -Math.PI / 2; // 从垂直上方开始
     const endAngle = startAngle + Math.PI * 2 * percent;

@@ -10,9 +10,9 @@ const TOP = 164
 const BOTTOM = 142
 
 export class BeatmapList extends ScrollList<BeatmapItem> {
-  #beatmapItems: BeatmapItem[] = []
+  private _beatmapItems: BeatmapItem[] = []
 
-  constructor (container: HTMLElement) {
+  constructor(container: HTMLElement) {
     super(container, {
       // 惯性滚动相关
       friction: 0.98, // 摩擦系数
@@ -29,11 +29,11 @@ export class BeatmapList extends ScrollList<BeatmapItem> {
     })
   }
 
-  set beatmapItems (beatmapItems: BeatmapItem[]) {
-    this.#beatmapItems = beatmapItems
+  set beatmapItems(beatmapItems: BeatmapItem[]) {
+    this._beatmapItems = beatmapItems
   }
 
-  scrollItems (): BeatmapItem[] {
-    return this.#beatmapItems
+  scrollItems(): BeatmapItem[] {
+    return this._beatmapItems
   }
 }

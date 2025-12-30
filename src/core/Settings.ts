@@ -1,5 +1,3 @@
-
-
 import { KeyCode } from './KeyCode'
 import { safeGetStorage, safeParseJson, safeSetStorage } from './utils'
 
@@ -63,7 +61,7 @@ const DEFAULT_SETTINGS: SettingsValue = {
       4: KeyCode.J,
       5: KeyCode.K,
       6: KeyCode.L,
-      7: KeyCode.Semicolon,
+      7: KeyCode.SEMICOLON,
     },
   },
 }
@@ -76,28 +74,28 @@ const LOCAL_STORAGE_KEY = 'myukee-mania-settings'
  * @class
  */
 export class Settings {
-  static #instance: Settings | null = null
+  private static _instance: Settings | null = null
 
-  #value: SettingsValue
+  private readonly _value: SettingsValue
 
   private constructor() {
-    const savedSettings = safeGetStorage(LOCAL_STORAGE_KEY)
-    this.#value = safeParseJson(savedSettings) || JSON.parse(DEFAULT_SETTINGS_VALUE)
+    const savedSettings = safeGetStorage(LOCAL_STORAGE_KEY) || ''
+    this._value = safeParseJson(savedSettings) || JSON.parse(DEFAULT_SETTINGS_VALUE)
   }
 
   static getInstance(): Settings {
-    if (!Settings.#instance) {
-      Settings.#instance = new Settings()
+    if (!Settings._instance) {
+      Settings._instance = new Settings()
     }
-    return Settings.#instance
+    return Settings._instance
   }
 
   get<T extends keyof SettingsValue>(key: T): SettingsValue[T] {
-    return this.#value[key]
+    return this._value[key]
   }
 
   set<T extends keyof SettingsValue>(key: T, value: SettingsValue[T]): void {
-    this.#value[key] = value
-    safeSetStorage(LOCAL_STORAGE_KEY, JSON.stringify(this.#value))
+    this._value[key] = value
+    safeSetStorage(LOCAL_STORAGE_KEY, JSON.stringify(this._value))
   }
 }

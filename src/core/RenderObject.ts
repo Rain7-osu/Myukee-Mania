@@ -1,7 +1,7 @@
 import { ActiveEffect } from './ActiveEffect'
 
 export abstract class RenderObject extends ActiveEffect {
-  #display: boolean = true
+  private _display: boolean = true
 
   /**
    * x, y, w, h
@@ -12,9 +12,11 @@ export abstract class RenderObject extends ActiveEffect {
     return this.clickArea
   }
 
-  set display (value: boolean) { this.#display = value }
+  set display (value: boolean) { this._display = value }
 
-  get display (): boolean { return this.#display }
+  get display (): boolean { return this._display }
+
+  public abstract render (context: CanvasRenderingContext2D): void
 
   updateEffect (now: number): void {
     if (this.display) {
@@ -22,9 +24,7 @@ export abstract class RenderObject extends ActiveEffect {
     }
   }
 
-  public abstract render (context: CanvasRenderingContext2D): void
-
-  drawText ({
+  public static drawText ({
     context,
     text,
     x,
@@ -74,7 +74,7 @@ export abstract class RenderObject extends ActiveEffect {
     }
   }
 
-  protected roundRect ({
+  public static roundRect ({
     context,
     x,
     y,
@@ -180,7 +180,7 @@ export abstract class RenderObject extends ActiveEffect {
     ctx.stroke()
   }
 
-  drawArrow ({
+  public static drawArrow ({
     size,
     context,
     color,
@@ -241,28 +241,28 @@ export abstract class RenderObject extends ActiveEffect {
 }
 
 export abstract class OffsetRenderObject {
-  #offset: number
-  #end: number
+  private _offset: number
+  private _end: number
 
   get offset (): number {
-    return this.#offset
+    return this._offset
   }
 
   set offset (value: number) {
-    this.#offset = value
+    this._offset = value
   }
 
   get end (): number {
-    return this.#end
+    return this._end
   }
 
   set end (value: number) {
-    this.#end = value
+    this._end = value
   }
 
   constructor (offset: number, end?: number) {
-    this.#offset = offset
-    this.#end = end
+    this._offset = offset
+    this._end = end
   }
 
   public abstract render (context: CanvasRenderingContext2D, offsetY: number, endY?: number): void

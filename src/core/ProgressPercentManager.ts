@@ -1,21 +1,21 @@
 import { ProgressPercentEffect } from './ProgressEffect'
 
 export class ProgressPercentManager {
-  #effect: ProgressPercentEffect = new ProgressPercentEffect(0)
+  private _effect: ProgressPercentEffect = new ProgressPercentEffect(0)
 
-  get effect(): ProgressPercentEffect { return this.#effect }
+  get effect(): ProgressPercentEffect { return this._effect }
 
-  #duration: number
+  private _duration: number
 
-  set duration(value: number) { this.#duration = value }
+  set duration(value: number) { this._duration = value }
 
   update(timing: number): void {
-    const duration = this.#duration
-    this.#effect.percent = timing > duration ? 1.0 : timing / duration
+    const duration = this._duration
+    this._effect.percent = timing > duration ? 1.0 : timing / duration
   }
 
   reset(): void {
-    this.#effect.percent = 0
+    this._effect.percent = 0
     this.duration = 0
   }
 }

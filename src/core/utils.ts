@@ -1,4 +1,4 @@
-type AnyFunc = Function;
+import type { Note } from './Note'
 
 /**
  * 从数组中随机选择一个元素
@@ -73,12 +73,6 @@ export const rgba: {
     return color.match(rgba.regexp)
   },
 }
-
-export type Note = {
-  col: number | string;
-  offset: number | string;
-  [key: string]: any;
-};
 
 export function uniqNotes (notes: Note[]): Note[] {
   const map = new Map<string, boolean>()

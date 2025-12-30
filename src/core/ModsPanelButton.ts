@@ -4,26 +4,26 @@ import { ActiveEffect } from './ActiveEffect'
 const LEFT_OFFSET = 120
 
 export class ModsPanelButton extends BaseButton {
-  #translateX = LEFT_OFFSET
+  private _translateX = LEFT_OFFSET
 
-  #showEffect = new ActiveEffect()
+  private _showEffect = new ActiveEffect()
 
   set initTranslateDirection (x: 1 | -1) {
-    this.#translateX = x > 0 ? LEFT_OFFSET : -LEFT_OFFSET
+    this._translateX = x > 0 ? LEFT_OFFSET : -LEFT_OFFSET
   }
 
   rect (): [number, number, number, number] {
     const [x, y, w, h] = super.rect()
-    return [x + this.#translateX, y, w, h]
+    return [x + this._translateX, y, w, h]
   }
 
   async show (): Promise<void> {
-    this.#showEffect.cancelTransitions()
-    await this.#showEffect.createTransition(this.#translateX, 0, 300, 'easeOut', (v: number) => this.#translateX = v)
+    this._showEffect.cancelTransitions()
+    await this._showEffect.createTransition(this._translateX, 0, 300, 'easeOut', (v: number) => this._translateX = v)
   }
 
   updateEffect (now: number): void {
     super.updateEffect(now)
-    this.#showEffect.updateEffect(now)
+    this._showEffect.updateEffect(now)
   }
 }
