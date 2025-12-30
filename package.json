@@ -6,9 +6,10 @@
   "main": "index.js",
   "scripts": {
     "generate": "node ./scripts/generateSongList.js",
-    "build": "rsbuild build",
+    "build": "rsbuild build && npm run type-check",
     "dev": "rsbuild dev --open",
-    "preview": "rsbuild preview"
+    "preview": "rsbuild preview",
+    "type-check": "tsc --noEmit"
   },
   "keywords": [
     "mania",
@@ -17,6 +18,8 @@
   "author": "Myukee",
   "license": "ISC",
   "devDependencies": {
-    "@rsbuild/core": "^1.6.14"
+    "@rsbuild/core": "^1.6.14",
+    "@types/node": "^25.0.3",
+    "typescript": "^5.9.3"
   }
 }
