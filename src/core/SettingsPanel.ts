@@ -1,7 +1,7 @@
 import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
 import { CANVAS, px, py } from './Config'
-import { SliderSetting } from './components/SliderSetting';
+import { SliderSetting } from './Components/SliderSetting';
 import { FrameSnapshot } from './FrameSnapshot';
 import { Settings, SettingsKey, SettingsValue } from './Settings';
 import { rgba } from './utils';

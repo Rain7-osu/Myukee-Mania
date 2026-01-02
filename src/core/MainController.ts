@@ -26,7 +26,7 @@ import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { SettingsPanel } from './SettingsPanel'
 import type { BeatmapItem } from './BeatmapItem'
 import type { ValueChangeEffect } from './ValueChangeEffect'
-import { MouseTip } from './components/MouseTip';
+import { MouseTip } from './Components/MouseTip';
 
 /**
  * 主界面管理器
