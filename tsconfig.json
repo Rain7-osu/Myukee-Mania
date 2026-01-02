@@ -18,12 +18,13 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true,
     "noPropertyAccessFromIndexSignature": true,
-    "strict": false,
+    "strict": true,
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+    "noImplicitAny": true
   },
   "include": [
     "src/**/*.js",

@@ -258,15 +258,11 @@ export class BaseButton extends RenderObject {
     await Promise.all(results)
   }
 
-  /**
-   * @private
-   * @param e {MouseEvent}
-   */
-  isMouseIn(e) {
-    const { clientY, clientX } = e
+  private _isMouseIn(e: MouseEvent) {
+    const { offsetY, offsetX } = e
     const [x, y, width, height] = this.rect()
-    const xDelta = clientX - x
-    const yDelta = clientY - y
+    const xDelta = offsetX - x
+    const yDelta = offsetY - y
     return xDelta >= 0 && xDelta <= width && yDelta >= 0 && yDelta <= height
   }
 
@@ -281,7 +277,7 @@ export class BaseButton extends RenderObject {
     this._mouseEventHandler.registerEvents({
       mousemoveEvents: [
         e => {
-          if (this.isMouseIn(e)) {
+          if (this._isMouseIn(e)) {
             if (!this.hovered) {
               this.hover()
             }
@@ -293,21 +289,21 @@ export class BaseButton extends RenderObject {
       wheelEvents: [],
       clickEvents: [
         async e => {
-          if (this.isMouseIn(e)) {
+          if (this._isMouseIn(e)) {
             onClick()
           }
         },
       ],
       mousedownEvents: [
         e => {
-          if (this.isMouseIn(e)) {
+          if (this._isMouseIn(e)) {
             this.activeIn()
           }
         },
       ],
       mouseupEvents: [
         e => {
-          if (this.isMouseIn(e)) {
+          if (this._isMouseIn(e)) {
             this.activeOut()
           }
         },

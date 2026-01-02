@@ -28,7 +28,8 @@ import type { Beatmap } from './Beatmap'
 import type { MainController } from './MainController'
 
 export class StageController extends ActiveEffect {
-  private _settings: Settings
+  private _settings: Settings = Settings.getInstance()
+
   private _renderEngine: RenderEngine
 
   private _playingMap: PlayMap | null
@@ -106,9 +107,9 @@ export class StageController extends ActiveEffect {
 
   private _mainController: MainController
 
-  get failed (): boolean { return this._failed }
+  get failed(): boolean { return this._failed }
 
-  get realStarted (): boolean { return this._realStarted }
+  get realStarted(): boolean { return this._realStarted }
 
   private readonly _canvas: HTMLCanvasElement
   private _frameSnapshot: FrameSnapshot | null = null
@@ -123,7 +124,7 @@ export class StageController extends ActiveEffect {
 
   private _auto = false
 
-  constructor (canvas: HTMLCanvasElement, mainController: MainController, renderEngine: RenderEngine) {
+  constructor(canvas: HTMLCanvasElement, mainController: MainController, renderEngine: RenderEngine) {
     super()
     this._canvas = canvas
     this._mainController = mainController
@@ -137,7 +138,7 @@ export class StageController extends ActiveEffect {
     this._mouseEventHandler = new MouseEventManager(canvas, 'StageController')
   }
 
-  skipHead (): void {
+  skipHead(): void {
     if (this.canSkip()) {
       this._skippedTiming = this._playingMap!.startTiming - this.getGameTiming() - 3000
       this._playingAudio!.setCurrentTime(this.getGameTiming() / 1000)
@@ -150,18 +151,17 @@ export class StageController extends ActiveEffect {
    * 计算游戏局时，对于一首曲目基于音频时长的游戏局时间
    * 减去暂停时间
    */
-  getGameTiming (): number {
+  getGameTiming(): number {
     const now = performance.now() + this._skippedTiming
     return now - this._startTime - this._totalPauseTime
   }
 
-  canSkip (): boolean {
+  canSkip(): boolean {
     return this.getGameTiming() - this._playingMap!.startTiming < -3000
   }
 
-  async init (beatmap: Beatmap, settings: Settings, rate: number, mods: Mod[]): Promise<void> {
+  async init(beatmap: Beatmap, rate: number, mods: Mod[]): Promise<void> {
     const { keys } = Skin.config.stage
-    this._settings = settings
     this.reset()
 
     // map
@@ -210,13 +210,14 @@ export class StageController extends ActiveEffect {
       auto: this._auto,
       onFail: () => this.fail(),
       hpEffect: this._hpEffect,
+      judgementDelay: this._settings.get('judgementDelay'),
     })
     this._scoreManager.init(notes)
     this._accuracyManager.init(notes)
     this._mouseEventHandler.registerEvents({})
   }
 
-  reset (): void {
+  reset(): void {
     this._paused = false
     this._failed = false
     this._frameSnapshot = null
@@ -233,17 +234,18 @@ export class StageController extends ActiveEffect {
     this._keyboardEventManager.removeEvents()
   }
 
-  async playAudio (flag: boolean): Promise<void> {
+  async playAudio(flag: boolean): Promise<void> {
     if (flag) {
       await this._playingAudio!.resume()
     } else {
-      await new Promise(resolve => setTimeout(resolve, DEFAULT_DELAY_TIME))
+      const musicDelay = DEFAULT_DELAY_TIME + this._settings.get('offset');
+      await new Promise(resolve => setTimeout(resolve, musicDelay))
       this._realStarted = true
       await this._playingAudio!.play()
     }
   }
 
-  registerStageEvent (): void {
+  registerStageEvent(): void {
     const keyBinds: Record<number, KeyCode> = this._settings.get('maniaKeyBinds')[`keys${this._playingMap!.keys}`]
 
     const hitObjectKeys: KeyCode[] = Object.values(keyBinds)
@@ -317,7 +319,6 @@ export class StageController extends ActiveEffect {
     }
 
     this._keyboardEventManager.registerEvents({
-      keypressEventList: {},
       keyupEventList: {
         ...hitObjectsUpEvents,
       },
@@ -328,7 +329,7 @@ export class StageController extends ActiveEffect {
     })
   }
 
-  quit (): void {
+  quit(): void {
     this._delayStartTimer && clearTimeout(this._delayStartTimer)
     this._quited = true
     this._playingAudio?.abort()
@@ -336,7 +337,7 @@ export class StageController extends ActiveEffect {
     this._mainController.abortPlaying()
   }
 
-  finish (): void {
+  finish(): void {
     this._finished = false
     const results: RankingResult = {
       accuracy: this._accuracyManager.acc,
@@ -351,7 +352,7 @@ export class StageController extends ActiveEffect {
     this.reset()
   }
 
-  start (): void {
+  start(): void {
     this._playing = true
     this._finished = false
     this._startTime = performance.now() + DEFAULT_DELAY_TIME
@@ -371,7 +372,7 @@ export class StageController extends ActiveEffect {
 
   private _resumeTimer: number | null = null
 
-  pause (): void {
+  pause(): void {
     this._keyboardEventManager.removeEvents()
     // 有 resumeTimer，说明是暂停状态下，点了继续，但是还没开始继续下落，在 DELAY 状态，此时则不取消暂停状态，继续暂停就行
     if (this._resumeTimer !== null && this._resumeTimer > 0) {
@@ -386,7 +387,7 @@ export class StageController extends ActiveEffect {
     this._mainController.pause()
   }
 
-  async fail (): Promise<void> {
+  async fail(): Promise<void> {
     await this.createTimeout(300)[0]
     this._keyboardEventManager.removeEvents()
     this._playingAudio!.abort()
@@ -395,7 +396,7 @@ export class StageController extends ActiveEffect {
     await this._mainController.fail()
   }
 
-  async resume (): Promise<void> {
+  async resume(): Promise<void> {
     const [task, timer] = this.createTimeout(DEFAULT_DELAY_TIME)
     this._resumeTimer = timer
     await task
@@ -410,7 +411,7 @@ export class StageController extends ActiveEffect {
     this._resumeTimer = null
   }
 
-  retry (): void {
+  retry(): void {
     this._stageBoard.hide()
     this._frameSnapshot = null
     this._playingAudio!.abort()
@@ -418,7 +419,7 @@ export class StageController extends ActiveEffect {
     this.start()
   }
 
-  renderFrame (): void {
+  renderFrame(): void {
     if (this._playing) {
       this.renderStageBoard()
       if (!this._finished) {
@@ -438,7 +439,7 @@ export class StageController extends ActiveEffect {
     }
   }
 
-  loopFrame (): void {
+  loopFrame(): void {
     // Quit 之后，下一帧重置状态，直接就退出 loopFrame 了
     if (this._quited) {
       this._quited = false
@@ -449,7 +450,7 @@ export class StageController extends ActiveEffect {
     this.renderFrame()
   }
 
-  updateFrame (): void {
+  updateFrame(): void {
     if (this._modEffect) {
       this._modEffect.combo = this._judgementManager.combo
     }
@@ -502,66 +503,66 @@ export class StageController extends ActiveEffect {
     }
   }
 
-  renderCoverEffect (): void {
+  renderCoverEffect(): void {
     this._modEffect && this._renderEngine.renderObject(this._modEffect)
   }
 
-  renderJudgementDeviations (): void {
+  renderJudgementDeviations(): void {
     this._renderEngine.renderObject(this._judgementManager.activeDeviations)
   }
 
-  renderStageBoard (): void {
+  renderStageBoard(): void {
     this._renderEngine.renderObject(this._stageBoard)
   }
 
-  renderAccuracyEffect (): void {
+  renderAccuracyEffect(): void {
     this._renderEngine.renderObject(this._accuracyManager.accEffect)
     this._renderEngine.renderObject(this._accuracyManager.rankingEffect)
   }
 
-  renderSkip (): void {
+  renderSkip(): void {
     if (this._skipHeadEffect) {
       this._renderEngine.renderObject(this._skipHeadEffect)
     }
   }
 
-  renderProgressEffect (): void {
+  renderProgressEffect(): void {
     this._renderEngine.renderObject(this._progressPercentManager.effect)
   }
 
-  renderScoreEffect (): void {
+  renderScoreEffect(): void {
     this._renderEngine.renderObject(this._scoreManager.effect)
   }
 
-  renderJudgementEffects (): void {
+  renderJudgementEffects(): void {
     this._judgementManager.activeEffects.forEach(e => {
       this._renderEngine.renderObject(e)
     })
   }
 
-  renderComboEffect (): void {
+  renderComboEffect(): void {
     this._renderEngine.renderObject(this._comboEffect)
   }
 
-  renderHitEffects (): void {
+  renderHitEffects(): void {
     this._hitEffectManager.effects.forEach(effect => this._renderEngine.renderObject(effect))
   }
 
-  renderNotes (): void {
+  renderNotes(): void {
     this._playingMap!.notes.forEach(note => {
       this._renderEngine.renderOffsetObject(note)
     })
   }
 
-  renderSectionLine (): void {
+  renderSectionLine(): void {
     this._sectionLineManager.effects.forEach(effect => this._renderEngine.renderOffsetObject(effect))
   }
 
-  renderHpEffect (): void {
+  renderHpEffect(): void {
     this._renderEngine.renderObject(this._hpEffect)
   }
 
-  get frameSnapshot (): FrameSnapshot | null {
+  get frameSnapshot(): FrameSnapshot | null {
     return this._frameSnapshot
   }
 }

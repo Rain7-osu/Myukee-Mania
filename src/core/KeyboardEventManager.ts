@@ -19,7 +19,6 @@ const preventDefaultMaps: string[] = [
 export class KeyboardEventManager {
   private _keydownEventList: Record<string, KeyboardEventHandler> = {}
   private _keyupEventList: Record<string, KeyboardEventHandler> = {}
-  private _keypressEventList: Record<string, KeyboardEventHandler> = {}
 
   private _hasRegister: boolean = false
 
@@ -51,42 +50,24 @@ export class KeyboardEventManager {
       dev.debug(`No keyup handler registered for key: ${key}`)
     }
   }
-  private _invokeKeypressEventHandler = (e: KeyboardEvent) => {
-    const key = e.code
-    if (this._disabled) return
-    if (preventDefaultMaps.includes(key)) {
-      e.preventDefault()
-    }
-    dev.debug(`[Keypress]: ${key}`)
-    if (this._keypressEventList[key]) {
-      this._keypressEventList[key](e)
-    } else {
-      dev.debug(`No keypress handler registered for key: ${key}`)
-    }
-  }
 
   registerEvents({
     keydownEventList = {},
     keyupEventList = {},
-    keypressEventList = {},
   }: {
     keydownEventList?: Record<string, KeyboardEventHandler>
     keyupEventList?: Record<string, KeyboardEventHandler>
-    keypressEventList?: Record<string, KeyboardEventHandler>
   }): void {
     this._keydownEventList = keydownEventList
     this._keyupEventList = keyupEventList
-    this._keypressEventList = keypressEventList
 
     if (!this._hasRegister) {
       document.addEventListener('keydown', this._invokeKeydownEventHandler)
       document.addEventListener('keyup', this._invokeKeyupEventHandler)
-      document.addEventListener('keypress', this._invokeKeypressEventHandler)
     }
   }
 
   removeEvents(): void {
-    this._keypressEventList = {}
     this._keydownEventList = {}
     this._keyupEventList = {}
   }
@@ -103,7 +84,6 @@ export class KeyboardEventManager {
     if (this._hasRegister) {
       document.removeEventListener('keydown', this._invokeKeydownEventHandler)
       document.removeEventListener('keyup', this._invokeKeyupEventHandler)
-      document.removeEventListener('keypress', this._invokeKeypressEventHandler)
     }
   }
 }

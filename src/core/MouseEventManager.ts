@@ -1,25 +1,41 @@
 import { RenderObject } from './RenderObject'
 import { dev } from './dev'
-import { CANVAS } from './Config'
 
 export type MouseEventHandler = (e: MouseEvent) => void
+export type WheelEventHandler = (e: WheelEvent) => void
 
-export interface EventsMaps {
+export interface MouseEventMap {
+  mousemove: MouseEvent
+  click: MouseEvent
+  wheel: WheelEvent
+  mousedown: MouseEvent
+  mouseup: MouseEvent
+}
+
+export interface MouseEventHandlerMap {
+  mousemove: MouseEventHandler
+  click: MouseEventHandler
+  wheel: WheelEventHandler
+  mousedown: MouseEventHandler
+  mouseup: MouseEventHandler
+}
+
+export interface MouseEventsMaps {
   mousemoveEvents?: MouseEventHandler[]
   clickEvents?: MouseEventHandler[]
-  wheelEvents?: MouseEventHandler[]
-  mouseDownEvents?: MouseEventHandler[]
+  wheelEvents?: WheelEventHandler[]
+  mousedownEvents?: MouseEventHandler[]
   mouseupEvents?: MouseEventHandler[]
 }
 
 export class MouseEventManager {
   private _mousemoveEvents: MouseEventHandler[] = []
-  private _wheelEvents: MouseEventHandler[] = []
+  private _wheelEvents: WheelEventHandler[] = []
   private _clickEvents: MouseEventHandler[] = []
   private _mousedownEvents: MouseEventHandler[] = []
   private _mouseupEvents: MouseEventHandler[] = []
 
-  private _shapeEvents: Map<RenderObject, MouseEventHandler>
+  private _shapeEvents: Map<RenderObject, MouseEventHandler | WheelEventHandler>
 
   private readonly _container: HTMLElement
 
@@ -34,36 +50,18 @@ export class MouseEventManager {
     this._source = source
   }
 
-  private _buildMouseEvent(e: MouseEvent) {
-    return {
-      ...e,
-      clientX: e.clientX - CANVAS.CLIENT_X,
-      clientY: e.clientY - CANVAS.CLIENT_Y,
-      preventDefault: e.preventDefault.bind(e),
-      stopPropagation: e.stopPropagation.bind(e),
-    }
-  }
-
-  private _buildWheelEvent(e: WheelEvent) {
-    return {
-      ...this._buildMouseEvent(e),
-      deltaY: e.deltaY,
-      deltaX: e.deltaX,
-    }
-  }
-
   private _invokeWheelEventHandler = (e: WheelEvent) => {
     e.preventDefault()
     if (this._disabled) return
     dev.debug(this._source, 'wheel', e)
-    this._wheelEvents.forEach(handler => handler(this._buildWheelEvent(e as any)))
+    this._wheelEvents.forEach(handler => handler(e))
   }
 
   private _invokeMousemoveEventHandler = (e: MouseEvent) => {
     e.preventDefault()
     if (this._disabled) return
     dev.debug(this._source, 'mousemove', e)
-    this._mousemoveEvents.forEach(handler => handler(this._buildMouseEvent(e)))
+    this._mousemoveEvents.forEach(handler => handler(e))
   }
 
   private _invokeClickEventHandler = (e: MouseEvent) => {
@@ -71,23 +69,23 @@ export class MouseEventManager {
     if (this._disabled) return
     dev.debug(this._source, 'click', e)
     if (this._shapeEvents) {
-      [...this._shapeEvents.values()].forEach(handler => handler(this._buildMouseEvent(e)))
+      [...this._shapeEvents.values()].forEach(handler => handler(e))
     }
-    this._clickEvents.forEach(handler => handler(this._buildMouseEvent(e)))
+    this._clickEvents.forEach(handler => handler(e))
   }
 
   private _invokeMouseDownEventHandler = (e: MouseEvent) => {
     e.preventDefault()
     if (this._disabled) return
     dev.debug(this._source, 'mousedown', e)
-    this._mousedownEvents.forEach(handler => handler(this._buildMouseEvent(e)))
+    this._mousedownEvents.forEach(handler => handler(e))
   }
 
   private _invokeMouseUpEventHandler = (e: MouseEvent) => {
     e.preventDefault()
     if (this._disabled) return
     dev.debug(this._source, 'mouseup', e)
-    this._mouseupEvents.forEach(handler => handler(this._buildMouseEvent(e)))
+    this._mouseupEvents.forEach(handler => handler(e))
   }
 
   bind(shape: RenderObject, handler: MouseEventHandler): void {
@@ -96,7 +94,7 @@ export class MouseEventManager {
     }
     const [x, y, w, h] = shape.hotArea
     this._shapeEvents.set(shape, e => {
-      if (e.clientX > x && e.clientY > y && e.clientX < x + w && e.clientY < y + h) {
+      if (e.offsetX > x && e.offsetY > y && e.offsetX < x + w && e.offsetY < y + h) {
         handler(e)
       }
     })
@@ -106,7 +104,47 @@ export class MouseEventManager {
     this._shapeEvents.delete(shape)
   }
 
-  registerEvents(maps: EventsMaps): void {
+  addEventListener<EventName extends keyof MouseEventHandlerMap>(eventName: EventName, handler: MouseEventHandlerMap[EventName]) {
+    switch (eventName) {
+      case 'mousemove':
+        this._mousemoveEvents.push(handler as MouseEventHandler)
+        break
+      case 'click':
+        this._clickEvents.push(handler as MouseEventHandler)
+        break
+      case 'wheel':
+        this._wheelEvents.push(handler as WheelEventHandler)
+        break
+      case 'mousedown':
+        this._mousedownEvents.push(handler as MouseEventHandler)
+        break
+      case 'mouseup':
+        this._mouseupEvents.push(handler as MouseEventHandler)
+        break
+    }
+  }
+
+  removeEventListener<EventName extends keyof MouseEventHandlerMap>(eventName: EventName, handler: MouseEventHandlerMap[EventName]) {
+    switch (eventName) {
+      case 'mousemove':
+        this._mousemoveEvents = this._mousemoveEvents.filter(h => h !== handler)
+        break
+      case 'click':
+        this._clickEvents = this._clickEvents.filter(h => h !== handler)
+        break
+      case 'wheel':
+        this._wheelEvents = this._wheelEvents.filter(h => h !== handler)
+        break
+      case 'mousedown':
+        this._mousedownEvents = this._mousedownEvents.filter(h => h !== handler)
+        break
+      case 'mouseup':
+        this._mouseupEvents = this._mouseupEvents.filter(h => h !== handler)
+        break
+    }
+  }
+
+  registerEvents(maps: MouseEventsMaps): void {
     const {
       mousemoveEvents = [],
       clickEvents = [],

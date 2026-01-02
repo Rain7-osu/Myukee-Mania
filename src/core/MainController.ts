@@ -26,6 +26,7 @@ import { SpeedChangeEffect } from './SpeedChangeEffect'
 import { SettingsPanel } from './SettingsPanel'
 import type { BeatmapItem } from './BeatmapItem'
 import type { ValueChangeEffect } from './ValueChangeEffect'
+import { MouseTip } from './components/MouseTip';
 
 /**
  * 主界面管理器
@@ -91,19 +92,24 @@ export class MainController {
 
   private _cancelAnimation: number = -1
 
+  private _mouseTip: MouseTip
+
   private readonly _settingsPanel: SettingsPanel
 
   private readonly _modsInfo: ModsInfoEffect
+
 
   constructor(canvas: HTMLCanvasElement, entry: HTMLElement) {
     if (!canvas) {
       throw new Error('Canvas container can not be null.')
     }
 
+    const speed = this._settings.get('speed')
+
     this._canvas = canvas
     this._entry = entry
     this._layoutEngine = new LayoutRenderEngine(canvas)
-    const speed = this._settings.get('speed')
+    this._mouseTip = MouseTip.createInstance(canvas)
     this._autoManager = new AudioManager()
     this._keyboardEventManager = new KeyboardEventManager()
     this._mouseEventManager = new MouseEventManager(canvas, 'MainController')
@@ -224,7 +230,7 @@ export class MainController {
 
   async lastRandom() {
     if (this._randomHistory.length) {
-      await this.selectBeatmapItem(this._randomHistory.pop())
+      await this.selectBeatmapItem(this._randomHistory.pop()!)
     }
   }
 
@@ -260,7 +266,7 @@ export class MainController {
   }
 
   async play(beatmap: Beatmap) {
-    await this._stageController.init(beatmap, this._settings, this._currentRate, this._selectedMods)
+    await this._stageController.init(beatmap, this._currentRate, this._selectedMods)
     this._stageController.start()
     this._playing = true
     this._backButton.scene = 'main'
@@ -421,11 +427,13 @@ export class MainController {
   showSettingsPanel() {
     this._backButton.scene = 'settings'
     this._settingsPanel.show()
+    this._settingsPanel.registerEvents()
   }
 
   hideSettingsPanel() {
     this._settingsPanel.hide()
     this._backButton.scene = 'main'
+    this._settingsPanel.removeEvents()
   }
 
   _registerMouseEvents() {
@@ -443,7 +451,7 @@ export class MainController {
 
           // 如果在游玩中，3 秒后自动隐藏
           clearTimeout(cursorTimer)
-          cursorTimer = setTimeout(() => {
+          cursorTimer = window.setTimeout(() => {
             if (this._playing && !this._paused) {
               this._cursor.hide()
             }
@@ -584,6 +592,10 @@ export class MainController {
         this._speedChangeEffect = null
       }
     }
+
+    if (this._mouseTip.display) {
+      this._mouseTip.updateEffect(now)
+    }
   }
 
   renderFrame() {
@@ -625,6 +637,7 @@ export class MainController {
     }
 
     this._layoutEngine.renderObject(this._fps)
+    this._layoutEngine.renderObject(this._mouseTip)
     this.renderSpeedChangeEffects()
   }
 

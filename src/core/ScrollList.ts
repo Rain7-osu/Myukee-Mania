@@ -86,7 +86,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     isWheeling: boolean;
     lastScrollTime: number;
     lastScrollY: number;
-    mouseEvent: HTMLElementEventMap['canvas'] | null;
+    mouseEvent: MouseEvent | null;
     mouseMoving: boolean;
     velocity: number;
     inertiaX: number;
@@ -131,9 +131,9 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     }
   }
 
-  private _checkEventCapture(e: HTMLElementEventMap['canvas']): boolean {
-    const x = e.clientX
-    const y = e.clientY
+  private _checkEventCapture(e: MouseEvent): boolean {
+    const x = e.offsetX
+    const y = e.offsetY
     const { left: listLeft, top: listTop, height: listHeight, width: listWidth, bottom: listBottom } = this._style
     return x >= listLeft &&
       y >= listTop &&
@@ -142,7 +142,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
       y <= CANVAS.HEIGHT - listBottom
   }
 
-  private async _onWheel(e: WheelEvent): Promise<void> {
+  private _onWheel(e: WheelEvent) {
     if (this._autoScrolling) {
       this._cancelTransitionManager.cancelScrollTo()
       this._autoScrolling = false
@@ -176,7 +176,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     return [null, -1]
   }
 
-  private _onMouseMove(e: HTMLElementEventMap['canvas']): void {
+  private _onMouseMove(e: MouseEvent): void {
     e.preventDefault()
     this._status.mouseEvent = e
     this._status.mouseMoving = true
@@ -190,9 +190,9 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._refreshHoverStatus(e)
   }
 
-  private _refreshHoverStatus(e: HTMLElementEventMap['canvas']): void {
-    const x = e.clientX
-    const y = e.clientY
+  private _refreshHoverStatus(e: MouseEvent): void {
+    const x = e.offsetX
+    const y = e.offsetY
     const items = this.scrollItems()
     /** @type {ScrollItem | null} */
     const hoveredItem = this._hoveredItem
@@ -233,7 +233,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     }
   }
 
-  private _onClick(e: HTMLElementEventMap['canvas']): void {
+  private _onClick(e: MouseEvent): void {
     if (!this._checkEventCapture(e)) {
       return
     }
@@ -242,7 +242,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._status.mouseEvent = e
     clearTimeout(this._mouseMoveTimer)
 
-    const [clickItem, index] = this._findCurrentHoverItem(e.clientX, e.clientY)
+    const [clickItem, index] = this._findCurrentHoverItem(e.offsetX, e.offsetY)
     if (!clickItem) {
       return
     }

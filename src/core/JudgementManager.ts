@@ -361,10 +361,7 @@ export class JudgementManager {
         break
       } else if (noteType === NoteType.HOLD) {
         if (isHeld) {
-          // 理论上这里不可能存在这个 note 被按下去了，在 held 状态不重置的情况下又被按一次
-          dev.warn('JudgementManager: note is already held, skipping hit', {
-            note, hitTiming,
-          })
+          // 如果已经 held 了，就不再处理 hit 事件（键盘 keydown 事件有长按连续触发）
           continue
         }
 

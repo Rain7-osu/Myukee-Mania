@@ -9,19 +9,25 @@ interface KeyBinds {
   keys8: Record<number, string>
 }
 
-interface SettingsValue {
+export interface SettingsValue {
   backgroundDark: number
   speed: number
   hideObjects: boolean
   maniaKeyBinds: KeyBinds
+  judgementDelay: number
+  offset: number
 }
+
+export type SettingsKey = keyof SettingsValue
 
 const DEFAULT_SPEED = 34
 
-const DEFAULT_SETTINGS: SettingsValue = {
+export const DEFAULT_SETTINGS: SettingsValue = {
   backgroundDark: 80,
   speed: DEFAULT_SPEED,
   hideObjects: false,
+  judgementDelay: 0,
+  offset: 0,
   maniaKeyBinds: {
     keys4: {
       0: KeyCode.D,
@@ -90,7 +96,7 @@ export class Settings {
     return Settings._instance
   }
 
-  get<T extends keyof SettingsValue>(key: T): SettingsValue[T] {
+  get<T extends SettingsKey>(key: T): SettingsValue[T] {
     return this._value[key]
   }
 

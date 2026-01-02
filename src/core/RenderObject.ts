@@ -240,6 +240,9 @@ export abstract class RenderObject extends ActiveEffect {
   }
 }
 
+/**
+ * @deprecated
+ */
 export abstract class OffsetRenderObject {
   private _offset: number
   private _end: number
@@ -260,9 +263,9 @@ export abstract class OffsetRenderObject {
     this._end = value
   }
 
-  constructor (offset: number, end?: number) {
+  protected constructor (offset: number, end?: number) {
     this._offset = offset
-    this._end = end
+    this._end = end ?? offset
   }
 
   public abstract render (context: CanvasRenderingContext2D, offsetY: number, endY?: number): void
