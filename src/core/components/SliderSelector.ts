@@ -7,7 +7,7 @@ import { KeyCode } from '../KeyCode';
 const PREV_COLOR = 'rgb(225, 126, 145)'
 const REMAIN_COLOR = 'rgb(116, 64, 76)'
 const RADIO_COLOR = 'rgb(218, 125, 144)'
-const RADIO_RADIUS = 10;
+const RADIO_RADIUS = 12;
 
 export interface SliderSelectorProps {
   max?: number

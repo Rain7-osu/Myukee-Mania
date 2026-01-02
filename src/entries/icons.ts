@@ -22,7 +22,7 @@ function main () {
   for (let i = 0; i < list.length; i++) {
     ctx.drawImage(list[i], x, y, SIZE, SIZE)
     x += SIZE + 10
-    if (x + SIZE > window.screen) {
+    if (x + SIZE > window.screen.width) {
       x = 10
       y += SIZE + 10
     }

@@ -5,7 +5,7 @@ import { px, py } from '../Config';
 import type { SettingItem } from '../SettingsPanel';
 
 const LABEL_COLOR = 'rgb(255, 255, 255)';
-const FONT_SIZE = py(28);
+const FONT_SIZE = py(32);
 
 const  TRANSITION_DURATION = 300;
 

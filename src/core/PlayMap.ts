@@ -34,7 +34,7 @@ export class PlayMap {
     this._keys = keys
   }
 
-  private _keys: number
+  private readonly _keys: number
 
   private _overallDifficulty: number
 
@@ -42,9 +42,9 @@ export class PlayMap {
 
   private _length: number
 
-  private _notes: Note[]
+  private readonly _notes: Note[]
 
-  private _timingList: TimingList
+  private readonly _timingList: TimingList
 
   get notes (): Note[] {
     return this._notes
@@ -75,7 +75,7 @@ export class PlayMap {
   }
 
   reset (): void {
-    this._notes.forEach((item) => item.reset())
+    this._notes.forEach(item => item.reset())
   }
 
   applyMod (mod: Mod): void {
@@ -105,11 +105,11 @@ export class PlayMap {
   }
 
   setRate (rate: number): void {
-    this._notes.forEach((note) => {
+    this._notes.forEach(note => {
       note.offset /= rate
       note.end /= rate
     })
-    this._timingList.forEach((timing) => {
+    this._timingList.forEach(timing => {
       timing.beatLen /= rate
       timing.offset /= rate
     })

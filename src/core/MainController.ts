@@ -212,6 +212,7 @@ export class MainController {
    */
   _registerModsPanelEvents() {
     this._modsPanel.registerEvents()
+    this._modsPanel.disableEvents()
   }
 
   _registerFooterEvents() {

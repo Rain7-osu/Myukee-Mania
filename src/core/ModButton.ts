@@ -1,4 +1,6 @@
 import { BaseButton } from './BaseButton'
+import type { Mod } from './ModsPanel';
+import type { KeyCode } from './KeyCode';
 
 export interface ModButtonConfig {
   mod: Mod | Mod[]

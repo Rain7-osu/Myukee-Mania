@@ -232,14 +232,15 @@ export class ModsPanel extends RenderObject {
       },
     })
 
-    const modButtonKeyMaps: Record<KeyCode, () => void> = {}
+    const keyMaps = {}
     this._modButtons.forEach(btn => {
       btn.registerEvents({ onClick: () => this._updateMods(btn) })
-      modButtonKeyMaps[btn.keyBind] = () => {
+      keyMaps[btn.keyBind] = () => {
         btn.click()
         this._updateMods(btn)
       }
     })
+    const modButtonKeyMaps = keyMaps as Record<KeyCode, () => void>
 
     this._keyboardEventManager.registerEvents({
       keydownEventList: {
@@ -306,7 +307,7 @@ export class ModsPanel extends RenderObject {
       context.fillStyle = DIFFICULTY_INCREASE_LABEL_COLOR
       context.fillText('Difficulty Increase', px(LABEL_LEFT), y += py(LABEL_FONT_SIZE + LABEL_GAP))
       context.fillStyle = SPECIAL_LABEL_COLOR
-      context.fillText('Special', px(LABEL_LEFT), y += py(LABEL_FONT_SIZE + LABEL_GAP))
+      context.fillText('Special', px(LABEL_LEFT), y + py(LABEL_FONT_SIZE + LABEL_GAP))
       context.restore()
     }
 

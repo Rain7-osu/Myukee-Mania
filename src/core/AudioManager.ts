@@ -98,8 +98,10 @@ export class AudioManager {
   applyMod(mod: Mod): void {
     if (mod === Mod.HT) {
       this.setRate(0.75)
+      this.preservesPitch = true
     } else if (mod === Mod.DT) {
       this.setRate(1.5)
+      this.preservesPitch = true
     } else if (mod === Mod.NC) {
       this.setRate(1.5)
       this.preservesPitch = false

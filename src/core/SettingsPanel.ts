@@ -1,11 +1,13 @@
 import { RenderObject } from './RenderObject'
 import { Skin } from './Skin'
-import { CANVAS } from './Config'
+import { CANVAS, px, py } from './Config'
 import { SliderSetting } from './components/SliderSetting';
 import { FrameSnapshot } from './FrameSnapshot';
 import { Settings, SettingsKey, SettingsValue } from './Settings';
+import { rgba } from './utils';
 
 const TRANSITION_DURATION = 500
+const OFFSET_X = 120
 
 export interface SettingItem<T extends number | string> {
   onChange(callback: (value: T) => void): void
@@ -22,6 +24,7 @@ export interface SettingItem<T extends number | string> {
 interface InnerStyle {
   width: number;
   maxWidth: number;
+  leftBackground: string;
 }
 
 export class SettingsPanel extends RenderObject {
@@ -34,13 +37,16 @@ export class SettingsPanel extends RenderObject {
   private readonly _innerStyle: InnerStyle = {
     width: 0,
     maxWidth: Skin.config.settingsPanel.width,
+    leftBackground: rgba.format([0, 0, 0, 0]),
   }
 
   constructor(container: HTMLCanvasElement) {
     super()
     this._container = container
-    let offsetY = 200
-    const ITEM_HEIGHT = 64;
+    let offsetY = py(200)
+    const ITEM_HEIGHT = py(72);
+    const offsetX = px(OFFSET_X)
+    const width = this._innerStyle.maxWidth - offsetX
     const judgementDelaySetting = new SliderSetting(container, {
       label: 'Judgement Delay',
       min: -160,
@@ -48,9 +54,9 @@ export class SettingsPanel extends RenderObject {
       value: this._settings.get('judgementDelay'),
       unit: 'ms',
       layout: {
-        offsetX: 0,
+        offsetX,
         offsetY,
-        width: this._innerStyle.maxWidth,
+        width,
         height: ITEM_HEIGHT,
       },
     })
@@ -62,9 +68,9 @@ export class SettingsPanel extends RenderObject {
       value: this._settings.get('backgroundDark'),
       unit: '%',
       layout: {
-        offsetX: 0,
+        offsetX,
         offsetY,
-        width: this._innerStyle.maxWidth,
+        width,
         height: ITEM_HEIGHT,
       },
     })
@@ -76,9 +82,9 @@ export class SettingsPanel extends RenderObject {
       value: this._settings.get('offset'),
       unit: 'ms',
       layout: {
-        offsetX: 0,
+        offsetX,
         offsetY,
-        width: this._innerStyle.maxWidth,
+        width,
         height: ITEM_HEIGHT,
       },
     })
@@ -113,7 +119,10 @@ export class SettingsPanel extends RenderObject {
     }
     this.display = true
     this.cancelTransitions()
-    await this.createTransition(this._innerStyle.width, this._innerStyle.maxWidth, TRANSITION_DURATION, 'easeOut', value => this._innerStyle.width = value)
+    await Promise.all([
+      this.createTransition(this._innerStyle.width, this._innerStyle.maxWidth, TRANSITION_DURATION, 'easeOut', value => this._innerStyle.width = value),
+      this.createTransition(this._innerStyle.leftBackground, rgba.format([0, 0, 0, 1]), TRANSITION_DURATION, 'easeOut', value => this._innerStyle.leftBackground = value)
+    ])
   }
 
   async hide() {
@@ -121,7 +130,10 @@ export class SettingsPanel extends RenderObject {
       return Promise.resolve()
     }
     this.cancelTransitions()
-    await this.createTransition(this._innerStyle.width, 0, TRANSITION_DURATION, 'easeOut', value => this._innerStyle.width = value)
+    await Promise.all([
+      this.createTransition(this._innerStyle.width, 0, TRANSITION_DURATION, 'easeOut', value => this._innerStyle.width = value),
+      this.createTransition(this._innerStyle.leftBackground, rgba.format([0, 0, 0, 0]), TRANSITION_DURATION, 'easeOut', value => this._innerStyle.leftBackground = value)
+    ])
     this.display = false
   }
 
@@ -134,6 +146,10 @@ export class SettingsPanel extends RenderObject {
     const settingsPanel = FrameSnapshot.createOffscreenCanvas(context => {
       context.fillStyle = background
       context.fillRect(0, 0, maxWidth, height)
+
+      context.fillStyle = this._innerStyle.leftBackground
+      context.fillRect(0, 0, OFFSET_X, height)
+
       this._settingsItem.forEach(({ item }) => item.render(context))
     }, maxWidth, height)
 

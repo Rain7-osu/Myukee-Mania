@@ -7,3 +7,8 @@ declare global {
     __SHOW_SCROLL_BOX__: boolean
   }
 }
+
+declare module '*.css' {
+  const value: string
+  export = value
+}

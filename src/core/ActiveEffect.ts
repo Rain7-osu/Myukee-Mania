@@ -229,7 +229,7 @@ export class ActiveEffect {
   createTransition<Value extends string | number = number>(
     startValue: Value,
     endValue: Value,
-    duration: Value,
+    duration: number,
     type: TransitionType,
     updateFn: (value: Value) => void,
   ): Promise<void> {
