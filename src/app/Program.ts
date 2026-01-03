@@ -62,6 +62,7 @@ export class Program {
    */
   _init () {
     const canvas = document.getElementById('stage') as HTMLCanvasElement
+    canvas.setAttribute('tabIndex', '0')
     canvas.style.display = 'none'
     this._canvas = canvas
     this._resize()

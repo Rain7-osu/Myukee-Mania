@@ -1,6 +1,6 @@
 import { RenderObject } from '../Core/RenderObject';
 import { Settings, SettingsKey, SettingsValue } from '../Configs/Settings';
-import type { SettingItem } from '../Interfaces/SettingItem';
+import type { ISettingItem } from '../Interfaces/ISettingItem';
 import { Skin } from '../Configs/Skin';
 import { rgba } from '../_common/utils';
 import { CANVAS, px, py } from '../Configs/Config';
@@ -21,7 +21,7 @@ export class SettingsPanel extends RenderObject {
 
   private readonly _container: HTMLCanvasElement
 
-  private readonly _settingsItem: Array<{ name: SettingsKey; item: SettingItem<string | number> }>
+  private readonly _settingsItem: Array<{ name: SettingsKey; item: ISettingItem<string | number> }>
 
   private readonly _innerStyle: InnerStyle = {
     width: 0,

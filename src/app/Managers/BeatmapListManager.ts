@@ -7,9 +7,15 @@ import { CANVAS } from '../Configs/Config';
 export class BeatmapListManager {
   private _beatmapItemMap: Map<string, BeatmapItem> = new Map()
 
-  private _selectedBeatmapItem: BeatmapItem | null = null
+  private _selected: BeatmapItem | null = null
+
+  private _focused: BeatmapItem | null = null
 
   private readonly _beatmapList: BeatmapList
+
+  private _fullBeatmapList: BeatmapItem[] = []
+
+  private _fullBeatmapItemMap: Map<string, BeatmapItem> = new Map()
 
   constructor(container: HTMLElement) {
     this._beatmapList = new BeatmapList(container)
@@ -18,15 +24,19 @@ export class BeatmapListManager {
   private loadConfigs(configs: any[]) {
     let lastBeatmap: BeatmapItem | null = null
     const result: BeatmapItem[] = []
+    const beatmapItemMap = new Map<string, BeatmapItem>()
     for (let i = 0; i < configs.length; i++) {
       const beatmap = Beatmap.fromConfig(configs[i])
       if (!beatmap) {
         continue
       }
       const beatmapItem = new BeatmapItem(beatmap)
-      this._beatmapItemMap.set(beatmap.id, beatmapItem)
+      beatmapItemMap.set(beatmap.id, beatmapItem)
       result.push(beatmapItem)
     }
+
+    this._fullBeatmapItemMap = beatmapItemMap
+    this._beatmapItemMap = beatmapItemMap
 
     const sortedBeatmaps = result.sort((a, b) => {
       if (a.beatmap.songName !== b.beatmap.songName) {
@@ -41,7 +51,8 @@ export class BeatmapListManager {
       lastBeatmap = beatmapItem
     }
 
-    this._beatmapList.beatmapItems = sortedBeatmaps
+    this._fullBeatmapList = sortedBeatmaps
+    this._beatmapList.beatmapItems = this._fullBeatmapList
   }
 
   init(configs: any[]) {
@@ -49,7 +60,11 @@ export class BeatmapListManager {
   }
 
   get selectedItem(): BeatmapItem | null {
-    return this._selectedBeatmapItem
+    return this._selected
+  }
+
+  get focusedItem(): BeatmapItem | null {
+    return this._focused
   }
 
   random(): BeatmapItem {
@@ -65,33 +80,95 @@ export class BeatmapListManager {
     const randomBeatmap = this.random()
     randomBeatmap.select()
     this._beatmapList.select(randomBeatmap)
-    this._selectedBeatmapItem = randomBeatmap
+    this._selected = randomBeatmap
+    this._focused = randomBeatmap
     return randomBeatmap
   }
 
-  selectItem(beatmapItem: BeatmapItem) {
-    this._selectedBeatmapItem?.cancelSelect()
-    beatmapItem.select()
-    this._beatmapList.select(beatmapItem)
-    this._selectedBeatmapItem = beatmapItem
+  moveToItem(beatmapItem: BeatmapItem) {
+    this._focused = beatmapItem
     this._beatmapList.scrollTo(prev => {
       const [_, top, __, height] = beatmapItem.rect()
       return prev + top + height / 2 - CANVAS.HEIGHT / 2
     })
   }
 
-  selectPrev() {
-    const last = this._selectedBeatmapItem!.last
-    if (last) {
-      this.selectItem(last)
+  select(beatmapItem: BeatmapItem) {
+    this._selected?.cancelSelect()
+    beatmapItem.select()
+    this._beatmapList.select(beatmapItem)
+    this._selected = beatmapItem
+    this._focused = beatmapItem
+    this.moveToItem(beatmapItem)
+  }
+
+  async search(text: string) {
+    if (!text) {
+      this._beatmapList.beatmapItems = this._fullBeatmapList
+      await this._beatmapList.reflow(this._selected!)
+    } else {
+      const searchedResults = this._fullBeatmapList.filter(beatmapItem => {
+        return beatmapItem.beatmap.matchSearch(text)
+      })
+
+      const newResultChanged = this._beatmapList.beatmapItems.length !== searchedResults.length || this._beatmapList.beatmapItems.some(beatmapItem => {
+        return !searchedResults.includes(beatmapItem)
+      })
+      if (newResultChanged) {
+        this._beatmapList.beatmapItems = searchedResults
+        this._beatmapItemMap = new Map(searchedResults.map(beatmapItem => [beatmapItem.beatmap.id, beatmapItem]))
+        if (searchedResults.length && searchedResults.every(beatmapItem => beatmapItem !== this._focused)) {
+          this._focused = this.random()
+        }
+        await this._beatmapList.reflow(this._focused!)
+      }
     }
   }
 
-  selectNext() {
-    const next = this._selectedBeatmapItem!.next
-    if (next) {
-      this.selectItem(next)
+  selectPrev(): BeatmapItem {
+    if (this._selected === this._focused) {
+      const last = this._selected!.last
+      if (last) {
+        this.select(last)
+        return last
+      }
+      return this._selected!
+    } else {
+      this.select(this._focused!)
+      return this._focused!
     }
+  }
+
+  selectNext(): BeatmapItem {
+    if (this._selected === this._focused) {
+      const next = this._selected!.next
+      if (next) {
+        this.select(next)
+        return next
+      }
+      return this._selected!
+    } else {
+      this.select(this._focused!)
+      return this._focused!
+    }
+  }
+
+  movePrev() {
+    const last = this._focused!.last
+    if (last) {
+      this.moveToItem(last)
+      return last
+    }
+    return this._focused
+  }
+
+  moveNext() {
+    const next = this._focused!.next
+    if (next) {
+      this.moveToItem(next)
+      return next
+    }
+    return this._focused
   }
 
   async hide() {

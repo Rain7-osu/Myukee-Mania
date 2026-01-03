@@ -1,4 +1,4 @@
-import { LayoutObject, LayoutStyle } from './LayoutObject';
+import { LayoutObject, LayoutProps } from './LayoutObject';
 import { MouseEventHandlerMap, MouseEventManager } from '../Managers/MouseEventManager';
 
 export interface ElementEvent {
@@ -23,7 +23,7 @@ export interface ElementMouseEventMap {
 
 export type ElementEventHandler = (e: ElementEvent) => void
 
-export class RenderElement extends LayoutObject {
+export abstract class RenderElement extends LayoutObject {
   private _mouseEventManager: MouseEventManager
 
   private _isMouseIn = false
@@ -41,7 +41,7 @@ export class RenderElement extends LayoutObject {
     globalClick: [],
   };
 
-  protected constructor(container: HTMLCanvasElement, layout?: LayoutStyle) {
+  protected constructor(container: HTMLElement, layout?: LayoutProps) {
     super(container, layout);
     this._mouseEventManager = new MouseEventManager(container, 'Element')
   }
@@ -148,6 +148,4 @@ export class RenderElement extends LayoutObject {
       globalClick: [],
     }
   }
-
-  override render(context: CanvasRenderingContext2D) {}
 }

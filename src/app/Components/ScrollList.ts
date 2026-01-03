@@ -71,8 +71,13 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
 
   private _scrollY: number = 0
 
+  private _reflowEffect = new ActiveEffect()
+
+  private _isReflowing: boolean = false
+
   set scrollY(scrollY: number) {
-    this._scrollY = Math.round(scrollY)
+    const [minScrollY, maxScrollY] = this._boundary()
+    this._scrollY = Math.max(Math.min(Math.round(scrollY), maxScrollY), minScrollY)
   }
 
   get scrollY(): number {
@@ -92,9 +97,9 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     inertiaX: number;
   }
 
-  private _maxScrollY: number
+  private _maxScrollY: number | null = null
 
-  private _minScrollY: number
+  private _minScrollY: number | null = null
 
   private _activeItem: ScrollItem | null
   private _activeIndex: number = -1
@@ -110,25 +115,25 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
   private _hasInit = false
   private _lastScrollY = 0
 
-  private _calcScrollYConfig(): {maxScrollY: number, minScrollY: number} {
+  private _boundary(): [number, number] {
+    if (this._minScrollY === null || this._maxScrollY === null) {
+      [this._minScrollY, this._maxScrollY] = this._layoutBoundary()
+    }
+    return [this._minScrollY, this._maxScrollY]
+  }
+
+  private _layoutBoundary(): [number, number] {
     const listItems = this.scrollItems()
-    if (typeof this._maxScrollY === 'undefined') {
-      // 临时先用列表项 + gap 直接计算出来
-      // 后续要考虑 hover 的情况
-      this._maxScrollY = listItems.reduce((prev, current) => {
-        const style = current.style
-        return prev + style.marginTop + style.height + style.marginBottom
-      }, 0) - CANVAS.HEIGHT + this._listConfig.maxDeltaScrollY
-    }
 
-    if (typeof this._minScrollY === 'undefined') {
-      this._minScrollY = -this._listConfig.minDeltaScrollY
-    }
+    // 临时先用列表项 + gap 直接计算出来
+    // 后续要考虑 hover 的情况
+    this._maxScrollY = listItems.reduce((prev, current) => {
+      const style = current.style
+      return prev + style.marginTop + style.height + style.marginBottom
+    }, 0) - CANVAS.HEIGHT + this._listConfig.maxDeltaScrollY
 
-    return {
-      maxScrollY: this._maxScrollY,
-      minScrollY: this._minScrollY,
-    }
+    this._minScrollY = -this._listConfig.minDeltaScrollY
+    return this._boundary()
   }
 
   private _checkEventCapture(e: MouseEvent): boolean {
@@ -182,7 +187,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._status.mouseMoving = true
 
     clearTimeout(this._mouseMoveTimer)
-    this._mouseMoveTimer = setTimeout(() => {
+    this._mouseMoveTimer = window.setTimeout(() => {
       // this._status.wheelEvent && this.handleMouseMove(this._status.wheelEvent)
       this._status.mouseMoving = false
     }, 100)
@@ -262,7 +267,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     const listenWheelEnd = () => {
       clearTimeout(this._wheelTimeout)
       this._status.isWheeling = true
-      this._wheelTimeout = setTimeout(() => {
+      this._wheelTimeout = window.setTimeout(() => {
         this._status.isWheeling = false
       }, 30)
     }
@@ -324,7 +329,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     return transformers
   }
 
-  hoverOutRefreshScrollItems () {
+  hoverOutRefreshScrollItems() {
     if (!this._hoveredItem || this._hoveredIndex < 0) {
       return
     }
@@ -334,7 +339,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._cancelTransitionManager.cancelHover = () => this.cancelTransitions(transformers)
   }
 
-  hoverInRefreshScrollItems () {
+  hoverInRefreshScrollItems() {
     if (!this._hoveredItem || this._hoveredIndex < 0) {
       return
     }
@@ -383,7 +388,57 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     item.offsetX = Math.min(this._listConfig.maxOffsetX, targetX)
   }
 
-  initScrollItems(centeredItem: T): void {
+  async reflow(centeredItem: T): Promise<void> {
+    if (this._hoveredItem) {
+      this._hoveredItem.hovered = false
+      this._hoveredItem = null
+      this._hoveredIndex = -1
+    }
+
+    this._layoutBoundary()
+
+    if (this._isReflowing) {
+      this._reflowEffect.cancelTransitions()
+    }
+
+    const scrollItems = this.scrollItems()
+    let offsetY = 0
+
+    const targetOffsetYMap = new Map<T, number>()
+    const startOffsetYMap = new Map<T, number>()
+
+
+    for (const scrollItem of scrollItems) {
+      const { marginTop, marginBottom, height } = scrollItem.currentStyle
+      // 需要注意这里是否需要改回 i > 0 时在 + marginTop
+      offsetY += marginTop
+      scrollItem.translateX = scrollItem.currentStyle.left - scrollItem.style.left
+      targetOffsetYMap.set(scrollItem, offsetY)
+      startOffsetYMap.set(scrollItem, scrollItem.offsetY)
+      offsetY += height + marginBottom
+    }
+
+    const startScrollY = this.scrollY
+    const targetScrollY = targetOffsetYMap.get(centeredItem) - CANVAS.HEIGHT / 2
+
+    this._isReflowing = true
+    await this._reflowEffect.createTransition<number>(0, 100, 800, 'easeOut', (value: number) => {
+      const scrollY = startScrollY + (targetScrollY - startScrollY) * value / 100;
+      this.scrollY = targetScrollY
+      for (const scrollItem of scrollItems) {
+        const start = startOffsetYMap.get(scrollItem)
+        const target = targetOffsetYMap.get(scrollItem)
+        const distance = target - start;
+        const delta = distance * value / 100
+        scrollItem.offsetY = start + delta
+        scrollItem.scrollY = scrollY
+        this._scrollSetOffsetX(scrollItem)
+      }
+    })
+    this._isReflowing = false
+  }
+
+  layout(centeredItem: T): void {
     this._hasInit = true
     if (this._hoveredItem) {
       this._hoveredItem.hovered = false
@@ -391,7 +446,6 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
       this._hoveredIndex = -1
     }
 
-    /** @type {ScrollItem[]} */
     const scrollItems = this.scrollItems()
     let offsetY = 0
 
@@ -407,8 +461,6 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     }
 
     this.scrollY = centeredItem.offsetY - CANVAS.HEIGHT / 2
-    const { maxScrollY, minScrollY } = this._calcScrollYConfig()
-    this.scrollY = Math.max(Math.min(this._scrollY, maxScrollY), minScrollY)
 
     for (let i = 0; i < scrollItems.length; i++) {
       const scrollItem = scrollItems[i]
@@ -417,7 +469,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     }
   }
 
-  _refreshHoverWhenScroll () {
+  _refreshHoverWhenScroll() {
     if (this._status.mouseEvent && this._status.velocity < 3) {
       this._refreshHoverStatus(this._status.mouseEvent)
     }
@@ -425,9 +477,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
 
   private _updateScroll(): void {
     if (Math.abs(this._status.velocity) > 0) {
-      this._scrollY += this._status.velocity
-      const { maxScrollY, minScrollY } = this._calcScrollYConfig()
-      this.scrollY = Math.max(Math.min(this._scrollY, maxScrollY), minScrollY)
+      this.scrollY += this._status.velocity
       this._status.velocity *= this._listConfig.friction
 
       if (Math.abs(this._status.velocity) < 0.1) {
@@ -437,7 +487,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     }
   }
 
-  _refreshItemsScrollY () {
+  _refreshItemsScrollY() {
     /** @type {ScrollItem[]} */
     const items = this.scrollItems()
     for (const item of items) {
@@ -483,27 +533,36 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
   }
 
   updateTransition(now: number): void {
-    if (this._status.velocity !== 0) {
-      this._updateScroll()
+    if (this.scrollItems().length) {
+      if (this._isReflowing) {
+        this._reflowEffect.updateTransition(now)
+        return
+      }
+
+      if (this._status.velocity !== 0) {
+        this._updateScroll()
+      }
+      super.updateTransition(now)
+      this._activeEffects.inertia.updateTransition(now)
+      if (this._scrollY !== this._lastScrollY && !this._autoScrolling) {
+        this._refreshItemsScrollY()
+        this._lastScrollY = this._scrollY
+      } else if (this._autoScrolling) {
+        this._refreshItemsScrollY()
+      }
+      // 不能调顺序
+      this._refreshItemsScrollX()
+      const scrollItems = this.scrollItems()
+      scrollItems.forEach(item => item.updateEffect(now))
     }
-    super.updateTransition(now)
-    this._activeEffects.inertia.updateTransition(now)
-    if (this._scrollY !== this._lastScrollY && !this._autoScrolling) {
-      this._refreshItemsScrollY()
-      this._lastScrollY = this._scrollY
-    } else if (this._autoScrolling) {
-      this._refreshItemsScrollY()
-    }
-    // 不能调顺序
-    this._refreshItemsScrollX()
-    const scrollItems = this.scrollItems()
-    scrollItems.forEach(item => item.updateEffect(now))
   }
 
   render(context: CanvasRenderingContext2D): void {
     const scrollItems = this.scrollItems()
-    scrollItems.forEach(item => item.render(context))
-    this._renderScrollBar(context)
+    if (scrollItems.length > 0) {
+      scrollItems.forEach(item => item.render(context))
+      this._renderScrollBar(context)
+    }
   }
 
   private _renderScrollBar(context: CanvasRenderingContext2D): void {
@@ -526,7 +585,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._status.inertiaX = 0
     this._status.mouseMoving = false
     let targetScrollY = typeof scrollY === 'function' ? scrollY(this._scrollY) : scrollY
-    const { minScrollY, maxScrollY } = this._calcScrollYConfig()
+    const [minScrollY, maxScrollY] = this._boundary()
     targetScrollY = Math.min(Math.max(minScrollY, targetScrollY), maxScrollY)
     this._cancelTransitionManager.cancelScrollTo()
     this._autoScrolling = true

@@ -1,4 +1,4 @@
-export interface SettingItem<T extends number | string> {
+export interface ISettingItem<T extends number | string> {
   onChange(callback: (value: T) => void): void
 
   registerEvents(): void

@@ -32,6 +32,10 @@ export class BeatmapList extends ScrollList<BeatmapItem> {
     this._beatmapItems = beatmapItems
   }
 
+  get beatmapItems(): BeatmapItem[] {
+    return this._beatmapItems
+  }
+
   scrollItems(): BeatmapItem[] {
     return this._beatmapItems
   }

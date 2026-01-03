@@ -1,6 +1,6 @@
 import { RenderObject } from './RenderObject';
 
-export interface LayoutStyle {
+export interface LayoutProps {
   width: number
   height: number
   offsetX: number
@@ -10,9 +10,9 @@ export interface LayoutStyle {
 }
 
 export abstract class LayoutObject extends RenderObject {
-  protected container: HTMLCanvasElement
+  protected container: HTMLElement
 
-  private _layout: LayoutStyle = {
+  private _layout: LayoutProps = {
     width: 0,
     height: 0,
     offsetX: 0,
@@ -21,7 +21,7 @@ export abstract class LayoutObject extends RenderObject {
     translateY: 0,
   }
 
-  protected constructor(container: HTMLCanvasElement, layout?: Partial<LayoutStyle>) {
+  protected constructor(container: HTMLElement, layout?: Partial<LayoutProps>) {
     super()
     this.container = container
     Object.assign(this._layout, layout)
@@ -36,11 +36,11 @@ export abstract class LayoutObject extends RenderObject {
     ]
   }
 
-  get layout(): LayoutStyle {
+  get layout(): LayoutProps {
     return this._layout
   }
 
-  set layout(style: LayoutStyle) {
+  set layout(style: LayoutProps) {
     this._layout = style
   }
 
@@ -82,5 +82,13 @@ export abstract class LayoutObject extends RenderObject {
 
   set translateX(value: number) {
     this._layout.translateX = Math.round(value)
+  }
+
+  get translateY(): number {
+    return this._layout.translateY
+  }
+
+  set translateY(value: number) {
+    this._layout.translateY = Math.round(value)
   }
 }

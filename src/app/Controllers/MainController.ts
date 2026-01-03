@@ -12,7 +12,7 @@ import { PauseMenu } from '../Views/PauseMenu';
 import { StageController } from './StageController';
 import { Settings } from '../Configs/Settings';
 import { AudioManager } from '../Managers/AudioManager';
-import { KeyboardEventManager } from '../Managers/KeyboardEventManager';
+import { KeyboardEventHandler, KeyboardEventManager } from '../Managers/KeyboardEventManager';
 import { MouseEventManager } from '../Managers/MouseEventManager';
 import { ValueChangeEffect } from '../Effects/ValueChangeEffect';
 import { Cursor } from '../Views/Cursor';
@@ -28,11 +28,13 @@ import { RateChangeEffect } from '../Effects/RateChangeEffect';
 import type { Beatmap } from '../Models/Beatmap';
 import { KeyCode } from '../Enums/KeyCode';
 import { MAX_SPEED, MIN_SPEED } from '../Configs/Config';
+import { MainSearch } from '../Components/MainSearch';
+import type { IMainController } from '../Interfaces/IMainController';
 
 /**
  * 主界面管理器
  */
-export class MainController {
+export class MainController implements IMainController {
   private readonly _layoutEngine: LayoutRenderEngine
 
   private _loadingEffect = new Loading()
@@ -99,6 +101,8 @@ export class MainController {
 
   private readonly _modsInfo: ModsInfoEffect
 
+  private readonly _mainSearch: MainSearch
+
 
   constructor(canvas: HTMLCanvasElement, entry: HTMLElement) {
     if (!canvas) {
@@ -116,12 +120,13 @@ export class MainController {
     this._mouseEventManager = new MouseEventManager(canvas, 'MainController')
     this._stageController = new StageController(canvas, this, this._layoutEngine)
     this._rankingBoard = new RankingBoard(canvas, this)
-    this._beatmapListManager = new BeatmapListManager(canvas)
     this._backButton = new BackButton(canvas, this)
     this._modsPanel = new ModsPanel(canvas, this)
     this._pauseMenu = new PauseMenu(canvas, this)
     this._mainFooter = new MainFooter(canvas, this)
+    this._mainSearch = new MainSearch(canvas, this)
     this._mainHeader = new MainHeader(speed)
+    this._beatmapListManager = new BeatmapListManager(canvas)
     this._settingsPanel = new SettingsPanel(canvas)
     this._modsInfo = new ModsInfoEffect()
     this._cursor = new Cursor()
@@ -181,7 +186,12 @@ export class MainController {
     this._registerKeyboardEvents()
     this._registerMouseEvents()
     this._registerFooterEvents()
+    this._registerMainSearchEvents()
     this.loopFrame()
+  }
+
+  _registerMainSearchEvents() {
+    this._mainSearch.registerEvents()
   }
 
   _registerBackButtonEvents() {
@@ -227,6 +237,7 @@ export class MainController {
     this._backButton.disableEvents()
     this._mainFooter.disableEvents()
     this._modsPanel.enableEvents()
+    this._mainSearch.disableEvents()
     await this._modsPanel.show()
   }
 
@@ -281,6 +292,7 @@ export class MainController {
     this._backButton.cancelAnimations()
     this._backButton.disableEvents()
     this._mainFooter.disableEvents()
+    this._mainSearch.disableEvents()
     this._keyboardEventManager.disableEvents()
     this._mouseEventManager.disableEvents()
     this._beatmapListManager.beatmapList.disableEvents()
@@ -299,7 +311,7 @@ export class MainController {
   }
 
   async selectBeatmapItem(beatmapItem: BeatmapItem) {
-    this._beatmapListManager.selectItem(beatmapItem)
+    this._beatmapListManager.select(beatmapItem)
     await Promise.all([
       this._mainHeader.setBeatmap(beatmapItem.beatmap),
       this._flashLightEffect.flash(),
@@ -308,13 +320,23 @@ export class MainController {
     ])
   }
 
+  async selectPrev() {
+    const beatmapItem = this._beatmapListManager.selectPrev()
+    await this.selectBeatmapItem(beatmapItem)
+  }
+
+  async selectNext() {
+    const beatmapItem = this._beatmapListManager.selectNext()
+    await this.selectBeatmapItem(beatmapItem)
+  }
+
   /**
    * 启动的主函数
    * @private
    */
   async run() {
     this._cursor.show()
-    this._beatmapListManager.beatmapList.initScrollItems(this._beatmapListManager.selectedItem!)
+    this._beatmapListManager.beatmapList.layout(this._beatmapListManager.selectedItem!)
 
     /**
      * @param item {BeatmapItem}
@@ -345,16 +367,19 @@ export class MainController {
   }
 
   _registerKeyboardEvents() {
-    /** @type {KeyboardEventHandler} */
-    const handleEnter = async e => {
+    const handleEnter: KeyboardEventHandler = async e => {
       e.preventDefault()
       if (!this._playing) {
-        await this.preparePlay(this._beatmapListManager.selectedItem!.beatmap)
+        if (this._beatmapListManager.selectedItem === this._beatmapListManager.focusedItem) {
+          await this.preparePlay(this._beatmapListManager.selectedItem!.beatmap)
+        } else {
+          await this.selectBeatmapItem(this._beatmapListManager.focusedItem!)
+        }
       } else if (this._playing && this._paused) {
       }
     }
-    /** @type {KeyboardEventHandler} */
-    const handleRandom = e => {
+
+    const handleRandom: KeyboardEventHandler = e => {
       if (e.shiftKey) {
         this.lastRandom()
       } else {
@@ -362,10 +387,7 @@ export class MainController {
       }
     }
 
-    /**
-     * @type {Record<KeyCode, KeyboardEventHandler>}
-     */
-    const keydownEventList = {
+    const keydownEventList: Record<string, KeyboardEventHandler> = {
       [KeyCode.ENTER]: handleEnter,
       [KeyCode.NUMPAD_ENTER]: handleEnter,
       [KeyCode.O]: e => {
@@ -378,8 +400,10 @@ export class MainController {
           // input o
         }
       },
-      // [KeyCode.ARROW_UP]: () => this._beatmapListManager.selectPrev(),
-      // [KeyCode.ARROW_DOWN]: () => this._beatmapListManager.selectNext(),
+      [KeyCode.ARROW_LEFT]: () => this.selectPrev(),
+      [KeyCode.ARROW_RIGHT]: () => this.selectNext(),
+      [KeyCode.ARROW_UP]: () => this._beatmapListManager.movePrev(),
+      [KeyCode.ARROW_DOWN]: () => this._beatmapListManager.moveNext(),
       [KeyCode.ESCAPE]: () => {
         if (this._playing) {
           if (this._paused) {
@@ -390,7 +414,9 @@ export class MainController {
         } else if (this._settingsPanel.display) {
           this.hideSettingsPanel()
         } else {
-          this.exit()
+          if (!this._mainSearch.value) {
+            this.exit()
+          }
         }
       },
       [KeyCode.F1]: () => this.showModsPanel(),
@@ -430,12 +456,16 @@ export class MainController {
     this._backButton.scene = 'settings'
     this._settingsPanel.show()
     this._settingsPanel.registerEvents()
+    this._mainFooter.disableEvents()
+    this._mainSearch.disableEvents()
   }
 
   hideSettingsPanel() {
     this._settingsPanel.hide()
     this._backButton.scene = 'main'
     this._settingsPanel.removeEvents()
+    this._mainFooter.enableEvents()
+    this._mainSearch.enableEvents()
   }
 
   _registerMouseEvents() {
@@ -574,6 +604,7 @@ export class MainController {
       this._modsInfo.updateEffect(now)
       this._settingsPanel.updateEffect(now)
       this._modsPanel.updateEffect(now)
+      this._mainSearch.updateEffect(now)
     }
 
     if (this._paused || this._stageController.failed) {
@@ -626,6 +657,7 @@ export class MainController {
       this._layoutEngine.renderObject(this._settingsPanel)
       this._layoutEngine.renderObject(this._backButton)
       this._layoutEngine.renderObject(this._modsPanel)
+      this._layoutEngine.renderObject(this._mainSearch)
     }
 
     this._layoutEngine.renderObject(this._flashLightEffect)
@@ -703,5 +735,9 @@ export class MainController {
    */
   async loadSongList() {
     return await fetch('/beatmaps.json').then(res => res.json())
+  }
+
+  search(searchText: string): void {
+    this._beatmapListManager.search(searchText)
   }
 }

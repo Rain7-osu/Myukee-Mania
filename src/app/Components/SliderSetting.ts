@@ -1,6 +1,6 @@
 import type { SliderSelectorProps } from './SliderSelector';
 import { px, py } from '../Configs/Config';
-import type { SettingItem } from '../Interfaces/SettingItem';
+import type { ISettingItem } from '../Interfaces/ISettingItem';
 import { SliderSelector } from './SliderSelector';
 import { RenderElement } from '../Core/RenderElement';
 
@@ -13,7 +13,7 @@ export interface SliderSettingProps extends SliderSelectorProps {
   label?: string
 }
 
-export class SliderSetting extends RenderElement implements SettingItem<number> {
+export class SliderSetting extends RenderElement implements ISettingItem<number> {
   private _selector: SliderSelector
 
   private readonly _label: string

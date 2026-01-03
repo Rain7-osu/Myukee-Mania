@@ -1,4 +1,4 @@
-import type { LayoutStyle } from '../Core/LayoutObject';
+import type { LayoutProps } from '../Core/LayoutObject';
 import { ElementEvent, RenderElement } from '../Core/RenderElement';
 import { MouseTip } from './MouseTip';
 import { KeyboardEventManager } from '../Managers/KeyboardEventManager';
@@ -14,7 +14,7 @@ export interface SliderSelectorProps {
   min?: number
   value?: number
   unit?: string
-  layout?: Partial<LayoutStyle>
+  layout?: Partial<LayoutProps>
 }
 
 interface Status {

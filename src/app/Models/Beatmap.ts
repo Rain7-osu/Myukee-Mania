@@ -1,5 +1,10 @@
 import { FileManager } from '../Managers/FileManager'
 
+const filterPattern = /^(key|length|creator)(!?=|>=?|<=?|)(\w+)$/
+
+type FilterSymbol =  '=' | '>' | '<' | '>=' | '<=' | '!='
+type FilterKey = 'key' | 'length' | 'creator'
+
 export class Beatmap {
   private readonly _artist: string
   private readonly _title: string
@@ -102,6 +107,72 @@ export class Beatmap {
     return this._od
   }
 
+  get searchQuery() {
+    return `${this.songName} ${this.creator} ${this.description} ${this._version}`
+  }
+
+  matchSearch(query: string) {
+    const words = query.toLowerCase().trim().replace('  ', ' ').split(' ')
+    return words.every(word => {
+      const matched = word.match(filterPattern);
+      if (matched) {
+        console.log('matched:', matched)
+        const [_, key, symbol, value] = matched as [string, FilterKey, FilterSymbol, string]
+        switch (key) {
+          case 'key': {
+            if (Number.isNaN( value)) {
+              return false
+            }
+            console.log(typeof this.keys);
+            switch (symbol) {
+              case '=':
+                return this.keys === Number(value)
+              case '>':
+                return this.keys > Number(value)
+              case '<':
+                return this.keys < Number(value)
+              case '>=':
+                return this.keys >= Number(value)
+              case '<=':
+                return this.keys <= Number(value)
+              case '!=':
+                return this.keys !== Number(value)
+              default:
+                return false
+            }
+          }
+          case 'length': {
+            if (Number.isNaN( value)) {
+              return false
+            }
+            switch ( symbol) {
+              case '=':
+                return this.length === Number(value)
+              case '>':
+                return this.length > Number(value)
+              case '<':
+                return this.length < Number(value)
+              case '>=':
+                return this.length >= Number(value)
+              case '<=':
+                return this.length <= Number(value)
+              case '!=':
+                return this.length !== Number(value)
+              default:
+                return false
+            }
+          }
+          case 'creator':
+            if (symbol != '=') {
+              return !this.creator.toLowerCase().includes(value)
+            }
+            return this.creator.toLowerCase().includes(value)
+        }
+      }
+      return this.searchQuery.toLowerCase().includes(word)
+    })
+  }
+
   private constructor({
     artist,
     title,
@@ -164,18 +235,18 @@ export class Beatmap {
       title: config.Metadata.Title,
       version: config.Metadata.Version,
       audioFilename: config.Path.Directory + '/' + config.General.AudioFilename,
-      previewTime: config.General.PreviewTime,
+      previewTime: +config.General.PreviewTime,
       beatmapId: config.Metadata.BeatmapID,
       creator: config.Metadata.Creator,
       bg: config.Path.Directory + '/' + config.Path.BgName,
       filename: config.Path.Directory + '/' + config.Path.Filename,
-      starRating: config.Difficulty.StarRating,
-      length: config.Difficulty.Length,
-      hp: config.Difficulty.HPDrainRate,
-      keys: config.Difficulty.CircleSize,
-      od: config.Difficulty.OverallDifficulty,
-      circles: config.HitObjects.Circles,
-      sliders: config.HitObjects.Sliders,
+      starRating: +config.Difficulty.StarRating,
+      length: +config.Difficulty.Length,
+      hp: +config.Difficulty.HPDrainRate,
+      keys: +config.Difficulty.CircleSize,
+      od: +config.Difficulty.OverallDifficulty,
+      circles: +config.HitObjects.Circles,
+      sliders: +config.HitObjects.Sliders,
     })
   }
 }

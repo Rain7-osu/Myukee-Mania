@@ -5,6 +5,8 @@ import { Skin } from '../Configs/Skin';
 import { CANVAS, px, py, vw } from '../Configs/Config';
 import { formatMapTime, rgba } from '../_common/utils';
 
+const HIDE_DURATION = 600
+const HIDE_TOP = -280
 const TRANSITION_DURATION = 200
 const BG_COLOR = 'rgb(0, 0, 0)'
 const BORDER_COLOR = 'rgb(0, 102, 255)'
@@ -40,15 +42,14 @@ export class MainHeader extends RenderObject {
     if (this._translateY === -260) {
       return Promise.resolve()
     }
-    await this.createTransition(this._translateY, -280, 600, 'easeOut', value => this._translateY = value)
-
+    await this.createTransition(this._translateY, HIDE_TOP, HIDE_DURATION, 'easeOut', value => this._translateY = value)
   }
 
   async show() {
     if (this._translateY === 0) {
       return Promise.resolve()
     }
-    await this.createTransition(this._translateY, 0, 600, 'easeOut', value => this._translateY = value)
+    await this.createTransition(this._translateY, 0, HIDE_DURATION, 'easeOut', value => this._translateY = value)
   }
 
   async setBeatmap(beatmap: Beatmap) {
