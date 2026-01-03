@@ -1,4 +1,4 @@
-declare global {
+export declare global {
   interface Window {
     __FORCE_FINISH__: boolean
     __DEV__: boolean
@@ -6,9 +6,15 @@ declare global {
     __MOUSE_MOVE__SOURCE__: string
     __SHOW_SCROLL_BOX__: boolean
   }
+
+  interface ImportMeta {
+    env: {
+      DEV: boolean
+    }
+  }
 }
 
-declare module '*.css' {
+export declare module '*.css' {
   const value: string
   export = value
 }

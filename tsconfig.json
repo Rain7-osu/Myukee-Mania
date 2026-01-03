@@ -24,12 +24,14 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "noImplicitAny": true
+    "noImplicitAny": true,
+    "typeRoots": [
+      "./src/index.d.ts"
+    ]
   },
   "include": [
     "src/**/*.js",
-    "src/**/*.ts",
-    "src/**/*.d.ts"
+    "src/**/*.ts"
   ],
   "exclude": [
     "node_modules",

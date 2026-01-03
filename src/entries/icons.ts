@@ -1,5 +1,5 @@
-import { ATIcon, DTIcon, EZIcon, FLIcon, RDIcon } from '../core/Icons'
-import { FrameSnapshot } from '../core/FrameSnapshot.js'
+import { ATIcon, DTIcon, EZIcon, FLIcon, RDIcon } from '../app/Icons'
+import { FrameSnapshot } from '../app/Core/FrameSnapshot';
 
 function main () {
   FrameSnapshot.init(window.screen.width, window.screen.height)

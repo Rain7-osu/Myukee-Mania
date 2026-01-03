@@ -1,0 +1,16 @@
+export const enum Mod {
+  DT = 'DT',
+  NC = 'NC',
+  HR = 'HR',
+  FD = 'FD',
+  HD = 'HD',
+  FL = 'FL',
+  SD = 'SD',
+  PF = 'PF',
+  HT = 'HT',
+  EZ = 'EZ',
+  NF = 'NF',
+  MR = 'MR',
+  RD = 'RD',
+  AT = 'AT',
+}
