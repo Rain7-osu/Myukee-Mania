@@ -185,7 +185,7 @@ export class MainController {
   }
 
   _registerBackButtonEvents() {
-    this._backButton.initEvents()
+    this._backButton.registerEvents()
   }
 
   hideRankingBoard() {

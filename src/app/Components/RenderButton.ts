@@ -29,7 +29,7 @@ interface ButtonStyle {
   shadowBlur?: number
 }
 
-export class BaseButton extends RenderObject {
+export class RenderButton extends RenderObject {
   private _mouseEventManager: MouseEventManager
 
   private readonly _style: ButtonStyle
@@ -157,7 +157,7 @@ export class BaseButton extends RenderObject {
   }
 
   private async _processColorTransition(targetColor: string) {
-    await this.createTransition(this._background, targetColor, TRANSITION_DURATION, 'easeOut', color => this._background = color)
+    await this.createTransition(this._background!, targetColor, TRANSITION_DURATION, 'easeOut', color => this._background = color)
   }
 
   protected onClick(): void {}
@@ -169,9 +169,9 @@ export class BaseButton extends RenderObject {
   async hover() {
     this.hovered = true
     this.cancelTransitions()
-    const { hoverBackground, hoverScale } = this._style
+    const { hoverBackground, background, hoverScale } = this._style
     const results = []
-    if (hoverBackground) {
+    if (hoverBackground && background) {
       results.push(this._processColorTransition(hoverBackground))
     }
     if (hoverScale) {
@@ -186,8 +186,8 @@ export class BaseButton extends RenderObject {
 
     const { hoverBackground, hoverScale, background } = this._style
     const results = []
-    if (hoverBackground) {
-      results.push(this._processColorTransition(background!))
+    if (hoverBackground && background) {
+      results.push(this._processColorTransition(background))
     }
     if (hoverScale) {
       results.push(this.createTransition(this._scale, 100, TRANSITION_DURATION, 'easeOut', value => this._scale = value))
@@ -198,10 +198,10 @@ export class BaseButton extends RenderObject {
   async activeIn() {
     this.hovered = true
     this.cancelTransitions()
-    const { activeBackground, hoverScale } = this._style
+    const { activeBackground, hoverScale, background } = this._style
 
     const results = []
-    if (activeBackground) {
+    if (activeBackground && background) {
       results.push(this._processColorTransition(activeBackground))
     }
     if (hoverScale) {
@@ -216,8 +216,8 @@ export class BaseButton extends RenderObject {
 
     const { activeBackground, hoverScale, background, hoverBackground } = this._style
     const results = []
-    if (activeBackground) {
-      results.push(this._processColorTransition(this.hovered ? hoverBackground! : background!))
+    if (activeBackground && background) {
+      results.push(this._processColorTransition(this.hovered ? hoverBackground! : background))
     }
     if (hoverScale) {
       results.push(this.createTransition(this._scale, 100, TRANSITION_DURATION, 'easeOut', value => this._scale = value))

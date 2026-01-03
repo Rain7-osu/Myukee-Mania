@@ -1,4 +1,4 @@
-import { BaseButton } from './BaseButton'
+import { RenderButton } from './RenderButton'
 import type { Mod } from '../Enums/Mod';
 import type { KeyCode } from '../Enums/KeyCode';
 import type { ModsPanel } from '../Views/ModsPanel';
@@ -14,7 +14,7 @@ export interface ModButtonConfig {
   height: number
 }
 
-export class ModButton extends BaseButton {
+export class ModButton extends RenderButton {
   private readonly _mod: Mod | Mod[]
 
   private _description: string | string[]
@@ -68,15 +68,6 @@ export class ModButton extends BaseButton {
     this.click()
     this._modPanel._updateMods(this)
   }
-
-  // registerEvents(eventMap: { onClick?: () => void }): void {
-  //   super.registerEvents({
-  //     onClick: () => {
-  //       this.click()
-  //       eventMap.onClick?.()
-  //     },
-  //   })
-  // }
 
   setValue(mod: Mod | null): void {
     const valueList: (Mod | null)[] = [null, ...(Array.isArray(this._mod) ? this._mod : [this._mod])]

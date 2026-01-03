@@ -33,52 +33,57 @@ export class MainFooter extends RenderObject {
       borderColor: 'rgb(150, 64, 255)',
       hoverStartColor: 'rgb(138, 59, 238)',
       hoverEndColor: 'rgb(53, 22, 90)',
-    }, 0, 1.2)
+      index: 0,
+      widthScale: 1.2,
+      id: 'Mode',
+    }, this)
     this._modsButton = new FooterMenuButton(container, {
       text: 'Mods',
       key: 'F1',
       borderColor: 'rgb(171, 88, 166)',
       hoverStartColor: 'rgb(213, 71, 173)',
       hoverEndColor: 'rgb(79, 27, 65)',
-    }, 1.2)
+      index: 1.2,
+      id: 'Mods',
+    }, this)
     this._randomButton = new FooterMenuButton(container, {
       text: 'Random',
       key: 'F2',
       borderColor: 'rgb(150, 228, 1)',
       hoverStartColor: 'rgb(142, 215, 0)',
       hoverEndColor: 'rgb(53, 80, 1)',
-    }, 2.2)
+      index: 2.2,
+      id: 'Random',
+    }, this)
     this._beatmapOptionButton = new FooterMenuButton(container, {
       text: 'Beatmap\nOptions',
       key: 'F3',
       borderColor: 'rgb(2, 163, 250)',
       hoverStartColor: 'rgb(1, 151, 238)',
       hoverEndColor: 'rgb(1, 59, 91)',
-    }, 3.2)
+      index: 3.2,
+      id: 'BeatmapOptions',
+    }, this)
+  }
+
+  clickFooter(id: string) {
+    if (id === 'Mods') {
+      this._mainController.showModsPanel()
+      this._modsButton.hoverOut()
+    } else if (id === 'Random') {
+      this._mainController.random()
+    } else if (id === 'BeatmapOptions') {
+      console.log('beatmapOption')
+    } else if (id === 'Mode') {
+      console.log('modeButton')
+    }
   }
 
   registerEvents() {
-    this._modeButton.registerEvents({
-      onClick: () => {
-        console.log('modeButton')
-      },
-    })
-    this._modsButton.registerEvents({
-      onClick: () => {
-        this._mainController.showModsPanel()
-        this._modsButton.hoverOut()
-      },
-    })
-    this._randomButton.registerEvents({
-      onClick: () => {
-        this._mainController.random()
-      },
-    })
-    this._beatmapOptionButton.registerEvents({
-      onClick: () => {
-        console.log('beatmapOption')
-      },
-    })
+    this._modeButton.registerEvents()
+    this._modsButton.registerEvents()
+    this._randomButton.registerEvents()
+    this._beatmapOptionButton.registerEvents()
   }
 
   removeEvents() {

@@ -1,4 +1,4 @@
-import { BaseButton } from './BaseButton';
+import { RenderButton } from './RenderButton';
 import { Skin } from '../Configs/Skin';
 import { CANVAS, py } from '../Configs/Config';
 import { RenderObject } from '../Core/RenderObject';
@@ -7,7 +7,7 @@ type Scene = 'main' | 'result' | 'settings'
 
 const TRANSITION_DURATION = 100
 
-export class BackButton extends BaseButton {
+export class BackButton extends RenderButton {
   private readonly _defaultWidth: number = 200
 
   private _currentBackground: string = 'rgb(238, 52, 153, 1)'
@@ -79,20 +79,16 @@ export class BackButton extends BaseButton {
     await this.createTransition(this._translateY, 0, 100, 'easeOut', (value: number) => this._translateY = value)
   }
 
-  initEvents(): void {
-    this.registerEvents({
-      onClick: async () => {
-        if (this.scene === 'result') {
-          await this._mainController.fadeOut()
-          this._mainController.hideRankingBoard()
-          await this._mainController.backMain()
-        } else if (this._scene === 'settings') {
-          await this._mainController.hideSettingsPanel()
-        } else {
-          await this._mainController.exit()
-        }
-      },
-    })
+  protected override async onClick() {
+    if (this.scene === 'result') {
+      await this._mainController.fadeOut()
+      this._mainController.hideRankingBoard()
+      await this._mainController.backMain()
+    } else if (this._scene === 'settings') {
+      await this._mainController.hideSettingsPanel()
+    } else {
+      await this._mainController.exit()
+    }
   }
 
   rect(): [number, number, number, number] {

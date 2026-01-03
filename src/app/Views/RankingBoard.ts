@@ -1,7 +1,7 @@
 import { RenderObject } from '../Core/RenderObject';
 import { ScoreEffect } from '../Effects/ScoreEffect';
 import { RankingEffect } from '../Effects/RankingEffect';
-import { BaseButton } from '../Components/BaseButton';
+import { RenderButton } from '../Components/RenderButton';
 import { KeyboardEventManager } from '../Managers/KeyboardEventManager';
 import { Skin } from '../Configs/Skin';
 import { KeyCode } from '../Enums/KeyCode';
@@ -30,8 +30,8 @@ export class RankingBoard extends RenderObject {
 
   private _rankingEffect: RankingEffect
 
-  private _retryButton: BaseButton
-  private _watchReplayButton: BaseButton
+  private _retryButton: RenderButton
+  private _watchReplayButton: RenderButton
   private _hasRegistered: boolean = false
 
   private _mainController: any
@@ -69,7 +69,7 @@ export class RankingBoard extends RenderObject {
       top: rankingTop,
       scale: rankingScale,
     })
-    this._retryButton = new BaseButton(container, {
+    this._retryButton = new RenderButton(container, {
       width: retry.width,
       height: retry.height,
       text: retry.text,
@@ -82,7 +82,7 @@ export class RankingBoard extends RenderObject {
       fontSize: retry.fontSize,
       hoverScale: 100,
     })
-    this._watchReplayButton = new BaseButton(container, {
+    this._watchReplayButton = new RenderButton(container, {
       width: watchReplay.width,
       height: watchReplay.height,
       left: watchReplay.left,

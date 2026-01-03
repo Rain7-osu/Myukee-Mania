@@ -1,6 +1,6 @@
 import { RenderObject } from '../Core/RenderObject';
 import { KeyboardEventManager } from '../Managers/KeyboardEventManager';
-import { BaseButton } from '../Components/BaseButton';
+import { RenderButton } from '../Components/RenderButton';
 import type { MainController } from '../Controllers/MainController';
 import { Skin } from '../Configs/Skin';
 import { KeyCode } from '../Enums/KeyCode';
@@ -8,9 +8,9 @@ import { CANVAS, py } from '../Configs/Config';
 
 export class PauseMenu extends RenderObject {
   private _keyboardEventManager = new KeyboardEventManager()
-  private _resumeButton: BaseButton
-  private _retryButton: BaseButton
-  private _backButton: BaseButton
+  private _resumeButton: RenderButton
+  private _retryButton: RenderButton
+  private _backButton: RenderButton
 
   private _alpha = 0
 
@@ -59,7 +59,7 @@ export class PauseMenu extends RenderObject {
     } = Skin.config.pauseMenu.buttons
 
     let offsetY = top
-    this._resumeButton = new BaseButton(container, {
+    this._resumeButton = new RenderButton(container, {
       left,
       top: offsetY,
       width,
@@ -73,7 +73,7 @@ export class PauseMenu extends RenderObject {
       hoverScale: 105,
     })
     offsetY += gap + height
-    this._retryButton = new BaseButton(container, {
+    this._retryButton = new RenderButton(container, {
       left,
       top: offsetY,
       width,
@@ -87,7 +87,7 @@ export class PauseMenu extends RenderObject {
       hoverScale: 105,
     })
     offsetY += gap + height
-    this._backButton = new BaseButton(container, {
+    this._backButton = new RenderButton(container, {
       left,
       top: offsetY,
       width,

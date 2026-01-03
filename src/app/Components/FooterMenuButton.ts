@@ -2,7 +2,8 @@ import { rgba } from '../_common/utils'
 import { CANVAS, vw, vh } from '../Configs/Config'
 import { Skin } from '../Configs/Skin'
 import { RenderObject } from '../Core/RenderObject'
-import { BaseButton } from './BaseButton'
+import { RenderButton } from './RenderButton'
+import type { MainFooter } from '../Views/MainFooter';
 
 const TRANSITION_DURATION = 300
 
@@ -12,9 +13,12 @@ export interface FooterMenuConfig {
   borderColor: string
   hoverStartColor: string
   hoverEndColor: string
+  index: number
+  widthScale?: number
+  id: string
 }
 
-export class FooterMenuButton extends BaseButton {
+export class FooterMenuButton extends RenderButton {
   private readonly _config: FooterMenuConfig
 
   private _currentBorderColor: string
@@ -27,9 +31,11 @@ export class FooterMenuButton extends BaseButton {
 
   private _translateY: number = 0
 
+  private _mainFooter: MainFooter
+
   set translateY(y: number) { this._translateY = y}
 
-  constructor(container: HTMLCanvasElement, config: FooterMenuConfig, index: number, widthScale: number = 1) {
+  constructor(container: HTMLCanvasElement, config: FooterMenuConfig, mainFooter: MainFooter) {
     const {
       menus: {
         left: LEFT,
@@ -43,11 +49,12 @@ export class FooterMenuButton extends BaseButton {
       height: FOOTER_HEIGHT,
     } = Skin.config.main.footer
     super(container, {
-      left: LEFT + index * BUTTON_WIDTH + index * BUTTON_GAP,
+      left: LEFT + config.index * BUTTON_WIDTH + config.index * BUTTON_GAP,
       top: CANVAS.HEIGHT - FOOTER_HEIGHT,
-      width: BUTTON_WIDTH * widthScale,
+      width: BUTTON_WIDTH * (config.widthScale || 1),
       height: FOOTER_HEIGHT,
     })
+    this._mainFooter = mainFooter
     this._config = config
     this._currentBgStartColor = DEFAULT_BG_START_COLOR
     this._currentBgEndColor = DEFAULT_BG_END_COLOR
@@ -127,6 +134,10 @@ export class FooterMenuButton extends BaseButton {
         bca + (dbca - bca) * progress,
       ])
     })
+  }
+
+  protected override onClick() {
+    this._mainFooter.clickFooter(this._config.id)
   }
 
   rect(): [number, number, number, number] {

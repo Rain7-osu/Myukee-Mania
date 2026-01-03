@@ -1,9 +1,9 @@
-import { BaseButton } from './BaseButton'
+import { RenderButton } from './RenderButton'
 import { ActiveEffect } from '../Core/ActiveEffect'
 
 const LEFT_OFFSET = 120
 
-export class ModsPanelButton extends BaseButton {
+export class ModsPanelButton extends RenderButton {
   private _translateX = LEFT_OFFSET
 
   private _showEffect = new ActiveEffect()
