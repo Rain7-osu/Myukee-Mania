@@ -85,7 +85,7 @@ export class MainController implements IMainController {
 
   private _randomHistory: BeatmapItem[] = []
 
-  private _fps = new FPS()
+  private _fps = FPS.getInstance()
 
   private _selectedMods: Mod[] = []
 
