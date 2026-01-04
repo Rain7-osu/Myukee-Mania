@@ -1,6 +1,6 @@
-export interface ISettingItem<T extends number | string> {
-  onChange(callback: (value: T) => void): void
+import type { IEditable } from './IEditable';
 
+export interface ISettingItem<T extends number | string | boolean> extends IEditable<T>{
   registerEvents(): void
 
   removeEvents(): void

@@ -43,7 +43,7 @@ interface TimeoutAction {
   time: number;
   start: number;
   resolve: () => void;
-  reject: () => void;
+  reject: (s: string) => void;
   id: number;
 }
 
@@ -125,7 +125,7 @@ export class ActiveEffect {
 
   createTimeout(time: number): [Promise<void>, number] {
     const id = ++ActiveEffect._timeout_counter
-    const task = new Promise<void>((resolve: () => void, reject: () => void) => {
+    const task = new Promise<void>((resolve: () => void, reject: (reason: string) => void) => {
       this._timeouts.push({
         id,
         time,
@@ -141,13 +141,13 @@ export class ActiveEffect {
     if (timer) {
       this._timeouts = this._timeouts.filter(({ id, reject }) => {
         if (id === timer) {
-          reject()
+          reject(`Abort Timer: ${id}`)
           return false
         }
         return true
       })
     } else {
-      this._timeouts.forEach(({ reject }) => reject())
+      this._timeouts.forEach(({ reject, id }) => reject(`Abort Timer: ${id}`))
       this._timeouts = []
     }
   }

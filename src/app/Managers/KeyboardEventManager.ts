@@ -16,6 +16,10 @@ const preventDefaultMaps: string[] = [
   KeyCode.O,
   KeyCode.SPACE,
   KeyCode.W,
+  KeyCode.ARROW_LEFT,
+  KeyCode.ARROW_RIGHT,
+  KeyCode.ARROW_UP,
+  KeyCode.ARROW_DOWN,
 ]
 
 export class KeyboardEventManager {

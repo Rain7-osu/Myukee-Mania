@@ -6,6 +6,8 @@ import { rgba } from '../_common/utils';
 import { CANVAS, px, py } from '../Configs/Config';
 import { SliderSetting } from '../Components/SliderSetting';
 import { FrameSnapshot } from '../Core/FrameSnapshot';
+import { debounce } from '../_common/debounce';
+import { throttle } from '../_common/throttle';
 
 const TRANSITION_DURATION = 500
 const OFFSET_X = 120
@@ -17,6 +19,8 @@ interface InnerStyle {
 }
 
 export class SettingsPanel extends RenderObject {
+  private _isEditing = false
+
   private readonly _settings = Settings.getInstance()
 
   private readonly _container: HTMLCanvasElement
@@ -32,12 +36,12 @@ export class SettingsPanel extends RenderObject {
   constructor(container: HTMLCanvasElement) {
     super()
     this._container = container
-    let offsetY = py(200)
-    const ITEM_HEIGHT = py(72);
+    let offsetY = py(360)
+    const ITEM_HEIGHT = py(60);
     const offsetX = px(OFFSET_X)
     const width = this._innerStyle.maxWidth - offsetX
     const judgementDelaySetting = new SliderSetting(container, {
-      label: 'Judgement Delay',
+      label: 'Judgement Delay:',
       min: -160,
       max: 160,
       value: this._settings.get('judgementDelay'),
@@ -51,7 +55,7 @@ export class SettingsPanel extends RenderObject {
     })
     offsetY += ITEM_HEIGHT
     const backgroundDarkSetting = new SliderSetting(container, {
-      label: 'Background dim',
+      label: 'Background dim:',
       min: 0,
       max: 100,
       value: this._settings.get('backgroundDark'),
@@ -65,7 +69,7 @@ export class SettingsPanel extends RenderObject {
     })
     offsetY += ITEM_HEIGHT
     const offsetSetting = new SliderSetting(container, {
-      label: 'Offset',
+      label: 'Offset:',
       min: -160,
       max: 160,
       value: this._settings.get('offset'),
@@ -77,12 +81,40 @@ export class SettingsPanel extends RenderObject {
         height: ITEM_HEIGHT,
       },
     })
+    offsetY += ITEM_HEIGHT
+    const masterVolumeSetting = new SliderSetting(container, {
+      label: 'Master Volume:',
+      min: 0,
+      max: 100,
+      value: this._settings.get('masterVolume') ,
+      unit: '%',
+      layout: {
+        offsetX,
+        offsetY,
+        width,
+        height: ITEM_HEIGHT,
+      },
+    })
     this._settingsItem = [
       { name: 'judgementDelay', item: judgementDelaySetting },
       { name: 'backgroundDark', item: backgroundDarkSetting },
       { name: 'offset', item: offsetSetting },
+      { name: 'masterVolume', item: masterVolumeSetting },
     ]
-    this._settingsItem.forEach(({ item, name }) => item.onChange(value => this._settings.set(name, value as SettingsValue[SettingsKey])))
+    const setSetting = throttle((name: SettingsKey, value: string | number) => {
+      this._settings.change(name, value as SettingsValue[SettingsKey])
+    }, 100)
+    this._settingsItem.forEach(({ item, name }) => {
+      item.onChange(value => {
+        setSetting(name, value)
+      })
+      item.onMouseEnter(() => {
+        this._isEditing = true
+      })
+      item.onMouseLeave(() => {
+        this._isEditing = false
+      })
+    })
   }
 
   registerEvents() {
@@ -98,14 +130,25 @@ export class SettingsPanel extends RenderObject {
     this._settingsItem.forEach(({ item }) => item.updateEffect(now))
   }
 
+  private _loadValue() {
+    this._settingsItem.forEach(({ item, name }) => {
+      item.value = this._settings.get(name) as string | number
+    })
+  }
+
   get width(): number {
     return this._innerStyle.width
+  }
+
+  get editing(): boolean {
+    return this._isEditing
   }
 
   async show() {
     if (this.display) {
       return Promise.resolve()
     }
+    this._loadValue()
     this.display = true
     this.cancelTransitions()
     await Promise.all([
@@ -137,7 +180,7 @@ export class SettingsPanel extends RenderObject {
       context.fillRect(0, 0, maxWidth, height)
 
       context.fillStyle = this._innerStyle.leftBackground
-      context.fillRect(0, 0, OFFSET_X, height)
+      context.fillRect(0, 0, px(OFFSET_X), height)
 
       this._settingsItem.forEach(({ item }) => item.render(context))
     }, maxWidth, height)

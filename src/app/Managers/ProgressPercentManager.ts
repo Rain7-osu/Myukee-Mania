@@ -1,9 +1,9 @@
-import { ProgressPercentEffect } from '../Effects/ProgressEffect'
+import { MapProgressEffect } from '../Effects/MapProgressEffect'
 
 export class ProgressPercentManager {
-  private _effect: ProgressPercentEffect = new ProgressPercentEffect(0)
+  private _effect: MapProgressEffect = new MapProgressEffect(0)
 
-  get effect(): ProgressPercentEffect { return this._effect }
+  get effect(): MapProgressEffect { return this._effect }
 
   private _duration: number
 

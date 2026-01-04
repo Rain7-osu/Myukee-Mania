@@ -1,5 +1,6 @@
 import { KeyCode } from '../Enums/KeyCode';
 import { safeGetStorage, safeParseJson, safeSetStorage } from '../_common/utils';
+import type { ISettings } from '../Interfaces/ISettings';
 
 interface KeyBinds {
   keys4: Record<number, string>
@@ -16,6 +17,7 @@ export interface SettingsValue {
   maniaKeyBinds: KeyBinds
   judgementDelay: number
   offset: number
+  masterVolume: number
 }
 
 export type SettingsKey = keyof SettingsValue
@@ -28,6 +30,7 @@ export const DEFAULT_SETTINGS: SettingsValue = {
   hideObjects: false,
   judgementDelay: 0,
   offset: 0,
+  masterVolume: 1,
   maniaKeyBinds: {
     keys4: {
       0: KeyCode.D,
@@ -76,10 +79,12 @@ const DEFAULT_SETTINGS_VALUE = JSON.stringify(DEFAULT_SETTINGS)
 
 const LOCAL_STORAGE_KEY = 'myukee-mania-settings'
 
+type SettingsHook = <T extends keyof SettingsValue>(key: T, value: SettingsValue[T]) => SettingsValue[T]
+
 /**
  * @class
  */
-export class Settings {
+export class Settings implements ISettings {
   private static _instance: Settings | null = null
 
   private readonly _value: SettingsValue
@@ -96,12 +101,41 @@ export class Settings {
     return Settings._instance
   }
 
+  private readonly _hooks: SettingsHook[] = []
+
+  private readonly _specialHooks: Partial<Record<keyof SettingsValue, SettingsHook[]>> = {}
+
   get<T extends SettingsKey>(key: T): SettingsValue[T] {
-    return this._value[key]
+    return this._value[key] || DEFAULT_SETTINGS[key]
   }
 
   set<T extends keyof SettingsValue>(key: T, value: SettingsValue[T]): void {
     this._value[key] = value
     safeSetStorage(LOCAL_STORAGE_KEY, JSON.stringify(this._value))
+  }
+
+  change<T extends keyof SettingsValue>(key: T, value: SettingsValue[T]) {
+    let updatedValue = value
+    if (this._hooks.length) {
+      updatedValue = this._hooks.reduce((prev, hook) => hook(key, prev), updatedValue as SettingsValue[T])
+    }
+    if (Array.isArray(this._specialHooks[key])) {
+      const hooks: SettingsHook[] = this._specialHooks[key];
+      updatedValue = hooks.reduce((prev, hook) => hook(key, prev), updatedValue as SettingsValue[T])
+    }
+    this.set(key, updatedValue)
+  }
+
+  use(...args) {
+    if (args.length > 1) {
+      const [key, hook] = args as [keyof SettingsValue, SettingsHook]
+      if (!Array.isArray(this._specialHooks[key])) {
+        this._specialHooks[key] = [] as SettingsHook[]
+      }
+      this._specialHooks[key]!.push(hook)
+    } else {
+      const [hook] = args as [SettingsHook]
+      this._hooks.push(hook)
+    }
   }
 }

@@ -30,6 +30,7 @@ import { KeyCode } from '../Enums/KeyCode';
 import { MAX_SPEED, MIN_SPEED } from '../Configs/Config';
 import { MainSearch } from '../Components/MainSearch';
 import type { IMainController } from '../Interfaces/IMainController';
+import { VolumeManager } from '../Managers/VolumeManager';
 
 /**
  * 主界面管理器
@@ -62,6 +63,9 @@ export class MainController implements IMainController {
   private _currentRate: number = 1
 
   private _loading = false
+  /**
+   * @deprecated TODO use StageController[[settings]]
+   */
   private _playing = false
   private _paused = false
   private _showResults = false
@@ -71,7 +75,9 @@ export class MainController implements IMainController {
   private _canvas: HTMLCanvasElement
   private _entry: HTMLElement
 
-  private _autoManager: AudioManager
+  private _audioManager: AudioManager
+
+  private _volumeManager: VolumeManager
 
   private _keyboardEventManager: KeyboardEventManager
 
@@ -103,7 +109,6 @@ export class MainController implements IMainController {
 
   private readonly _mainSearch: MainSearch
 
-
   constructor(canvas: HTMLCanvasElement, entry: HTMLElement) {
     if (!canvas) {
       throw new Error('Canvas container can not be null.')
@@ -115,7 +120,7 @@ export class MainController implements IMainController {
     this._entry = entry
     this._layoutEngine = new LayoutRenderEngine(canvas)
     this._mouseTip = MouseTip.createInstance(canvas)
-    this._autoManager = new AudioManager()
+    this._audioManager = new AudioManager()
     this._keyboardEventManager = new KeyboardEventManager()
     this._mouseEventManager = new MouseEventManager(canvas, 'MainController')
     this._stageController = new StageController(canvas, this, this._layoutEngine)
@@ -128,6 +133,7 @@ export class MainController implements IMainController {
     this._mainHeader = new MainHeader(speed)
     this._beatmapListManager = new BeatmapListManager(canvas)
     this._settingsPanel = new SettingsPanel(canvas)
+    this._volumeManager = new VolumeManager(canvas, this._audioManager)
     this._modsInfo = new ModsInfoEffect()
     this._cursor = new Cursor()
     this._modsPanel.display = false
@@ -141,8 +147,8 @@ export class MainController implements IMainController {
     }
     this._currentRate = +this._currentRate.toFixed(2)
     this._rateChangeEffect = new RateChangeEffect(this._currentRate, performance.now())
-    this._autoManager.setRate(this._currentRate)
-    this._autoManager.preservesPitch = false
+    this._audioManager.setRate(this._currentRate)
+    this._audioManager.preservesPitch = false
   }
 
   decreaseRate() {
@@ -152,15 +158,15 @@ export class MainController implements IMainController {
     }
     this._currentRate = +this._currentRate.toFixed(2)
     this._rateChangeEffect = new RateChangeEffect(this._currentRate, performance.now())
-    this._autoManager.setRate(this._currentRate)
-    this._autoManager.preservesPitch = true
+    this._audioManager.setRate(this._currentRate)
+    this._audioManager.preservesPitch = true
   }
 
   async exit() {
     await this.fadeOut(0, 2000)
     this._canvas.style.display = 'none'
     this._entry.style.display = 'flex'
-    this._autoManager.abort()
+    this._audioManager.abort()
     this.removeEvents()
     cancelAnimationFrame(this._cancelAnimation)
   }
@@ -187,6 +193,7 @@ export class MainController implements IMainController {
     this._registerMouseEvents()
     this._registerFooterEvents()
     this._registerMainSearchEvents()
+    this._volumeManager.init()
     this.loopFrame()
   }
 
@@ -254,17 +261,17 @@ export class MainController implements IMainController {
   }
 
   async playAuto(beatmap: Beatmap) {
-    if (this._autoManager.filename === beatmap.audioFile) {
-      if (!this._autoManager.playing) {
-        await this._autoManager.play()
+    if (this._audioManager.filename === beatmap.audioFile) {
+      if (!this._audioManager.playing) {
+        await this._audioManager.play()
       }
       return
     }
-    this._autoManager.abort()
-    await this._autoManager.load(beatmap.audioFile, beatmap.previewTime)
-    this._autoManager.setRate(this._currentRate)
-    await this._autoManager.play()
-    this._autoManager.repeat = true
+    this._audioManager.abort()
+    await this._audioManager.load(beatmap.audioFile, beatmap.previewTime)
+    this._audioManager.setRate(this._currentRate)
+    await this._audioManager.play()
+    this._audioManager.repeat = true
   }
 
   async abortPlaying() {
@@ -279,7 +286,7 @@ export class MainController implements IMainController {
   }
 
   async play(beatmap: Beatmap) {
-    await this._stageController.init(beatmap, this._currentRate, this._selectedMods)
+    await this._stageController.init(beatmap, this._currentRate, this._selectedMods, this._audioManager)
     this._stageController.start()
     this._playing = true
     this._backButton.scene = 'main'
@@ -296,8 +303,8 @@ export class MainController implements IMainController {
     this._keyboardEventManager.disableEvents()
     this._mouseEventManager.disableEvents()
     this._beatmapListManager.beatmapList.disableEvents()
-    this._autoManager.abort()
-    this._autoManager.abort()
+    this._audioManager.abort()
+    this._audioManager.abort()
     await Promise.all([
       this._beatmapListManager.hide(),
       this._mainHeader.hide(),
@@ -387,6 +394,14 @@ export class MainController implements IMainController {
       }
     }
 
+    const executeWhileIdle = (handler: (e: KeyboardEvent) => void) => {
+      return (e: KeyboardEvent) => {
+        if (!this._settingsPanel.editing) {
+          return handler(e)
+        }
+      }
+    };
+
     const keydownEventList: Record<string, KeyboardEventHandler> = {
       [KeyCode.ENTER]: handleEnter,
       [KeyCode.NUMPAD_ENTER]: handleEnter,
@@ -400,10 +415,26 @@ export class MainController implements IMainController {
           // input o
         }
       },
-      [KeyCode.ARROW_LEFT]: () => this.selectPrev(),
-      [KeyCode.ARROW_RIGHT]: () => this.selectNext(),
-      [KeyCode.ARROW_UP]: () => this._beatmapListManager.movePrev(),
-      [KeyCode.ARROW_DOWN]: () => this._beatmapListManager.moveNext(),
+      [KeyCode.ARROW_LEFT]: executeWhileIdle(e => {
+        if (!e.altKey) {
+          this.selectPrev()
+        }
+      }),
+      [KeyCode.ARROW_RIGHT]: executeWhileIdle(e => {
+        if (!e.altKey) {
+          this.selectNext()
+        }
+      }),
+      [KeyCode.ARROW_UP]: e => {
+        if (!e.altKey) {
+          this._beatmapListManager.movePrev()
+        }
+      },
+      [KeyCode.ARROW_DOWN]: e => {
+        if (!e.altKey) {
+          this._beatmapListManager.moveNext()
+        }
+      },
       [KeyCode.ESCAPE]: () => {
         if (this._playing) {
           if (this._paused) {
@@ -433,8 +464,8 @@ export class MainController implements IMainController {
           this.increaseSpeed()
         }
       },
-      [KeyCode.F5]: () => this._autoManager.resume(),
-      [KeyCode.F6]: () => this._autoManager.pause(),
+      [KeyCode.F5]: () => this._audioManager.resume(),
+      [KeyCode.F6]: () => this._audioManager.pause(),
       [KeyCode.F7]: e => {
         if (e.ctrlKey) {
           this.decreaseRate()
@@ -605,6 +636,7 @@ export class MainController implements IMainController {
       this._settingsPanel.updateEffect(now)
       this._modsPanel.updateEffect(now)
       this._mainSearch.updateEffect(now)
+      this._volumeManager.update(now)
     }
 
     if (this._paused || this._stageController.failed) {
@@ -670,6 +702,7 @@ export class MainController implements IMainController {
       this._layoutEngine.renderObject(this._rateChangeEffect)
     }
 
+    this._layoutEngine.renderObjects(this._volumeManager.effects)
     this._layoutEngine.renderObject(this._fps)
     this._layoutEngine.renderObject(this._mouseTip)
     this.renderSpeedChangeEffects()

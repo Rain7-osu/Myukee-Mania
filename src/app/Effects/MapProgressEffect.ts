@@ -1,7 +1,7 @@
 import { RenderObject } from '../Core/RenderObject';
 import { Skin } from '../Configs/Skin';
 
-export class ProgressPercentEffect extends RenderObject {
+export class MapProgressEffect extends RenderObject {
   private _percent: number
 
   set percent(value: number) { this._percent = value }

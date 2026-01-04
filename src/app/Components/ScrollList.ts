@@ -101,13 +101,13 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
 
   private _minScrollY: number | null = null
 
-  private _activeItem: ScrollItem | null
+  private _activeItem: T | null
   private _activeIndex: number = -1
 
-  private _hoveredItem: ScrollItem | null
+  private _hoveredItem: T | null
   private _hoveredIndex: number = -1
 
-  private _eventMaps = { onClick: (item: ScrollItem) => {} }
+  private _eventMaps = { onClick: (item: T) => {} }
 
   private _activeEffects: { inertia: ActiveEffect }
 
@@ -148,6 +148,10 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
   }
 
   private _onWheel(e: WheelEvent) {
+    if (e.shiftKey || e.ctrlKey || e.altKey) {
+      return
+    }
+
     if (this._autoScrolling) {
       this._cancelTransitionManager.cancelScrollTo()
       this._autoScrolling = false
@@ -167,7 +171,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
 
   private _mouseMoveTimer = -1
 
-  private _findCurrentHoverItem(x: number, y: number): [ScrollItem | null, number] {
+  private _findCurrentHoverItem(x: number, y: number): [T | null, number] {
     const items = this.scrollItems()
     for (let i = 0; i < items.length; i++) {
       let item = items[i]
@@ -199,7 +203,6 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     const x = e.offsetX
     const y = e.offsetY
     const items = this.scrollItems()
-    /** @type {ScrollItem | null} */
     const hoveredItem = this._hoveredItem
 
     const [newHoverItem, index] = this._findCurrentHoverItem(x, y)

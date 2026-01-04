@@ -160,7 +160,7 @@ export class StageController extends ActiveEffect {
     return this.getGameTiming() - this._playingMap!.startTiming < -3000
   }
 
-  async init(beatmap: Beatmap, rate: number, mods: Mod[]): Promise<void> {
+  async init(beatmap: Beatmap, rate: number, mods: Mod[], audio: AudioManager): Promise<void> {
     const { keys } = Skin.config.stage
     this.reset()
 
@@ -188,7 +188,6 @@ export class StageController extends ActiveEffect {
     }
 
     // audio
-    const audio = new AudioManager()
     await audio.load(beatmap.audioFile)
     const duration = audio.duration / rate
 

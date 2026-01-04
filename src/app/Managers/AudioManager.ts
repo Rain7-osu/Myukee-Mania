@@ -1,7 +1,9 @@
 import { Mod } from '../Enums/Mod'
 import { DEFAULT_DELAY_TIME } from '../Configs/Config'
+import type { IAudioManager } from '../Interfaces/IAudioManager';
+import { Settings } from '../Configs/Settings';
 
-export class AudioManager {
+export class AudioManager implements IAudioManager {
   private readonly _audio: HTMLAudioElement
   /**
    * the length of the audio
@@ -35,7 +37,8 @@ export class AudioManager {
       this._audio.src = src
       this._audio.controls = false
       this._audio.autoplay = false
-      this._audio.currentTime = startTime / 1000
+      this.setCurrentTime(startTime / 1000)
+      this.volume = Settings.getInstance().get('masterVolume')
 
       const onLoad = () => {
         if (this._audio.duration) {
@@ -119,4 +122,11 @@ export class AudioManager {
 
   get playing(): boolean { return this._playing }
 
+  get volume(): number {
+    return this._audio.volume * 100
+  }
+
+  set volume(volume: number) {
+    this._audio.volume = Math.max(0, Math.min(1, volume / 100))
+  }
 }

@@ -40,6 +40,10 @@ export class RenderEngine {
     }
   }
 
+  renderObjects (objects: RenderObject[]): void {
+    objects.forEach(object => this.renderObject(object))
+  }
+
   renderOffsetObject (shape: OffsetRenderObject): void {
     const offsetY = this.convertOffsetToY(shape.offset)
     const endY = shape.end ? this.convertOffsetToY(shape.end) : undefined

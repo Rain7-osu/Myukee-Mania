@@ -5,7 +5,7 @@ import { SliderSelector } from './SliderSelector';
 import { RenderElement } from '../Core/RenderElement';
 
 const LABEL_COLOR = 'rgb(255, 255, 255)';
-const FONT_SIZE = py(32);
+const FONT_SIZE = 24;
 
 const  TRANSITION_DURATION = 300;
 
@@ -39,8 +39,24 @@ export class SliderSetting extends RenderElement implements ISettingItem<number>
     this.layout = { ...this.layout, ...props?.layout }
   }
 
+  get value(): number {
+    return this._selector.value
+  }
+
+  set value(value: number) {
+    this._selector.value = value
+  }
+
   onChange(callback: (value: number) => void) {
     this._selector.onChange(callback)
+  }
+
+  onMouseEnter(callback: (value: number) => void) {
+    this._selector.onMouseEnter(callback)
+  }
+
+  onMouseLeave(callback: (value: number) => void) {
+    this._selector.onMouseLeave(callback)
   }
 
   registerEvents() {
