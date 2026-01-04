@@ -22,6 +22,22 @@ interface ScrollListStyle {
   height: number
 }
 
+interface ListStatus {
+  isDragging: boolean;
+  isInertiaScrolling: boolean;
+  isWheeling: boolean;
+  lastScrollTime: number;
+  lastScrollY: number;
+  mouseEvent: MouseEvent | null;
+  mouseMoving: boolean;
+  velocity: number;
+  inertiaX: number;
+  lastMouseY: number;
+  lastDragTime: number;
+  mousePositions: Array<{ y: number; time: number }>;
+  hasDragged: boolean; // 记录是否发生了拖拽
+}
+
 const DURATION = 480
 const SCROLL_TO_DURATION = 240
 const MAX_SPEED = 75
@@ -55,6 +71,11 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
       inertiaX: 0,
       isWheeling: false,
       mouseMoving: false,
+      isDragging: false,
+      lastMouseY: 0,
+      lastDragTime: 0,
+      mousePositions: [],
+      hasDragged: false,
     }
     this._activeEffects = {
       inertia: new ActiveEffect(),
@@ -86,16 +107,7 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
 
   private _listConfig: ListConfig
 
-  private _status: {
-    isInertiaScrolling: boolean;
-    isWheeling: boolean;
-    lastScrollTime: number;
-    lastScrollY: number;
-    mouseEvent: MouseEvent | null;
-    mouseMoving: boolean;
-    velocity: number;
-    inertiaX: number;
-  }
+  private _status: ListStatus
 
   private _maxScrollY: number | null = null
 
@@ -169,6 +181,9 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._status.velocity = Math.max(-this._listConfig.maxVelocity, Math.min(this._listConfig.maxVelocity, this._status.velocity))
   }
 
+  /**
+   * @deprecated TODO 后续使用统一的 timer 管理器
+   */
   private _mouseMoveTimer = -1
 
   private _findCurrentHoverItem(x: number, y: number): [T | null, number] {
@@ -192,11 +207,42 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
 
     clearTimeout(this._mouseMoveTimer)
     this._mouseMoveTimer = window.setTimeout(() => {
-      // this._status.wheelEvent && this.handleMouseMove(this._status.wheelEvent)
       this._status.mouseMoving = false
     }, 100)
 
-    this._refreshHoverStatus(e)
+    if (this._status.isDragging) {
+      this._dragging(e)
+    } else {
+      this._refreshHoverStatus(e)
+    }
+  }
+
+  private _updateMousePositions(currentTime: number) {
+    // 只保留最近0ms内的鼠标位置，用于计算速度
+    const timeThreshold = currentTime - 50
+    while (this._status.mousePositions.length > 0 && this._status.mousePositions[0].time < timeThreshold) {
+      this._status.mousePositions.shift()
+    }
+  }
+
+  private _dragging(e: MouseEvent): void {
+    // 设置拖拽标志位
+    this._status.hasDragged = true
+
+    // 计算鼠标移动量
+    const currentY = e.clientY
+    const deltaY = currentY - this._status.lastMouseY
+    const currentTime = performance.now()
+
+    // 记录当前鼠标位置和时间
+    this._status.mousePositions.push({ y: currentY, time: currentTime })
+    this._updateMousePositions(currentTime)
+    // 更新滚动位置，取反deltaY使拖拽方向与滚动方向一致
+    this.scrollY -= deltaY
+
+    // 更新最后鼠标位置和时间
+    this._status.lastMouseY = currentY
+    this._status.lastDragTime = currentTime
   }
 
   private _refreshHoverStatus(e: MouseEvent): void {
@@ -250,6 +296,11 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._status.mouseEvent = e
     clearTimeout(this._mouseMoveTimer)
 
+    // 如果发生了拖拽，则不触发 onClick 事件
+    if (this._status.hasDragged) {
+      return
+    }
+
     const [clickItem, index] = this._findCurrentHoverItem(e.offsetX, e.offsetY)
     if (!clickItem) {
       return
@@ -265,6 +316,49 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     }
   }
 
+  private _onMouseUp(e: MouseEvent): void {
+    e.preventDefault()
+    this._status.mouseEvent = e
+    this._status.isDragging = false
+
+    this._updateMousePositions(performance.now())
+    // 计算惯性滚动速度
+    if (this._status.mousePositions.length >= 2) {
+      const firstPosition = this._status.mousePositions[0]
+      const lastPosition = this._status.mousePositions[this._status.mousePositions.length - 1]
+      const timeDiff = lastPosition.time - firstPosition.time
+      const distanceDiff = lastPosition.y - firstPosition.y
+
+      // 计算速度 (像素/毫秒)，并转换为适合的速度单位
+        if (timeDiff > 0) {
+          let velocity = (distanceDiff / timeDiff) * 16 // 调整速度系数
+
+          // 取反velocity使惯性滚动方向与拖拽方向一致
+          velocity = -velocity
+
+          // 限制速度在配置范围内
+          velocity = Math.max(-this._listConfig.maxVelocity, Math.min(this._listConfig.maxVelocity, velocity))
+
+          // 设置惯性滚动速度
+          this._status.velocity = velocity
+        }
+    }
+
+    // 清空鼠标位置记录
+    this._status.mousePositions = []
+  }
+
+  private _onMouseDown(e: MouseEvent): void {
+    e.preventDefault()
+    this._status.mouseEvent = e
+    this._status.isDragging = true
+    // 重置拖拽标志位
+    this._status.hasDragged = false
+    this._status.lastMouseY = e.clientY
+    this._status.lastDragTime = performance.now()
+    this._status.mousePositions = [{ y: e.clientY, time: this._status.lastDragTime }]
+  }
+
   registerEvents(eventMaps: { onClick: (item: ScrollItem) => void }): void {
     this._eventMaps = eventMaps
     const listenWheelEnd = () => {
@@ -278,6 +372,8 @@ export abstract class ScrollList<T extends ScrollItem> extends RenderObject {
     this._mouseEventHandler.registerEvents({
       wheelEvents: [this._onWheel.bind(this)],
       mousemoveEvents: [this._onMouseMove.bind(this), listenWheelEnd],
+      mouseupEvents: [this._onMouseUp.bind(this)],
+      mousedownEvents: [this._onMouseDown.bind(this)],
       clickEvents: [this._onClick.bind(this)],
     })
   }
